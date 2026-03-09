@@ -1,0 +1,43 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
+@import 'mapbox-gl/dist/mapbox-gl.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: #FAF7F2;
+  color: #1C1410;
+}
+
+.font-display { font-family: 'Playfair Display', serif; }
+
+/* Mapbox popup overrides */
+.mapboxgl-popup-content {
+  border-radius: 16px !important;
+  padding: 0 !important;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(28,20,16,0.18) !important;
+  border: 1px solid rgba(196,98,45,0.2) !important;
+  min-width: 220px;
+}
+.mapboxgl-popup-tip { display: none; }
+.mapboxgl-ctrl-logo { display: none !important; }
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #FAF7F2; }
+::-webkit-scrollbar-thumb { background: #C4622D44; border-radius: 3px; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 0.5s ease both; }
+.fade-up-1 { animation-delay: 0.05s; }
+.fade-up-2 { animation-delay: 0.12s; }
+.fade-up-3 { animation-delay: 0.19s; }
+.fade-up-4 { animation-delay: 0.26s; }

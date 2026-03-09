@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { supabase } from '../../lib/supabase'
+import { supabase } from '../lib/supabase'
 import mapboxgl from 'mapbox-gl'
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN

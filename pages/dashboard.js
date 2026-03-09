@@ -6,27 +6,25 @@ import { supabase } from '../lib/supabase'
 
 export default function Dashboard() {
   const router = useRouter()
-  const [user, setUser] = useState(null)
   const [influencer, setInfluencer] = useState(null)
   const [recommendations, setRecommendations] = useState([])
   const [loading, setLoading] = useState(true)
   const [showAddModal, setShowAddModal] = useState(false)
   const [saving, setSaving] = useState(false)
   const [deleteId, setDeleteId] = useState(null)
+  const [copied, setCopied] = useState(false)
 
   const [form, setForm] = useState({
     hotel_name: '', city: '', country: '',
     latitude: '', longitude: '',
-    influencer_quote: '', star_rating: 5,
+    influencer_quote: '', star_rating: '5',
     price_from: '', photo_url: '',
-    booking_links: [{ platform: 'Booking.com', affiliate_url: '', note: '' }]
   })
 
   useEffect(() => {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
-      setUser(user)
 
       const { data: inf } = await supabase
         .from('influencers')
@@ -53,48 +51,30 @@ export default function Dashboard() {
     e.preventDefault()
     setSaving(true)
 
-    const { data: rec, error } = await supabase
-      .from('recommendations')
-      .insert({
-        influencer_id: influencer.id,
-        hotel_name: form.hotel_name,
-        city: form.city,
-        country: form.country,
-        latitude: parseFloat(form.latitude),
-        longitude: parseFloat(form.longitude),
-        influencer_quote: form.influencer_quote,
-        star_rating: form.star_rating,
-        price_from: form.price_from ? parseInt(form.price_from) : null,
-        photo_url: form.photo_url || null,
-      })
-      .select()
-      .single()
+    const { error } = await supabase.from('recommendations').insert({
+      influencer_id: influencer.id,
+      hotel_name: form.hotel_name,
+      city: form.city,
+      country: form.country,
+      latitude: form.latitude ? parseFloat(form.latitude) : null,
+      longitude: form.longitude ? parseFloat(form.longitude) : null,
+      influencer_quote: form.influencer_quote,
+      star_rating: parseInt(form.star_rating),
+      price_from: form.price_from ? parseInt(form.price_from) : null,
+      photo_url: form.photo_url || null,
+    })
 
-    if (!error && rec) {
-      // Add booking links
-      const links = form.booking_links.filter(l => l.affiliate_url)
-      if (links.length > 0) {
-        await supabase.from('booking_links').insert(
-          links.map(l => ({ recommendation_id: rec.id, ...l }))
-        )
-      }
-
-      // Refresh
+    if (!error) {
       const { data: recs } = await supabase
         .from('recommendations')
         .select('*, booking_links(*)')
         .eq('influencer_id', influencer.id)
         .order('created_at', { ascending: false })
       setRecommendations(recs || [])
+      setShowAddModal(false)
+      setForm({ hotel_name: '', city: '', country: '', latitude: '', longitude: '', influencer_quote: '', star_rating: '5', price_from: '', photo_url: '' })
     }
-
     setSaving(false)
-    setShowAddModal(false)
-    setForm({
-      hotel_name: '', city: '', country: '', latitude: '', longitude: '',
-      influencer_quote: '', star_rating: 5, price_from: '', photo_url: '',
-      booking_links: [{ platform: 'Booking.com', affiliate_url: '', note: '' }]
-    })
   }
 
   const handleDelete = async (id) => {
@@ -104,25 +84,19 @@ export default function Dashboard() {
     setDeleteId(null)
   }
 
-  const addBookingLink = () => {
-    setForm(prev => ({ ...prev, booking_links: [...prev.booking_links, { platform: '', affiliate_url: '', note: '' }] }))
-  }
-
-  const updateBookingLink = (i, field, val) => {
-    setForm(prev => {
-      const links = [...prev.booking_links]
-      links[i] = { ...links[i], [field]: val }
-      return { ...prev, booking_links: links }
-    })
+  const copyLink = () => {
+    navigator.clipboard.writeText(`https://gotherenow.app/${influencer.handle}`)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-screen" style={{ background: '#FAF7F2' }}>
-      <div className="font-display text-xl text-espresso">Loading dashboard...</div>
+      <div className="font-display text-xl text-espresso">Loading...</div>
     </div>
   )
 
-  const profileUrl = `gotherenow.app/@${influencer?.handle}`
+  const profile = influencer?.profiles
 
   return (
     <>
@@ -133,45 +107,58 @@ export default function Dashboard() {
         style={{ background: 'white', borderBottom: '1px solid rgba(28,20,16,0.08)' }}>
         <Link href="/" className="font-display text-xl text-espresso">Go<span className="text-terracotta">There</span>Now</Link>
         <div className="flex items-center gap-4">
-          <a href={`/@${influencer?.handle}`} target="_blank" rel="noopener noreferrer"
-            className="text-xs font-semibold text-terracotta hover:underline">
-            View my page →
-          </a>
+          <a href={`/${influencer?.handle}`} target="_blank"
+            className="text-xs font-semibold text-terracotta hover:underline">View my page →</a>
           <button onClick={async () => { await supabase.auth.signOut(); router.push('/') }}
-            className="text-xs text-muted hover:text-espresso">Sign out</button>
+            className="text-xs text-muted hover:text-espresso" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
+            Sign out
+          </button>
         </div>
       </nav>
 
-      <div className="max-w-5xl mx-auto px-6 py-8">
+      <div className="max-w-3xl mx-auto px-6 py-8">
 
-        {/* HEADER */}
+        {/* WELCOME */}
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
           <div>
             <h1 className="font-display text-3xl text-espresso mb-1">
-              Welcome back, {influencer?.profiles?.full_name?.split(' ')[0] || 'Creator'} 👋
+              Hey {profile?.full_name?.split(' ')[0] || 'there'} 👋
             </h1>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted">Your page:</span>
-              <a href={`/@${influencer?.handle}`} target="_blank"
-                className="text-sm font-medium text-terracotta hover:underline">{profileUrl}</a>
-              <button onClick={() => { navigator.clipboard.writeText(`https://${profileUrl}`) }}
-                className="text-xs px-2 py-1 rounded-md text-muted hover:text-espresso transition-colors"
-                style={{ background: '#F5EFE6' }}>Copy link</button>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm text-muted">Your link:</span>
+              <span className="text-sm font-medium text-espresso">gotherenow.app/{influencer?.handle}</span>
+              <button onClick={copyLink}
+                className="text-xs px-3 py-1 rounded-full font-semibold transition-all"
+                style={{ background: copied ? '#EEF5F1' : '#F5EFE6', color: copied ? '#7A9E87' : '#8B7D72', border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
+                {copied ? '✓ Copied!' : 'Copy link'}
+              </button>
             </div>
           </div>
           <button onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 px-6 py-3 rounded-full font-semibold text-white transition-all hover:scale-105"
+            className="flex items-center gap-2 px-6 py-3 rounded-full font-semibold text-white transition-all hover:scale-105 flex-shrink-0"
             style={{ background: '#C4622D', fontFamily: 'DM Sans, sans-serif', cursor: 'pointer' }}>
             + Add a Stay
           </button>
         </div>
 
+        {/* HOW IT WORKS BANNER */}
+        <div className="p-5 rounded-2xl mb-8 flex gap-4 items-start"
+          style={{ background: '#FFF8F2', border: '1px solid rgba(196,98,45,0.15)' }}>
+          <div className="text-2xl">💡</div>
+          <div>
+            <div className="font-semibold text-espresso text-sm mb-1">How GoThereNow works for you</div>
+            <div className="text-xs text-muted leading-relaxed">
+              You add the hotels you've stayed at. The GoThereNow team handles all booking links and affiliate setup. When your followers book, you earn — we'll handle the payouts monthly. Simple!
+            </div>
+          </div>
+        </div>
+
         {/* STATS */}
         <div className="grid grid-cols-3 gap-4 mb-8">
           {[
-            { num: recommendations.length, label: 'Total Stays', icon: '🏨' },
-            { num: new Set(recommendations.map(r => r.country)).size, label: 'Countries', icon: '🌍' },
-            { num: recommendations.reduce((a, r) => a + (r.booking_links?.length || 0), 0), label: 'Booking Links', icon: '🔗' },
+            { num: recommendations.length, label: 'Stays Added', icon: '🏨' },
+            { num: new Set(recommendations.map(r => r.country)).size || 0, label: 'Countries', icon: '🌍' },
+            { num: recommendations.filter(r => r.booking_links?.length > 0).length, label: 'Bookable', icon: '🔗' },
           ].map((s, i) => (
             <div key={i} className="p-5 rounded-2xl text-center" style={{ background: 'white', border: '1px solid rgba(28,20,16,0.08)' }}>
               <div className="text-2xl mb-1">{s.icon}</div>
@@ -181,16 +168,14 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* RECOMMENDATIONS LIST */}
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-display text-xl text-espresso">Your Recommendations</h2>
-        </div>
+        {/* RECOMMENDATIONS */}
+        <h2 className="font-display text-xl text-espresso mb-4">Your Stays</h2>
 
         {recommendations.length === 0 ? (
           <div className="text-center py-20 rounded-2xl" style={{ background: 'white', border: '2px dashed rgba(196,98,45,0.2)' }}>
             <div className="text-4xl mb-4">🗺️</div>
             <h3 className="font-display text-xl text-espresso mb-2">No stays yet</h3>
-            <p className="text-sm text-muted mb-6">Add your first hotel recommendation to get started.</p>
+            <p className="text-sm text-muted mb-6 max-w-xs mx-auto">Add a hotel you've personally stayed at and loved. Your followers will be able to book it directly.</p>
             <button onClick={() => setShowAddModal(true)}
               className="px-6 py-3 rounded-full font-semibold text-white"
               style={{ background: '#C4622D', fontFamily: 'DM Sans, sans-serif', cursor: 'pointer' }}>
@@ -199,26 +184,27 @@ export default function Dashboard() {
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            {recommendations.map((rec) => (
-              <div key={rec.id} className="flex items-center gap-4 p-4 rounded-2xl transition-all hover:shadow-sm"
+            {recommendations.map(rec => (
+              <div key={rec.id} className="flex items-center gap-4 p-4 rounded-2xl"
                 style={{ background: 'white', border: '1px solid rgba(28,20,16,0.08)' }}>
                 <div className="w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center text-xl overflow-hidden"
                   style={{ background: 'linear-gradient(135deg, #C4622D22, #D4A85322)' }}>
-                  {rec.photo_url ? <img src={rec.photo_url} className="w-full h-full object-cover" /> : '🏨'}
+                  {rec.photo_url ? <img src={rec.photo_url} className="w-full h-full object-cover rounded-xl" /> : '🏨'}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-espresso text-sm truncate">{rec.hotel_name}</div>
                   <div className="text-xs text-muted">{rec.city}, {rec.country}</div>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  {rec.price_from && <span className="text-xs font-medium text-muted">${rec.price_from}/night</span>}
-                  <span className="text-xs px-2 py-1 rounded-md" style={{ background: '#F5EFE6', color: '#8B7D72' }}>
-                    {rec.booking_links?.length || 0} links
-                  </span>
+                  {rec.booking_links?.length > 0 ? (
+                    <span className="text-xs px-2 py-1 rounded-full font-semibold" style={{ background: '#EEF5F1', color: '#7A9E87' }}>✓ Bookable</span>
+                  ) : (
+                    <span className="text-xs px-2 py-1 rounded-full font-semibold" style={{ background: '#FFF0E8', color: '#C4622D' }}>Pending links</span>
+                  )}
                   <button onClick={() => setDeleteId(rec.id)}
                     className="text-xs px-3 py-1.5 rounded-lg text-red-400 hover:bg-red-50 transition-colors"
                     style={{ border: '1px solid rgba(239,68,68,0.2)', background: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
-                    Delete
+                    Remove
                   </button>
                 </div>
               </div>
@@ -231,7 +217,7 @@ export default function Dashboard() {
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto"
           style={{ background: 'rgba(28,20,16,0.6)', backdropFilter: 'blur(4px)' }}>
-          <div className="w-full max-w-xl my-8 rounded-3xl overflow-hidden" style={{ background: 'white' }}>
+          <div className="w-full max-w-lg my-8 rounded-3xl overflow-hidden" style={{ background: 'white' }}>
             <div className="flex items-center justify-between p-6 pb-4" style={{ borderBottom: '1px solid rgba(28,20,16,0.08)' }}>
               <h2 className="font-display text-xl text-espresso">Add a Stay</h2>
               <button onClick={() => setShowAddModal(false)}
@@ -240,7 +226,6 @@ export default function Dashboard() {
             </div>
 
             <form onSubmit={handleAddRecommendation} className="p-6 flex flex-col gap-4">
-
               <Field label="Hotel Name" required>
                 <input type="text" required value={form.hotel_name}
                   onChange={e => setForm({ ...form, hotel_name: e.target.value })}
@@ -261,8 +246,10 @@ export default function Dashboard() {
               </div>
 
               <div className="p-4 rounded-xl" style={{ background: '#F5EFE6' }}>
-                <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">📍 Map Coordinates</p>
-                <p className="text-xs text-muted mb-3">Find these on <a href="https://maps.google.com" target="_blank" className="text-terracotta underline">Google Maps</a>: right-click on the hotel location and copy the numbers.</p>
+                <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-1">📍 Map Location</p>
+                <p className="text-xs text-muted mb-3">
+                  Find on <a href="https://maps.google.com" target="_blank" className="text-terracotta underline">Google Maps</a>: search the hotel → right-click → copy the two numbers shown.
+                </p>
                 <div className="grid grid-cols-2 gap-3">
                   <Field label="Latitude">
                     <input type="number" step="any" value={form.latitude}
@@ -292,7 +279,7 @@ export default function Dashboard() {
                 </Field>
                 <Field label="Star Rating">
                   <select value={form.star_rating} onChange={e => setForm({ ...form, star_rating: e.target.value })}>
-                    {[5, 4, 3, 2, 1].map(n => <option key={n} value={n}>{n} Stars</option>)}
+                    {[5,4,3,2,1].map(n => <option key={n} value={n}>{n} Stars</option>)}
                   </select>
                 </Field>
               </div>
@@ -300,33 +287,17 @@ export default function Dashboard() {
               <Field label="Photo URL (optional)">
                 <input type="url" value={form.photo_url}
                   onChange={e => setForm({ ...form, photo_url: e.target.value })}
-                  placeholder="https://... (paste a photo link)" />
+                  placeholder="Paste a photo link (from Google, hotel website, etc.)" />
               </Field>
 
-              {/* Booking Links */}
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <label className="text-xs font-semibold uppercase tracking-wider text-muted">Booking Links</label>
-                  <button type="button" onClick={addBookingLink}
-                    className="text-xs font-semibold text-terracotta"
-                    style={{ background: 'none', border: 'none', cursor: 'pointer' }}>+ Add link</button>
-                </div>
-                {form.booking_links.map((link, i) => (
-                  <div key={i} className="flex gap-2 mb-2">
-                    <input value={link.platform} onChange={e => updateBookingLink(i, 'platform', e.target.value)}
-                      placeholder="Platform" className="w-1/3"
-                      style={{ padding: '10px 12px', borderRadius: '10px', border: '1.5px solid rgba(28,20,16,0.12)', fontSize: '13px', fontFamily: 'DM Sans, sans-serif', outline: 'none' }} />
-                    <input value={link.affiliate_url} onChange={e => updateBookingLink(i, 'affiliate_url', e.target.value)}
-                      placeholder="Your affiliate URL" className="flex-1"
-                      style={{ padding: '10px 12px', borderRadius: '10px', border: '1.5px solid rgba(28,20,16,0.12)', fontSize: '13px', fontFamily: 'DM Sans, sans-serif', outline: 'none' }} />
-                  </div>
-                ))}
+              <div className="p-3 rounded-xl text-xs text-muted" style={{ background: '#F5EFE6' }}>
+                💡 <strong>That's it!</strong> The GoThereNow team will add booking links to your hotel within 24 hours.
               </div>
 
               <button type="submit" disabled={saving}
-                className="w-full py-4 rounded-xl font-semibold text-white mt-2"
+                className="w-full py-4 rounded-xl font-semibold text-white mt-1"
                 style={{ background: '#C4622D', fontFamily: 'DM Sans, sans-serif', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>
-                {saving ? 'Saving...' : 'Save Recommendation →'}
+                {saving ? 'Saving...' : 'Save Stay →'}
               </button>
             </form>
           </div>
@@ -335,19 +306,18 @@ export default function Dashboard() {
 
       {/* DELETE CONFIRM */}
       {deleteId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: 'rgba(28,20,16,0.6)' }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(28,20,16,0.6)' }}>
           <div className="p-8 rounded-2xl max-w-sm w-full text-center" style={{ background: 'white' }}>
             <div className="text-3xl mb-4">🗑️</div>
-            <h3 className="font-display text-xl text-espresso mb-2">Delete this stay?</h3>
-            <p className="text-sm text-muted mb-6">This will remove the recommendation and all its booking links.</p>
+            <h3 className="font-display text-xl mb-2">Remove this stay?</h3>
+            <p className="text-sm text-muted mb-6">This will remove it from your map page.</p>
             <div className="flex gap-3">
               <button onClick={() => setDeleteId(null)}
-                className="flex-1 py-3 rounded-xl font-semibold text-espresso"
+                className="flex-1 py-3 rounded-xl font-semibold"
                 style={{ background: '#F5EFE6', border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>Cancel</button>
               <button onClick={() => handleDelete(deleteId)}
                 className="flex-1 py-3 rounded-xl font-semibold text-white"
-                style={{ background: '#ef4444', border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>Delete</button>
+                style={{ background: '#ef4444', border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>Remove</button>
             </div>
           </div>
         </div>
@@ -355,6 +325,8 @@ export default function Dashboard() {
     </>
   )
 }
+
+import React from 'react'
 
 function Field({ label, children, required }) {
   return (
@@ -374,6 +346,3 @@ function Field({ label, children, required }) {
     </div>
   )
 }
-
-// Need React for cloneElement
-import React from 'react'

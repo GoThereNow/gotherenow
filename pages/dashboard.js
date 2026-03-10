@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { useEffect, useState, useRef } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'

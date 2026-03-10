@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabase'
+
+const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
 
 export default function Dashboard() {
   const router = useRouter()
@@ -14,11 +16,17 @@ export default function Dashboard() {
   const [deleteId, setDeleteId] = useState(null)
   const [copied, setCopied] = useState(false)
 
+  // Autocomplete state
+  const [suggestions, setSuggestions] = useState([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [searching, setSearching] = useState(false)
+  const searchTimeout = useRef(null)
+
   const [form, setForm] = useState({
     hotel_name: '', city: '', country: '',
     latitude: '', longitude: '',
-    influencer_quote: '', star_rating: '5',
-    price_from: '', photo_url: '',
+    influencer_quote: '', personal_rating: '5',
+    photo_url: '',
   })
 
   useEffect(() => {
@@ -47,6 +55,76 @@ export default function Dashboard() {
     load()
   }, [])
 
+  // Hotel name autocomplete using Mapbox Geocoding API
+  const handleHotelNameChange = (value) => {
+    setForm(prev => ({ ...prev, hotel_name: value }))
+
+    if (searchTimeout.current) clearTimeout(searchTimeout.current)
+
+    if (value.length < 3) {
+      setSuggestions([])
+      setShowSuggestions(false)
+      return
+    }
+
+    setSearching(true)
+    searchTimeout.current = setTimeout(async () => {
+      try {
+        const query = encodeURIComponent(value)
+        const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${query}.json?access_token=${MAPBOX_TOKEN}&types=poi&limit=6&language=en`
+        const res = await fetch(url)
+        const data = await res.json()
+
+        if (data.features) {
+          setSuggestions(data.features)
+          setShowSuggestions(true)
+        }
+      } catch (err) {
+        console.error('Autocomplete error:', err)
+      }
+      setSearching(false)
+    }, 350)
+  }
+
+  // When user selects a suggestion — auto-fill city, country, lat, lng
+  const handleSelectSuggestion = (feature) => {
+    const name = feature.text || feature.place_name.split(',')[0]
+    const [lng, lat] = feature.center
+
+    // Extract city and country from context
+    let city = ''
+    let country = ''
+
+    if (feature.context) {
+      feature.context.forEach(ctx => {
+        if (ctx.id.startsWith('place') || ctx.id.startsWith('district') || ctx.id.startsWith('locality')) {
+          if (!city) city = ctx.text
+        }
+        if (ctx.id.startsWith('country')) {
+          country = ctx.text
+        }
+      })
+    }
+
+    // If no city in context, try to get from place_name
+    if (!city) {
+      const parts = feature.place_name.split(',')
+      if (parts.length > 1) city = parts[1].trim()
+    }
+
+    setForm(prev => ({
+      ...prev,
+      hotel_name: name,
+      city: city,
+      country: country,
+      latitude: lat.toFixed(6),
+      longitude: lng.toFixed(6),
+    }))
+
+    setSuggestions([])
+    setShowSuggestions(false)
+  }
+
   const handleAddRecommendation = async (e) => {
     e.preventDefault()
     setSaving(true)
@@ -54,13 +132,12 @@ export default function Dashboard() {
     const { error } = await supabase.from('recommendations').insert({
       influencer_id: influencer.id,
       hotel_name: form.hotel_name,
-      city: form.city,
+      city: form.city || null,
       country: form.country,
       latitude: form.latitude ? parseFloat(form.latitude) : null,
       longitude: form.longitude ? parseFloat(form.longitude) : null,
       influencer_quote: form.influencer_quote,
-      star_rating: parseInt(form.star_rating),
-      price_from: form.price_from ? parseInt(form.price_from) : null,
+      star_rating: parseInt(form.personal_rating),
       photo_url: form.photo_url || null,
     })
 
@@ -72,7 +149,7 @@ export default function Dashboard() {
         .order('created_at', { ascending: false })
       setRecommendations(recs || [])
       setShowAddModal(false)
-      setForm({ hotel_name: '', city: '', country: '', latitude: '', longitude: '', influencer_quote: '', star_rating: '5', price_from: '', photo_url: '' })
+      setForm({ hotel_name: '', city: '', country: '', latitude: '', longitude: '', influencer_quote: '', personal_rating: '5', photo_url: '' })
     }
     setSaving(false)
   }
@@ -193,7 +270,7 @@ export default function Dashboard() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-espresso text-sm truncate">{rec.hotel_name}</div>
-                  <div className="text-xs text-muted">{rec.city}, {rec.country}</div>
+                  <div className="text-xs text-muted">{[rec.city, rec.country].filter(Boolean).join(', ')}</div>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   {rec.booking_links?.length > 0 ? (
@@ -220,35 +297,91 @@ export default function Dashboard() {
           <div className="w-full max-w-lg my-8 rounded-3xl overflow-hidden" style={{ background: 'white' }}>
             <div className="flex items-center justify-between p-6 pb-4" style={{ borderBottom: '1px solid rgba(28,20,16,0.08)' }}>
               <h2 className="font-display text-xl text-espresso">Add a Stay</h2>
-              <button onClick={() => setShowAddModal(false)}
+              <button onClick={() => { setShowAddModal(false); setSuggestions([]); setShowSuggestions(false) }}
                 className="w-8 h-8 rounded-full flex items-center justify-center text-muted"
                 style={{ background: '#F5EFE6', border: 'none', cursor: 'pointer' }}>✕</button>
             </div>
 
             <form onSubmit={handleAddRecommendation} className="p-6 flex flex-col gap-4">
-              <Field label="Hotel Name" required>
-                <input type="text" required value={form.hotel_name}
-                  onChange={e => setForm({ ...form, hotel_name: e.target.value })}
-                  placeholder="e.g. Aman Kyoto" />
-              </Field>
 
+              {/* HOTEL NAME WITH AUTOCOMPLETE */}
+              <div style={{ position: 'relative' }}>
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted block mb-1.5">
+                  Hotel Name<span className="text-terracotta ml-0.5">*</span>
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="text"
+                    required
+                    value={form.hotel_name}
+                    onChange={e => handleHotelNameChange(e.target.value)}
+                    onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                    onFocus={() => form.hotel_name.length >= 3 && suggestions.length > 0 && setShowSuggestions(true)}
+                    placeholder="Start typing a hotel name..."
+                    autoComplete="off"
+                    style={{
+                      width: '100%', padding: '10px 14px',
+                      borderRadius: '12px', border: '1.5px solid rgba(28,20,16,0.12)',
+                      fontSize: '14px', fontFamily: 'DM Sans, sans-serif',
+                      outline: 'none', background: 'white', boxSizing: 'border-box'
+                    }}
+                  />
+                  {searching && (
+                    <div style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '12px', color: '#8B7D72' }}>
+                      searching...
+                    </div>
+                  )}
+                </div>
+
+                {/* SUGGESTIONS DROPDOWN */}
+                {showSuggestions && suggestions.length > 0 && (
+                  <div style={{
+                    position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
+                    background: 'white', borderRadius: '12px', marginTop: '4px',
+                    border: '1.5px solid rgba(28,20,16,0.12)',
+                    boxShadow: '0 8px 24px rgba(28,20,16,0.12)', overflow: 'hidden'
+                  }}>
+                    {suggestions.map((feature, i) => {
+                      const name = feature.text || feature.place_name.split(',')[0]
+                      const subtitle = feature.place_name.split(',').slice(1).join(',').trim()
+                      return (
+                        <div key={i}
+                          onMouseDown={() => handleSelectSuggestion(feature)}
+                          style={{
+                            padding: '10px 14px', cursor: 'pointer',
+                            borderBottom: i < suggestions.length - 1 ? '1px solid rgba(28,20,16,0.06)' : 'none',
+                            transition: 'background 0.15s'
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.background = '#FAF7F2'}
+                          onMouseLeave={e => e.currentTarget.style.background = 'white'}>
+                          <div style={{ fontSize: '14px', fontWeight: 600, color: '#1C1410' }}>{name}</div>
+                          <div style={{ fontSize: '12px', color: '#8B7D72', marginTop: '2px' }}>{subtitle}</div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* CITY (optional) + COUNTRY */}
               <div className="grid grid-cols-2 gap-3">
-                <Field label="City" required>
-                  <input type="text" required value={form.city}
+                <Field label="City">
+                  <input type="text" value={form.city}
                     onChange={e => setForm({ ...form, city: e.target.value })}
-                    placeholder="e.g. Kyoto" />
+                    placeholder="Auto-filled or type" />
                 </Field>
                 <Field label="Country" required>
                   <input type="text" required value={form.country}
                     onChange={e => setForm({ ...form, country: e.target.value })}
-                    placeholder="e.g. Japan" />
+                    placeholder="Auto-filled or type" />
                 </Field>
               </div>
 
+              {/* MAP LOCATION */}
               <div className="p-4 rounded-xl" style={{ background: '#F5EFE6' }}>
                 <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-1">📍 Map Location</p>
                 <p className="text-xs text-muted mb-3">
-                  Find on <a href="https://maps.google.com" target="_blank" className="text-terracotta underline">Google Maps</a>: search the hotel → right-click → copy the two numbers shown.
+                  Auto-filled when you select a hotel above. Or find on <a href="https://maps.google.com" target="_blank" className="text-terracotta underline">Google Maps</a>: right-click the location → copy coordinates.
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   <Field label="Latitude">
@@ -264,6 +397,7 @@ export default function Dashboard() {
                 </div>
               </div>
 
+              {/* QUOTE */}
               <Field label="Your Personal Quote">
                 <textarea value={form.influencer_quote}
                   onChange={e => setForm({ ...form, influencer_quote: e.target.value })}
@@ -271,19 +405,38 @@ export default function Dashboard() {
                   rows={3} style={{ resize: 'vertical' }} />
               </Field>
 
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Price From ($/night)">
-                  <input type="number" value={form.price_from}
-                    onChange={e => setForm({ ...form, price_from: e.target.value })}
-                    placeholder="e.g. 350" />
-                </Field>
-                <Field label="Star Rating">
-                  <select value={form.star_rating} onChange={e => setForm({ ...form, star_rating: e.target.value })}>
-                    {[5,4,3,2,1].map(n => <option key={n} value={n}>{n} Stars</option>)}
-                  </select>
-                </Field>
+              {/* PERSONAL RATING */}
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted block mb-2">
+                  Your Personal Rating
+                </label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  {[1, 2, 3, 4, 5].map(n => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => setForm({ ...form, personal_rating: String(n) })}
+                      style={{
+                        flex: 1, padding: '10px 0', borderRadius: '12px',
+                        fontWeight: 700, fontSize: '15px', cursor: 'pointer',
+                        border: '1.5px solid',
+                        borderColor: parseInt(form.personal_rating) === n ? '#C4622D' : 'rgba(28,20,16,0.12)',
+                        background: parseInt(form.personal_rating) === n ? '#FFF0E8' : 'white',
+                        color: parseInt(form.personal_rating) === n ? '#C4622D' : '#8B7D72',
+                        transition: 'all 0.15s',
+                        fontFamily: 'DM Sans, sans-serif'
+                      }}>
+                      {n}★
+                    </button>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
+                  <span style={{ fontSize: '11px', color: '#8B7D72' }}>It was ok</span>
+                  <span style={{ fontSize: '11px', color: '#8B7D72' }}>Absolutely loved it</span>
+                </div>
               </div>
 
+              {/* PHOTO URL */}
               <Field label="Photo URL (optional)">
                 <input type="url" value={form.photo_url}
                   onChange={e => setForm({ ...form, photo_url: e.target.value })}
@@ -340,6 +493,7 @@ function Field({ label, children, required }) {
           borderRadius: '12px', border: '1.5px solid rgba(28,20,16,0.12)',
           fontSize: '14px', fontFamily: 'DM Sans, sans-serif',
           outline: 'none', background: 'white',
+          boxSizing: 'border-box',
           ...children.props.style
         }
       })}

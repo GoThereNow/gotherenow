@@ -63,7 +63,7 @@ export default function Dashboard() {
 
     if (searchTimeout.current) clearTimeout(searchTimeout.current)
 
-    if (value.length < 3) {
+    if (value.length < 5) {
       setSuggestions([])
       setShowSuggestions(false)
       return
@@ -85,7 +85,7 @@ export default function Dashboard() {
         console.error('Autocomplete error:', err)
       }
       setSearching(false)
-    }, 350)
+    }, 600)
   }
 
   // When user selects a suggestion — auto-fill city, country, lat, lng

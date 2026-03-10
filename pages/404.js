@@ -13,6 +13,3 @@ export default function NotFound() {
   )
 }
 
-export async function getServerSideProps() {
-  return { props: {} }
-}

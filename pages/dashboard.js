@@ -63,7 +63,7 @@ export default function Dashboard() {
     searchTimeout.current = setTimeout(async () => {
       try {
         const query = encodeURIComponent(value)
-        const url = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + query + '.json?access_token=' + MAPBOX_TOKEN + '&limit=6&language=en'
+        const url = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + encodeURIComponent(query + ' hotel') + '.json?access_token=' + MAPBOX_TOKEN + '&types=poi&limit=6&language=en'
         const res = await fetch(url)
         const data = await res.json()
         if (data.features) {

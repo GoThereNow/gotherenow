@@ -6,6 +6,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabase'
 
+const MAPBOX_TOKEN = 'pk.eyJ1IjoiZ290aGVyZW5vdyIsImEiOiJjbWxmYXJpYm0wMzByM2lwcGpzNjl4Ymx5In0.lipvyNXWoQmIDCah_0Ss_w'
+
 export default function Dashboard() {
   const router = useRouter()
   const [influencer, setInfluencer] = useState(null)
@@ -15,8 +17,6 @@ export default function Dashboard() {
   const [saving, setSaving] = useState(false)
   const [deleteId, setDeleteId] = useState(null)
   const [copied, setCopied] = useState(false)
-
-  // Autocomplete state
   const [suggestions, setSuggestions] = useState([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [searching, setSearching] = useState(false)
@@ -33,49 +33,39 @@ export default function Dashboard() {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
-
       const { data: inf } = await supabase
         .from('influencers')
         .select('*, profiles(full_name, avatar_url, bio)')
         .eq('user_id', user.id)
         .single()
-
       if (!inf) { router.push('/signup?role=influencer'); return }
       setInfluencer(inf)
-
       const { data: recs } = await supabase
         .from('recommendations')
         .select('*, booking_links(*)')
         .eq('influencer_id', inf.id)
         .order('created_at', { ascending: false })
-
       setRecommendations(recs || [])
       setLoading(false)
     }
     load()
   }, [])
 
-  // Hotel name autocomplete using Mapbox Geocoding API
   const handleHotelNameChange = (value) => {
     setForm(prev => ({ ...prev, hotel_name: value }))
-
     if (searchTimeout.current) clearTimeout(searchTimeout.current)
-
     if (value.length < 5) {
       setSuggestions([])
       setShowSuggestions(false)
       return
     }
-
     setSearching(true)
     searchTimeout.current = setTimeout(async () => {
       try {
         const query = encodeURIComponent(value)
-        const MAPBOX_TOKEN = 'pk.eyJ1IjoiZ290aGVyZW5vdyIsImEiOiJjbWxmYXJpYm0wMzByM2lwcGpzNjl4Ymx5In0.lipvyNXWoQmIDCah_0Ss_w'
-        const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${query}.json?access_token=${MAPBOX_TOKEN}&types=poi&limit=6&language=en`
+        const url = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + query + '.json?access_token=' + MAPBOX_TOKEN + '&types=poi&limit=6&language=en'
         const res = await fetch(url)
         const data = await res.json()
-
         if (data.features) {
           setSuggestions(data.features)
           setShowSuggestions(true)
@@ -87,32 +77,26 @@ export default function Dashboard() {
     }, 600)
   }
 
-  // When user selects a suggestion — auto-fill city, country, lat, lng
   const handleSelectSuggestion = (feature) => {
     const name = feature.text || feature.place_name.split(',')[0]
-    const [lng, lat] = feature.center
-
-    // Extract city and country from context
+    const lng = feature.center[0]
+    const lat = feature.center[1]
     let city = ''
     let country = ''
-
     if (feature.context) {
-      feature.context.forEach(ctx => {
-        if (ctx.id.startsWith('place') || ctx.id.startsWith('district') || ctx.id.startsWith('locality')) {
-          if (!city) city = ctx.text
+      feature.context.forEach(function(ctx) {
+        if ((ctx.id.startsWith('place') || ctx.id.startsWith('district') || ctx.id.startsWith('locality')) && !city) {
+          city = ctx.text
         }
         if (ctx.id.startsWith('country')) {
           country = ctx.text
         }
       })
     }
-
-    // If no city in context, try to get from place_name
     if (!city) {
       const parts = feature.place_name.split(',')
       if (parts.length > 1) city = parts[1].trim()
     }
-
     setForm(prev => ({
       ...prev,
       hotel_name: name,
@@ -121,7 +105,6 @@ export default function Dashboard() {
       latitude: lat.toFixed(6),
       longitude: lng.toFixed(6),
     }))
-
     setSuggestions([])
     setShowSuggestions(false)
   }
@@ -129,7 +112,6 @@ export default function Dashboard() {
   const handleAddRecommendation = async (e) => {
     e.preventDefault()
     setSaving(true)
-
     const { error } = await supabase.from('recommendations').insert({
       influencer_id: influencer.id,
       hotel_name: form.hotel_name,
@@ -141,7 +123,6 @@ export default function Dashboard() {
       star_rating: parseInt(form.personal_rating),
       photo_url: form.photo_url || null,
     })
-
     if (!error) {
       const { data: recs } = await supabase
         .from('recommendations')
@@ -163,7 +144,7 @@ export default function Dashboard() {
   }
 
   const copyLink = () => {
-    navigator.clipboard.writeText(`https://gotherenow.app/${influencer.handle}`)
+    navigator.clipboard.writeText('https://gotherenow.app/' + influencer.handle)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -180,13 +161,11 @@ export default function Dashboard() {
     <>
       <Head><title>Dashboard — GoThereNow</title></Head>
 
-      {/* NAV */}
       <nav className="sticky top-0 z-40 flex items-center justify-between px-6 py-4"
         style={{ background: 'white', borderBottom: '1px solid rgba(28,20,16,0.08)' }}>
         <Link href="/" className="font-display text-xl text-espresso">Go<span className="text-terracotta">There</span>Now</Link>
         <div className="flex items-center gap-4">
-          <a href={`/${influencer?.handle}`} target="_blank"
-            className="text-xs font-semibold text-terracotta hover:underline">View my page →</a>
+          <a href={'/' + influencer?.handle} target="_blank" className="text-xs font-semibold text-terracotta hover:underline">View my page →</a>
           <button onClick={async () => { await supabase.auth.signOut(); router.push('/') }}
             className="text-xs text-muted hover:text-espresso" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
             Sign out
@@ -196,7 +175,6 @@ export default function Dashboard() {
 
       <div className="max-w-3xl mx-auto px-6 py-8">
 
-        {/* WELCOME */}
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
           <div>
             <h1 className="font-display text-3xl text-espresso mb-1">
@@ -219,7 +197,6 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {/* HOW IT WORKS BANNER */}
         <div className="p-5 rounded-2xl mb-8 flex gap-4 items-start"
           style={{ background: '#FFF8F2', border: '1px solid rgba(196,98,45,0.15)' }}>
           <div className="text-2xl">💡</div>
@@ -231,7 +208,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* STATS */}
         <div className="grid grid-cols-3 gap-4 mb-8">
           {[
             { num: recommendations.length, label: 'Stays Added', icon: '🏨' },
@@ -246,7 +222,6 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* RECOMMENDATIONS */}
         <h2 className="font-display text-xl text-espresso mb-4">Your Stays</h2>
 
         {recommendations.length === 0 ? (
@@ -291,7 +266,6 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* ADD STAY MODAL */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto"
           style={{ background: 'rgba(28,20,16,0.6)', backdropFilter: 'blur(4px)' }}>
@@ -305,7 +279,6 @@ export default function Dashboard() {
 
             <form onSubmit={handleAddRecommendation} className="p-6 flex flex-col gap-4">
 
-              {/* HOTEL NAME WITH AUTOCOMPLETE */}
               <div style={{ position: 'relative' }}>
                 <label className="text-xs font-semibold uppercase tracking-wider text-muted block mb-1.5">
                   Hotel Name<span className="text-terracotta ml-0.5">*</span>
@@ -317,7 +290,7 @@ export default function Dashboard() {
                     value={form.hotel_name}
                     onChange={e => handleHotelNameChange(e.target.value)}
                     onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                    onFocus={() => form.hotel_name.length >= 3 && suggestions.length > 0 && setShowSuggestions(true)}
+                    onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
                     placeholder="Start typing a hotel name..."
                     autoComplete="off"
                     style={{
@@ -334,7 +307,6 @@ export default function Dashboard() {
                   )}
                 </div>
 
-                {/* SUGGESTIONS DROPDOWN */}
                 {showSuggestions && suggestions.length > 0 && (
                   <div style={{
                     position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
@@ -351,7 +323,6 @@ export default function Dashboard() {
                           style={{
                             padding: '10px 14px', cursor: 'pointer',
                             borderBottom: i < suggestions.length - 1 ? '1px solid rgba(28,20,16,0.06)' : 'none',
-                            transition: 'background 0.15s'
                           }}
                           onMouseEnter={e => e.currentTarget.style.background = '#FAF7F2'}
                           onMouseLeave={e => e.currentTarget.style.background = 'white'}>
@@ -364,7 +335,6 @@ export default function Dashboard() {
                 )}
               </div>
 
-              {/* CITY (optional) + COUNTRY */}
               <div className="grid grid-cols-2 gap-3">
                 <Field label="City">
                   <input type="text" value={form.city}
@@ -378,7 +348,6 @@ export default function Dashboard() {
                 </Field>
               </div>
 
-              {/* MAP LOCATION */}
               <div className="p-4 rounded-xl" style={{ background: '#F5EFE6' }}>
                 <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-1">📍 Map Location</p>
                 <p className="text-xs text-muted mb-3">
@@ -398,7 +367,6 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* QUOTE */}
               <Field label="Your Personal Quote">
                 <textarea value={form.influencer_quote}
                   onChange={e => setForm({ ...form, influencer_quote: e.target.value })}
@@ -406,16 +374,13 @@ export default function Dashboard() {
                   rows={3} style={{ resize: 'vertical' }} />
               </Field>
 
-              {/* PERSONAL RATING */}
               <div>
                 <label className="text-xs font-semibold uppercase tracking-wider text-muted block mb-2">
                   Your Personal Rating
                 </label>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   {[1, 2, 3, 4, 5].map(n => (
-                    <button
-                      key={n}
-                      type="button"
+                    <button key={n} type="button"
                       onClick={() => setForm({ ...form, personal_rating: String(n) })}
                       style={{
                         flex: 1, padding: '10px 0', borderRadius: '12px',
@@ -424,7 +389,6 @@ export default function Dashboard() {
                         borderColor: parseInt(form.personal_rating) === n ? '#C4622D' : 'rgba(28,20,16,0.12)',
                         background: parseInt(form.personal_rating) === n ? '#FFF0E8' : 'white',
                         color: parseInt(form.personal_rating) === n ? '#C4622D' : '#8B7D72',
-                        transition: 'all 0.15s',
                         fontFamily: 'DM Sans, sans-serif'
                       }}>
                       {n}★
@@ -437,7 +401,6 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* PHOTO URL */}
               <Field label="Photo URL (optional)">
                 <input type="url" value={form.photo_url}
                   onChange={e => setForm({ ...form, photo_url: e.target.value })}
@@ -458,7 +421,6 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* DELETE CONFIRM */}
       {deleteId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(28,20,16,0.6)' }}>
           <div className="p-8 rounded-2xl max-w-sm w-full text-center" style={{ background: 'white' }}>
@@ -501,7 +463,7 @@ function Field({ label, children, required }) {
     </div>
   )
 }
+
 export async function getServerSideProps() {
   return { props: {} }
 }
-

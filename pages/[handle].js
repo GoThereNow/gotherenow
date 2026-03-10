@@ -52,7 +52,7 @@ export default function InfluencerProfile() {
     if (!mapContainer.current || map.current) return
     import('mapbox-gl').then(mapboxgl => {
       mapboxgl = mapboxgl.default || mapboxgl
-      mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
+      mapboxgl.accessToken = 'pk.eyJ1IjoiZ290aGVyZW5vdyIsImEiOiJjbWxmYXJpYm0wMzByM2lwcGpzNjl4Ymx5In0.lipvyNXWoQmIDCah_0Ss_w'
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/light-v11',

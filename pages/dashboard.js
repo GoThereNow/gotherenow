@@ -6,8 +6,6 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabase'
 
-const MAPBOX_TOKEN = 'pk.eyJ1IjoiZ290aGVyZW5vdyIsImEiOiJjbWxmYXJpYm0wMzByM2lwcGpzNjl4Ymx5In0.lipvyNXWoQmIDCah_0Ss_w'
-
 export default function Dashboard() {
   const router = useRouter()
   const [influencer, setInfluencer] = useState(null)
@@ -73,6 +71,7 @@ export default function Dashboard() {
     searchTimeout.current = setTimeout(async () => {
       try {
         const query = encodeURIComponent(value)
+        const MAPBOX_TOKEN = 'pk.eyJ1IjoiZ290aGVyZW5vdyIsImEiOiJjbWxmYXJpYm0wMzByM2lwcGpzNjl4Ymx5In0.lipvyNXWoQmIDCah_0Ss_w'
         const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${query}.json?access_token=${MAPBOX_TOKEN}&types=poi&limit=6&language=en`
         const res = await fetch(url)
         const data = await res.json()

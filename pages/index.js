@@ -65,8 +65,8 @@ export default function Home() {
         :root {
           --cream: #F5F0E8;
           --dark: #0D1208;
-          --teal: #1A5C4A;
-          --teal-light: #2A8C6E;
+          --teal: #005663;
+          --teal-light: #005663;
           --gold: #C4A35A;
           --muted: rgba(255,255,255,0.45);
         }

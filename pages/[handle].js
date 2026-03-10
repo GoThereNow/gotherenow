@@ -414,3 +414,7 @@ function HotelCard({ rec, index, onBook, onMapFocus }) {
     </div>
   )
 }
+export async function getServerSideProps() {
+  return { props: {} }
+}
+

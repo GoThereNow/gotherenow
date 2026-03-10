@@ -101,7 +101,7 @@ export default function Home() {
           font-size: 12px;
           letter-spacing: 1.5px;
           text-transform: uppercase;
-          color: rgba(255,255,255,0.5);
+          color: white;
           text-decoration: none;
           transition: color 0.2s;
         }

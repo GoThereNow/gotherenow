@@ -144,9 +144,9 @@ export default function Home() {
           position: absolute; inset: 0;
           background: linear-gradient(
             to bottom,
-            rgba(13,18,8,0.2) 0%,
-            rgba(13,18,8,0.1) 40%,
-            rgba(13,18,8,0.7) 100%
+            rgba(10,30,25,0.55) 0%,
+            rgba(15,45,38,0.45) 40%,
+            rgba(10,25,20,0.88) 100%
           );
         }
         .hero-content {

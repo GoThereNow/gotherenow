@@ -6,23 +6,58 @@ import { supabase } from '../../lib/supabase'
 
 const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL
 
+const PLATFORM_CONFIG = [
+  // Direct platforms
+  {
+    group: 'Direct Platforms',
+    desc: 'You manage these affiliate accounts directly — no middleman, full commission.',
+    color: '#7A9E87',
+    platforms: [
+      { name: 'Booking.com', type: 'direct', labelParam: 'label', hint: 'Your Booking.com affiliate URL. Sub-ID appended as ?label=SUBID', placeholder: 'https://www.booking.com?aid=YOUR_AID' },
+      { name: 'Expedia', type: 'direct', labelParam: 'affcid', hint: 'Expedia + Hotels.com share one affiliate account (both owned by Expedia Group)', placeholder: 'https://www.expedia.com?affcid=YOUR_ID' },
+      { name: 'Hotels.com', type: 'direct', labelParam: 'ref', hint: 'Same affiliate account as Expedia', placeholder: 'https://www.hotels.com?ref=YOUR_ID' },
+      { name: 'Airbnb', type: 'direct', labelParam: 'af_id', hint: 'Airbnb direct affiliate program. Apply at airbnb.com/associates', placeholder: 'https://www.airbnb.com?af_id=YOUR_ID' },
+    ]
+  },
+  // Travelpayouts
+  {
+    group: 'Travelpayouts',
+    desc: 'Covers 100+ travel platforms (Hostelworld, Vrbo, GetYourGuide, Viator, etc.) through one account. They take 30% — worth it for the long tail.',
+    color: '#D4A853',
+    platforms: [
+      { name: 'Travelpayouts', type: 'travelpayouts', hint: 'Enter your Travelpayouts Marker ID and Partner ID from your dashboard at travelpayouts.com', placeholder: '' },
+    ]
+  },
+  // Restaurants
+  {
+    group: 'Restaurants (Coming Soon)',
+    desc: 'Ready for when you expand to restaurant recommendations.',
+    color: '#C4622D',
+    platforms: [
+      { name: 'OpenTable', type: 'restaurant', labelParam: 'ref', hint: 'OpenTable affiliate program. Apply at partners.opentable.com', placeholder: 'https://www.opentable.com?ref=YOUR_ID' },
+    ]
+  },
+]
+
 export default function AdminDashboard() {
   const router = useRouter()
   const [tab, setTab] = useState('platforms')
   const [influencers, setInfluencers] = useState([])
   const [recommendations, setRecommendations] = useState([])
-  const [platforms, setPlatforms] = useState([])
   const [clicks, setClicks] = useState([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [savedMsg, setSavedMsg] = useState('')
 
-  // Platform form
-  const [platformForm, setPlatformForm] = useState([
-    { platform: 'Booking.com', base_url: '', label_param: 'label', supports_search: true },
-    { platform: 'Expedia', base_url: '', label_param: 'affcid', supports_search: false },
-    { platform: 'Hotels.com', base_url: '', label_param: 'ref', supports_search: false },
-  ])
+  // Platform settings state
+  const [platformData, setPlatformData] = useState({
+    'Booking.com': { base_url: '', label_param: 'label' },
+    'Expedia': { base_url: '', label_param: 'affcid' },
+    'Hotels.com': { base_url: '', label_param: 'ref' },
+    'Airbnb': { base_url: '', label_param: 'af_id' },
+    'Travelpayouts': { travelpayouts_marker: '', travelpayouts_partner_id: '' },
+    'OpenTable': { base_url: '', label_param: 'ref' },
+  })
 
   useEffect(() => {
     async function load() {
@@ -30,8 +65,8 @@ export default function AdminDashboard() {
       if (!user || user.email !== ADMIN_EMAIL) { router.push('/'); return }
 
       const [{ data: infs }, { data: recs }, { data: plats }, { data: clks }] = await Promise.all([
-        supabase.from('influencers').select('*, profiles(full_name, email, avatar_url)').order('created_at', { ascending: false }),
-        supabase.from('recommendations').select('*, influencers(handle, sub_id, profiles(full_name))').order('created_at', { ascending: false }),
+        supabase.from('influencers').select('*, profiles(full_name, email)').order('created_at', { ascending: false }),
+        supabase.from('recommendations').select('*, influencers(handle, profiles(full_name))').order('created_at', { ascending: false }),
         supabase.from('platform_settings').select('*'),
         supabase.from('clicks').select('*').order('created_at', { ascending: false }),
       ])
@@ -40,73 +75,65 @@ export default function AdminDashboard() {
       setRecommendations(recs || [])
       setClicks(clks || [])
 
-      if (plats && plats.length > 0) {
-        setPlatformForm(prev => prev.map(p => {
-          const existing = plats.find(pl => pl.platform === p.platform)
-          return existing ? { ...p, ...existing } : p
-        }))
-        setPlatforms(plats)
+      if (plats?.length > 0) {
+        setPlatformData(prev => {
+          const updated = { ...prev }
+          plats.forEach(p => { if (updated[p.platform]) updated[p.platform] = { ...updated[p.platform], ...p } })
+          return updated
+        })
       }
       setLoading(false)
     }
     load()
   }, [])
 
-  // Save platform settings
   const savePlatforms = async () => {
     setSaving(true)
-    for (const p of platformForm) {
-      if (!p.base_url) continue
-      await supabase.from('platform_settings').upsert({
-        platform: p.platform,
-        base_url: p.base_url,
-        label_param: p.label_param,
-        supports_search: p.supports_search,
-      }, { onConflict: 'platform' })
+    for (const [platform, data] of Object.entries(platformData)) {
+      const hasData = data.base_url || data.travelpayouts_marker
+      if (!hasData) continue
+      await supabase.from('platform_settings').upsert({ platform, ...data }, { onConflict: 'platform' })
     }
     setSaving(false)
-    setSavedMsg('Saved!')
-    setTimeout(() => setSavedMsg(''), 2000)
+    setSavedMsg('Saved! ✓')
+    setTimeout(() => setSavedMsg(''), 2500)
   }
 
-  // Update influencer sub-ID
+  const updateField = (platform, field, value) => {
+    setPlatformData(prev => ({ ...prev, [platform]: { ...prev[platform], [field]: value } }))
+  }
+
   const updateSubId = async (id, subId) => {
     await supabase.from('influencers').update({ sub_id: subId }).eq('id', id)
     setInfluencers(prev => prev.map(i => i.id === id ? { ...i, sub_id: subId } : i))
   }
 
-  // Update commission rate
   const updateCommission = async (id, rate) => {
     await supabase.from('influencers').update({ commission_rate: parseFloat(rate) }).eq('id', id)
     setInfluencers(prev => prev.map(i => i.id === id ? { ...i, commission_rate: rate } : i))
   }
 
-  // Approve influencer
   const approveInfluencer = async (id, approved) => {
     await supabase.from('influencers').update({ approved }).eq('id', id)
     setInfluencers(prev => prev.map(i => i.id === id ? { ...i, approved } : i))
   }
 
-  // Payout calculations
+  // Payout data
   const currentMonth = new Date().toISOString().slice(0, 7)
   const monthlyClicks = clicks.filter(c => c.created_at?.startsWith(currentMonth))
 
   const payoutData = influencers.map(inf => {
     const infClicks = monthlyClicks.filter(c => c.influencer_id === inf.id)
-    const totalClicks = infClicks.length
     const byPlatform = {}
-    infClicks.forEach(c => { byPlatform[c.platform] = (byPlatform[c.platform] || 0) + 1 })
-    return { ...inf, totalClicks, byPlatform }
-  }).filter(i => i.totalClicks > 0)
-
-  // Generate tracked URL preview
-  const getTrackedUrl = (inf, platform) => {
-    const p = platformForm.find(pl => pl.platform === platform)
-    if (!p?.base_url) return 'Platform URL not set'
-    const subId = inf.sub_id || inf.handle
-    const sep = p.base_url.includes('?') ? '&' : '?'
-    return `${p.base_url}${sep}${p.label_param}=${subId}`
-  }
+    const byType = { direct: 0, travelpayouts: 0, restaurant: 0 }
+    infClicks.forEach(c => {
+      byPlatform[c.platform] = (byPlatform[c.platform] || 0) + 1
+      if (c.content_type === 'restaurant') byType.restaurant++
+      else if (c.is_direct) byType.direct++
+      else byType.travelpayouts++
+    })
+    return { ...inf, totalClicks: infClicks.length, byPlatform, byType }
+  })
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-screen" style={{ background: '#FAF7F2' }}>
@@ -119,20 +146,16 @@ export default function AdminDashboard() {
       <Head><title>Admin — GoThereNow</title></Head>
 
       {/* NAV */}
-      <nav className="sticky top-0 z-40 flex items-center justify-between px-6 py-4"
-        style={{ background: '#1C1410' }}>
+      <nav className="sticky top-0 z-40 flex items-center justify-between px-6 py-4" style={{ background: '#1C1410' }}>
         <Link href="/" className="font-display text-xl text-white">
           Go<span style={{ color: '#E8845A' }}>There</span>Now
-          <span className="text-xs ml-2 px-2 py-0.5 rounded-full font-body"
-            style={{ background: 'rgba(196,98,45,0.3)', color: '#E8845A' }}>Admin</span>
+          <span className="text-xs ml-2 px-2 py-0.5 rounded-full" style={{ background: 'rgba(196,98,45,0.3)', color: '#E8845A', fontFamily: 'DM Sans, sans-serif' }}>Admin</span>
         </Link>
         <div className="flex gap-4">
           <a href="/" target="_blank" className="text-xs text-white opacity-40 hover:opacity-100">View site →</a>
           <button onClick={async () => { await supabase.auth.signOut(); router.push('/') }}
             className="text-xs text-white opacity-40 hover:opacity-100"
-            style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
-            Sign out
-          </button>
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>Sign out</button>
         </div>
       </nav>
 
@@ -143,7 +166,8 @@ export default function AdminDashboard() {
             { num: influencers.length, label: 'Creators', icon: '✈️' },
             { num: recommendations.length, label: 'Hotels', icon: '🏨' },
             { num: monthlyClicks.length, label: 'Clicks This Month', icon: '👆' },
-            { num: clicks.length, label: 'Total Clicks', icon: '📊' },
+            { num: monthlyClicks.filter(c => c.is_direct).length, label: 'Direct Clicks', icon: '💰' },
+            { num: monthlyClicks.filter(c => !c.is_direct).length, label: 'Travelpayouts Clicks', icon: '🔗' },
           ].map((s, i) => (
             <div key={i} className="flex items-center gap-3">
               <span className="text-xl">{s.icon}</span>
@@ -158,15 +182,15 @@ export default function AdminDashboard() {
 
       {/* TABS */}
       <div style={{ background: 'white', borderBottom: '1px solid rgba(28,20,16,0.08)' }}>
-        <div className="max-w-6xl mx-auto px-6 flex gap-0 overflow-x-auto">
+        <div className="max-w-6xl mx-auto px-6 flex overflow-x-auto">
           {[
-            { id: 'platforms', label: '🔗 Affiliate Platforms' },
+            { id: 'platforms', label: '🔗 Affiliate Setup' },
             { id: 'creators', label: '✈️ Creators & Sub-IDs' },
             { id: 'payouts', label: '💰 Payouts' },
             { id: 'hotels', label: '🏨 Hotels' },
           ].map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
-              className="px-5 py-4 text-xs font-semibold uppercase tracking-widest transition-all whitespace-nowrap"
+              className="px-5 py-4 text-xs font-semibold uppercase tracking-widest whitespace-nowrap transition-all"
               style={{
                 color: tab === t.id ? '#C4622D' : '#8B7D72',
                 borderBottom: tab === t.id ? '2px solid #C4622D' : '2px solid transparent',
@@ -184,61 +208,67 @@ export default function AdminDashboard() {
         {tab === 'platforms' && (
           <div>
             <div className="mb-6">
-              <h2 className="font-display text-2xl text-espresso">Affiliate Platform Settings</h2>
-              <p className="text-sm text-muted mt-1">Enter your master affiliate URL for each platform once. The influencer's sub-ID will be appended automatically to every booking link.</p>
+              <h2 className="font-display text-2xl text-espresso">Affiliate Setup</h2>
+              <p className="text-sm text-muted mt-1">Configure your hybrid affiliate system. Enter URLs once — sub-IDs are appended automatically per influencer.</p>
             </div>
 
-            <div className="p-5 rounded-2xl mb-6 flex gap-3 items-start"
-              style={{ background: '#FFF8F2', border: '1px solid rgba(196,98,45,0.15)' }}>
-              <span className="text-xl">💡</span>
-              <div className="text-sm text-espresso leading-relaxed">
-                <strong>How it works:</strong> You enter your Booking.com affiliate URL once (e.g. <code style={{ background: '#F5EFE6', padding: '1px 6px', borderRadius: '4px', fontSize: '12px' }}>booking.com/hotel/xyz?aid=YOUR_ID</code>). When Sofia's follower clicks Book Now, we automatically append <code style={{ background: '#F5EFE6', padding: '1px 6px', borderRadius: '4px', fontSize: '12px' }}>?label=sofia</code>. Booking.com tracks it and shows you Sofia's commissions separately in their dashboard.
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-6">
-              {platformForm.map((p, i) => (
-                <div key={p.platform} className="p-6 rounded-2xl" style={{ background: 'white', border: '1px solid rgba(28,20,16,0.08)' }}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="font-semibold text-espresso text-lg">{p.platform}</div>
-                    {p.base_url && <span className="text-xs px-2 py-1 rounded-full font-semibold" style={{ background: '#EEF5F1', color: '#7A9E87' }}>✓ Configured</span>}
-                  </div>
-
-                  <div className="flex flex-col gap-3">
-                    <div>
-                      <label className="text-xs font-semibold uppercase tracking-wider text-muted block mb-1.5">Your Master Affiliate URL</label>
-                      <input value={p.base_url}
-                        onChange={e => { const f = [...platformForm]; f[i].base_url = e.target.value; setPlatformForm(f) }}
-                        placeholder={`Paste your ${p.platform} affiliate URL here`}
-                        className="w-full px-4 py-3 rounded-xl text-sm"
-                        style={{ border: '1.5px solid rgba(28,20,16,0.12)', fontFamily: 'DM Sans, sans-serif', outline: 'none' }} />
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-xs font-semibold uppercase tracking-wider text-muted block mb-1.5">Tracking Parameter</label>
-                        <input value={p.label_param}
-                          onChange={e => { const f = [...platformForm]; f[i].label_param = e.target.value; setPlatformForm(f) }}
-                          placeholder="e.g. label"
-                          className="w-full px-4 py-3 rounded-xl text-sm"
-                          style={{ border: '1.5px solid rgba(28,20,16,0.12)', fontFamily: 'DM Sans, sans-serif', outline: 'none' }} />
-                        <p className="text-xs text-muted mt-1">Booking.com = <code>label</code>, Expedia = <code>affcid</code></p>
-                      </div>
-                    </div>
-                    {p.base_url && influencers.length > 0 && (
-                      <div className="p-3 rounded-xl" style={{ background: '#F5EFE6' }}>
-                        <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-1">Preview — what Sofia's link looks like:</p>
-                        <code className="text-xs text-espresso break-all">{getTrackedUrl(influencers[0], p.platform)}</code>
-                      </div>
-                    )}
-                  </div>
+            {PLATFORM_CONFIG.map(group => (
+              <div key={group.group} className="mb-8">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: group.color }} />
+                  <h3 className="font-semibold text-espresso text-lg">{group.group}</h3>
                 </div>
-              ))}
-            </div>
+                <p className="text-xs text-muted mb-4 ml-6">{group.desc}</p>
+
+                <div className="flex flex-col gap-4 ml-6">
+                  {group.platforms.map(p => (
+                    <div key={p.name} className="p-5 rounded-2xl" style={{ background: 'white', border: '1px solid rgba(28,20,16,0.08)' }}>
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="font-semibold text-espresso">{p.name}</div>
+                        {platformData[p.name]?.base_url || platformData[p.name]?.travelpayouts_marker ? (
+                          <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ background: '#EEF5F1', color: '#7A9E87' }}>✓ Configured</span>
+                        ) : (
+                          <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ background: '#FFF0E8', color: '#C4622D' }}>Not set up</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted mb-3">{p.hint}</p>
+
+                      {p.type === 'travelpayouts' ? (
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-xs font-semibold uppercase tracking-wider text-muted block mb-1">Marker ID</label>
+                            <input value={platformData['Travelpayouts']?.travelpayouts_marker || ''}
+                              onChange={e => updateField('Travelpayouts', 'travelpayouts_marker', e.target.value)}
+                              placeholder="Your Travelpayouts Marker ID"
+                              className="w-full px-3 py-2.5 rounded-xl text-sm"
+                              style={{ border: '1.5px solid rgba(28,20,16,0.12)', fontFamily: 'DM Sans, sans-serif', outline: 'none' }} />
+                          </div>
+                          <div>
+                            <label className="text-xs font-semibold uppercase tracking-wider text-muted block mb-1">Partner ID</label>
+                            <input value={platformData['Travelpayouts']?.travelpayouts_partner_id || ''}
+                              onChange={e => updateField('Travelpayouts', 'travelpayouts_partner_id', e.target.value)}
+                              placeholder="Your Travelpayouts Partner ID"
+                              className="w-full px-3 py-2.5 rounded-xl text-sm"
+                              style={{ border: '1.5px solid rgba(28,20,16,0.12)', fontFamily: 'DM Sans, sans-serif', outline: 'none' }} />
+                          </div>
+                        </div>
+                      ) : (
+                        <input value={platformData[p.name]?.base_url || ''}
+                          onChange={e => updateField(p.name, 'base_url', e.target.value)}
+                          placeholder={p.placeholder}
+                          className="w-full px-3 py-2.5 rounded-xl text-sm"
+                          style={{ border: '1.5px solid rgba(28,20,16,0.12)', fontFamily: 'DM Sans, sans-serif', outline: 'none' }} />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
 
             <button onClick={savePlatforms} disabled={saving}
-              className="mt-6 px-8 py-4 rounded-full font-semibold text-white transition-all hover:scale-105"
+              className="px-8 py-4 rounded-full font-semibold text-white transition-all hover:scale-105"
               style={{ background: '#C4622D', fontFamily: 'DM Sans, sans-serif', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>
-              {saving ? 'Saving...' : savedMsg || 'Save Platform Settings →'}
+              {saving ? 'Saving...' : savedMsg || 'Save All Platform Settings →'}
             </button>
           </div>
         )}
@@ -248,7 +278,7 @@ export default function AdminDashboard() {
           <div>
             <div className="mb-6">
               <h2 className="font-display text-2xl text-espresso">Creators & Sub-IDs</h2>
-              <p className="text-sm text-muted mt-1">Assign a unique sub-ID to each creator. This is appended to every booking link automatically — no manual work needed per hotel.</p>
+              <p className="text-sm text-muted mt-1">One sub-ID per creator. Automatically appended to every booking link across all platforms.</p>
             </div>
 
             {influencers.length === 0 ? (
@@ -258,41 +288,31 @@ export default function AdminDashboard() {
                 {influencers.map(inf => (
                   <div key={inf.id} className="p-5 rounded-2xl" style={{ background: 'white', border: '1px solid rgba(28,20,16,0.08)' }}>
                     <div className="flex items-center gap-4 flex-wrap">
-                      {/* Avatar */}
                       <div className="w-10 h-10 rounded-full flex items-center justify-center text-lg flex-shrink-0"
                         style={{ background: 'linear-gradient(135deg, #C4622D, #D4A853)' }}>✈️</div>
-
-                      {/* Info */}
                       <div className="flex-1 min-w-0">
                         <div className="font-semibold text-espresso">{inf.profiles?.full_name || inf.handle}</div>
                         <div className="text-xs text-muted">@{inf.handle} · {inf.profiles?.email}</div>
                       </div>
 
-                      {/* Sub-ID */}
                       <div className="flex items-center gap-2">
                         <label className="text-xs font-semibold text-muted uppercase tracking-wider">Sub-ID:</label>
-                        <input
-                          defaultValue={inf.sub_id || inf.handle}
+                        <input defaultValue={inf.sub_id || inf.handle}
                           onBlur={e => updateSubId(inf.id, e.target.value)}
-                          placeholder={inf.handle}
                           className="w-28 text-center text-sm font-semibold rounded-lg px-3 py-2"
                           style={{ border: '1.5px solid rgba(28,20,16,0.12)', fontFamily: 'DM Sans, sans-serif', outline: 'none' }} />
                       </div>
 
-                      {/* Commission */}
                       <div className="flex items-center gap-2">
                         <label className="text-xs font-semibold text-muted uppercase tracking-wider">Commission:</label>
-                        <div className="flex items-center gap-1">
-                          <input type="number" min="0" max="100" step="5"
-                            defaultValue={inf.commission_rate || 70}
-                            onBlur={e => updateCommission(inf.id, e.target.value)}
-                            className="w-14 text-center text-sm font-semibold rounded-lg px-2 py-2"
-                            style={{ border: '1.5px solid rgba(28,20,16,0.12)', fontFamily: 'DM Sans, sans-serif', outline: 'none' }} />
-                          <span className="text-sm text-muted">%</span>
-                        </div>
+                        <input type="number" min="0" max="100" step="5"
+                          defaultValue={inf.commission_rate || 70}
+                          onBlur={e => updateCommission(inf.id, e.target.value)}
+                          className="w-14 text-center text-sm font-semibold rounded-lg px-2 py-2"
+                          style={{ border: '1.5px solid rgba(28,20,16,0.12)', fontFamily: 'DM Sans, sans-serif', outline: 'none' }} />
+                        <span className="text-sm text-muted">%</span>
                       </div>
 
-                      {/* Approve */}
                       <button onClick={() => approveInfluencer(inf.id, !inf.approved)}
                         className="text-xs font-semibold px-4 py-2 rounded-full"
                         style={{
@@ -305,14 +325,6 @@ export default function AdminDashboard() {
 
                       <a href={`/${inf.handle}`} target="_blank" className="text-xs text-muted hover:text-terracotta">View →</a>
                     </div>
-
-                    {/* Tracked URL preview */}
-                    {platformForm[0]?.base_url && (
-                      <div className="mt-3 pt-3 flex gap-2 flex-wrap" style={{ borderTop: '1px solid rgba(28,20,16,0.06)' }}>
-                        <span className="text-xs text-muted font-semibold">Their Booking.com link:</span>
-                        <code className="text-xs text-espresso break-all">{getTrackedUrl(inf, 'Booking.com')}</code>
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>
@@ -325,53 +337,53 @@ export default function AdminDashboard() {
           <div>
             <div className="mb-6">
               <h2 className="font-display text-2xl text-espresso">Monthly Payouts</h2>
-              <p className="text-sm text-muted mt-1">
-                Click data for {new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}. Cross-reference with your Booking.com affiliate dashboard using each creator's sub-ID to get exact commission amounts.
-              </p>
+              <p className="text-sm text-muted mt-1">{new Date().toLocaleString('default', { month: 'long', year: 'numeric' })} · Cross-reference Direct clicks with Booking.com/Expedia/Airbnb dashboards using sub-IDs. Cross-reference Travelpayouts clicks with your Travelpayouts dashboard.</p>
             </div>
 
-            <div className="p-5 rounded-2xl mb-6 flex gap-3 items-start"
-              style={{ background: '#FFF8F2', border: '1px solid rgba(196,98,45,0.15)' }}>
-              <span className="text-xl">📊</span>
-              <div className="text-sm leading-relaxed">
-                <strong>Payout workflow:</strong> Each month, go to your Booking.com affiliate dashboard → filter by sub-ID → note each creator's commission earned → multiply by their commission rate → pay them via PayPal or bank transfer.
-              </div>
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              {[
+                { label: 'Direct Platform Clicks', num: monthlyClicks.filter(c => c.is_direct).length, color: '#7A9E87', note: 'Check Booking.com, Expedia, Airbnb dashboards' },
+                { label: 'Travelpayouts Clicks', num: monthlyClicks.filter(c => !c.is_direct && c.content_type !== 'restaurant').length, color: '#D4A853', note: 'Check Travelpayouts dashboard' },
+                { label: 'Restaurant Clicks', num: monthlyClicks.filter(c => c.content_type === 'restaurant').length, color: '#C4622D', note: 'Check OpenTable dashboard' },
+              ].map((s, i) => (
+                <div key={i} className="p-5 rounded-2xl" style={{ background: 'white', border: `1px solid ${s.color}33` }}>
+                  <div className="font-display text-3xl mb-1" style={{ color: s.color }}>{s.num}</div>
+                  <div className="font-semibold text-sm text-espresso mb-1">{s.label}</div>
+                  <div className="text-xs text-muted">{s.note}</div>
+                </div>
+              ))}
             </div>
 
-            {payoutData.length === 0 ? (
+            {payoutData.filter(i => i.totalClicks > 0).length === 0 ? (
               <div className="text-center py-16 rounded-2xl text-muted" style={{ background: 'white', border: '1px solid rgba(28,20,16,0.08)' }}>
                 No clicks recorded yet this month.
               </div>
             ) : (
               <div className="flex flex-col gap-3">
-                {payoutData.map(inf => (
+                {payoutData.filter(i => i.totalClicks > 0).map(inf => (
                   <div key={inf.id} className="p-5 rounded-2xl" style={{ background: 'white', border: '1px solid rgba(28,20,16,0.08)' }}>
                     <div className="flex items-center gap-4 flex-wrap">
                       <div className="flex-1">
                         <div className="font-semibold text-espresso">{inf.profiles?.full_name || inf.handle}</div>
-                        <div className="text-xs text-muted">Sub-ID: <code className="text-espresso">{inf.sub_id || inf.handle}</code></div>
+                        <div className="text-xs text-muted">Sub-ID: <code className="text-espresso font-semibold">{inf.sub_id || inf.handle}</code></div>
                       </div>
-
-                      <div className="flex gap-6">
-                        <div className="text-center">
-                          <div className="font-display text-2xl text-espresso">{inf.totalClicks}</div>
-                          <div className="text-xs text-muted uppercase tracking-wider">Total Clicks</div>
+                      <div className="flex gap-4 flex-wrap">
+                        <div className="text-center px-3">
+                          <div className="font-display text-xl text-espresso">{inf.totalClicks}</div>
+                          <div className="text-xs text-muted">Total</div>
                         </div>
-                        {Object.entries(inf.byPlatform).map(([platform, count]) => (
-                          <div key={platform} className="text-center">
-                            <div className="font-display text-2xl text-espresso">{count}</div>
-                            <div className="text-xs text-muted uppercase tracking-wider">{platform}</div>
-                          </div>
-                        ))}
-                        <div className="text-center">
-                          <div className="font-display text-2xl text-terracotta">{inf.commission_rate || 70}%</div>
-                          <div className="text-xs text-muted uppercase tracking-wider">Their Cut</div>
+                        <div className="text-center px-3">
+                          <div className="font-display text-xl" style={{ color: '#7A9E87' }}>{inf.byType.direct}</div>
+                          <div className="text-xs text-muted">Direct</div>
                         </div>
-                      </div>
-
-                      <div className="text-xs px-3 py-1.5 rounded-full font-semibold"
-                        style={{ background: '#F5EFE6', color: '#8B7D72' }}>
-                        Check Booking.com for $ amount →
+                        <div className="text-center px-3">
+                          <div className="font-display text-xl" style={{ color: '#D4A853' }}>{inf.byType.travelpayouts}</div>
+                          <div className="text-xs text-muted">Travelpayouts</div>
+                        </div>
+                        <div className="text-center px-3">
+                          <div className="font-display text-xl text-terracotta">{inf.commission_rate || 70}%</div>
+                          <div className="text-xs text-muted">Their cut</div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -386,9 +398,8 @@ export default function AdminDashboard() {
           <div>
             <div className="mb-6">
               <h2 className="font-display text-2xl text-espresso">All Hotels</h2>
-              <p className="text-sm text-muted mt-1">All recommendations across all creators. Booking links are now auto-generated from your platform settings — no manual links needed per hotel.</p>
+              <p className="text-sm text-muted mt-1">All recommendations. Booking links are auto-generated with each influencer's sub-ID — no manual work needed.</p>
             </div>
-
             {recommendations.length === 0 ? (
               <div className="text-center py-16 text-muted">No recommendations yet.</div>
             ) : (
@@ -400,10 +411,7 @@ export default function AdminDashboard() {
                       <div className="font-semibold text-espresso">{rec.hotel_name}</div>
                       <div className="text-xs text-muted">{rec.city}, {rec.country} · by @{rec.influencers?.handle}</div>
                     </div>
-                    <div className="text-xs px-3 py-1 rounded-full font-semibold"
-                      style={{ background: '#EEF5F1', color: '#7A9E87' }}>
-                      ✓ Auto-tracked via sub-ID
-                    </div>
+                    <span className="text-xs px-3 py-1 rounded-full font-semibold" style={{ background: '#EEF5F1', color: '#7A9E87' }}>✓ Auto-tracked</span>
                   </div>
                 ))}
               </div>

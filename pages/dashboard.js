@@ -502,3 +502,7 @@ function Field({ label, children, required }) {
     </div>
   )
 }
+export async function getServerSideProps() {
+  return { props: {} }
+}
+

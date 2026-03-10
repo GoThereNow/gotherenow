@@ -88,17 +88,20 @@ export default function AdminDashboard() {
     load()
   }, [])
 
-  const savePlatforms = async () => {
-    setSaving(true)
-    for (const [platform, data] of Object.entries(platformData)) {
-      const hasData = data.base_url || data.travelpayouts_marker
-      if (!hasData) continue
-      await supabase.from('platform_settings').upsert({ platform, ...data }, { onConflict: 'platform' })
-    }
-    setSaving(false)
-    setSavedMsg('Saved! ✓')
-    setTimeout(() => setSavedMsg(''), 2500)
-  }
+ const savePlatforms = async () => {
+  setSaving(true)
+  const entries = Object.entries(platformData)
+  await Promise.all(
+    entries
+      .filter(([_, data]) => data.base_url || data.travelpayouts_marker)
+      .map(([platform, data]) =>
+        supabase.from('platform_settings').upsert({ platform, ...data }, { onConflict: 'platform' })
+      )
+  )
+  setSaving(false)
+  setSavedMsg('Saved! ✓')
+  setTimeout(() => setSavedMsg(''), 2500)
+}
 
   const updateField = (platform, field, value) => {
     setPlatformData(prev => ({ ...prev, [platform]: { ...prev[platform], [field]: value } }))

@@ -5,9 +5,6 @@ import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabase'
-import mapboxgl from 'mapbox-gl'
-
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
 
 export default function InfluencerProfile() {
   const router = useRouter()
@@ -50,85 +47,90 @@ export default function InfluencerProfile() {
     fetchData()
   }, [slug])
 
-  // Init map
+  // Init map — dynamically import mapbox to avoid SSR issues
   useEffect(() => {
     if (!mapContainer.current || map.current) return
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/light-v11',
-      center: [20, 25],
-      zoom: 1.8,
-      attributionControl: false,
+    import('mapbox-gl').then(mapboxgl => {
+      mapboxgl = mapboxgl.default || mapboxgl
+      mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/light-v11',
+        center: [20, 25],
+        zoom: 1.8,
+        attributionControl: false,
+      })
+      map.current.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right')
     })
-    map.current.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right')
   }, [])
 
   // Add markers when recommendations load
   useEffect(() => {
     if (!map.current || recommendations.length === 0) return
 
-    // Clear old markers
-    markersRef.current.forEach(m => m.remove())
-    markersRef.current = []
+    import('mapbox-gl').then(mapboxgl => {
+      mapboxgl = mapboxgl.default || mapboxgl
 
-    recommendations.forEach((rec, i) => {
-      if (!rec.latitude || !rec.longitude) return
+      // Clear old markers
+      markersRef.current.forEach(m => m.remove())
+      markersRef.current = []
 
-      // Custom marker element
-      const el = document.createElement('div')
-      el.style.cssText = `
-        width: 36px; height: 36px;
-        background: #1C1410;
-        border: 2.5px solid white;
-        border-radius: 50% 50% 50% 0;
-        transform: rotate(-45deg);
-        cursor: pointer;
-        display: flex; align-items: center; justify-content: center;
-        box-shadow: 0 4px 12px rgba(28,20,16,0.3);
-        transition: all 0.2s;
-      `
-      const inner = document.createElement('span')
-      inner.style.cssText = 'transform: rotate(45deg); font-size: 14px;'
-      inner.textContent = '📍'
-      el.appendChild(inner)
-      el.addEventListener('mouseenter', () => { el.style.background = '#C4622D'; el.style.transform = 'rotate(-45deg) scale(1.2)' })
-      el.addEventListener('mouseleave', () => {
-        if (selectedHotel?.id !== rec.id) { el.style.background = '#1C1410'; el.style.transform = 'rotate(-45deg) scale(1)' }
+      recommendations.forEach((rec) => {
+        if (!rec.latitude || !rec.longitude) return
+
+        const el = document.createElement('div')
+        el.style.cssText = `
+          width: 36px; height: 36px;
+          background: #1C1410;
+          border: 2.5px solid white;
+          border-radius: 50% 50% 50% 0;
+          transform: rotate(-45deg);
+          cursor: pointer;
+          display: flex; align-items: center; justify-content: center;
+          box-shadow: 0 4px 12px rgba(28,20,16,0.3);
+          transition: all 0.2s;
+        `
+        const inner = document.createElement('span')
+        inner.style.cssText = 'transform: rotate(45deg); font-size: 14px;'
+        inner.textContent = '📍'
+        el.appendChild(inner)
+        el.addEventListener('mouseenter', () => { el.style.background = '#C4622D'; el.style.transform = 'rotate(-45deg) scale(1.2)' })
+        el.addEventListener('mouseleave', () => {
+          if (selectedHotel?.id !== rec.id) { el.style.background = '#1C1410'; el.style.transform = 'rotate(-45deg) scale(1)' }
+        })
+
+        const popup = new mapboxgl.Popup({ offset: 25, closeButton: false })
+          .setHTML(`
+            <div style="padding:16px;">
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#C4622D;font-weight:600;margin-bottom:3px;">${rec.city || ''}, ${rec.country}</div>
+              <div style="font-family:'Georgia',serif;font-size:15px;font-weight:600;margin-bottom:6px;color:#1C1410;">${rec.hotel_name}</div>
+              <button onclick="document.dispatchEvent(new CustomEvent('openHotel', {detail: '${rec.id}'}))"
+                style="width:100%;background:#C4622D;color:white;border:none;padding:9px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:sans-serif;">
+                View & Book →
+              </button>
+            </div>
+          `)
+
+        const marker = new mapboxgl.Marker(el)
+          .setLngLat([rec.longitude, rec.latitude])
+          .setPopup(popup)
+          .addTo(map.current)
+
+        el.addEventListener('click', () => {
+          setSelectedHotel(rec)
+          map.current.flyTo({ center: [rec.longitude, rec.latitude], zoom: 10, duration: 800 })
+        })
+
+        markersRef.current.push(marker)
       })
 
-      const popup = new mapboxgl.Popup({ offset: 25, closeButton: false })
-        .setHTML(`
-          <div style="padding:16px;">
-            <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#C4622D;font-weight:600;margin-bottom:3px;">${rec.city}, ${rec.country}</div>
-            <div style="font-family:'Georgia',serif;font-size:15px;font-weight:600;margin-bottom:6px;color:#1C1410;">${rec.hotel_name}</div>
-            <div style="font-size:12px;color:#8B7D72;margin-bottom:10px;">from <strong style="color:#1C1410;font-size:15px;">$${rec.price_from || '—'}</strong>/night</div>
-            <button onclick="document.dispatchEvent(new CustomEvent('openHotel', {detail: '${rec.id}'}))"
-              style="width:100%;background:#C4622D;color:white;border:none;padding:9px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:sans-serif;">
-              View & Book →
-            </button>
-          </div>
-        `)
-
-      const marker = new mapboxgl.Marker(el)
-        .setLngLat([rec.longitude, rec.latitude])
-        .setPopup(popup)
-        .addTo(map.current)
-
-      el.addEventListener('click', () => {
-        setSelectedHotel(rec)
-        map.current.flyTo({ center: [rec.longitude, rec.latitude], zoom: 10, duration: 800 })
-      })
-
-      markersRef.current.push(marker)
+      const handleOpenHotel = (e) => {
+        const rec = recommendations.find(r => r.id === e.detail)
+        if (rec) { setSelectedHotel(rec); setShowModal(true) }
+      }
+      document.addEventListener('openHotel', handleOpenHotel)
+      return () => document.removeEventListener('openHotel', handleOpenHotel)
     })
-
-    // Listen for popup book button
-    const handleOpenHotel = (e) => {
-      const rec = recommendations.find(r => r.id === e.detail)
-      if (rec) { setSelectedHotel(rec); setShowModal(true) }
-    }
-    document.addEventListener('openHotel', handleOpenHotel)
-    return () => document.removeEventListener('openHotel', handleOpenHotel)
   }, [recommendations])
 
   const openBookingModal = (hotel) => {
@@ -182,7 +184,6 @@ export default function InfluencerProfile() {
             backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.18
           }} />
           <div className="relative z-10 max-w-4xl mx-auto px-6 py-10 flex flex-col md:flex-row items-start md:items-end gap-6">
-            {/* Avatar */}
             <div className="relative flex-shrink-0">
               <div className="w-24 h-24 rounded-full flex items-center justify-center text-3xl border-2 overflow-hidden"
                 style={{ background: 'linear-gradient(135deg, #C4622D, #D4A853)', borderColor: '#C4622D' }}>
@@ -194,7 +195,6 @@ export default function InfluencerProfile() {
                 style={{ background: '#C4622D', borderColor: '#1C1410', fontSize: '9px' }}>✓</div>
             </div>
 
-            {/* Info */}
             <div className="flex-1">
               <h1 className="font-display text-3xl text-white mb-1">{profile?.full_name || influencer.handle}</h1>
               <div className="text-sm mb-2" style={{ color: '#E8845A' }}>@{influencer.handle} · Travel Creator</div>
@@ -213,18 +213,17 @@ export default function InfluencerProfile() {
               </div>
             </div>
 
-            {/* Social */}
             <div className="flex gap-2 self-start md:self-auto mt-2 md:mt-0">
               {influencer.instagram_url && (
                 <a href={influencer.instagram_url} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold text-white transition-opacity hover:opacity-80"
+                  className="flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold text-white"
                   style={{ background: 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' }}>
                   📸 Instagram
                 </a>
               )}
               {influencer.tiktok_url && (
                 <a href={influencer.tiktok_url} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold text-white transition-opacity hover:opacity-80"
+                  className="flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold text-white"
                   style={{ background: '#010101' }}>
                   ♪ TikTok
                 </a>
@@ -245,8 +244,7 @@ export default function InfluencerProfile() {
                 style={{
                   color: activeTab === tab.id ? '#E8845A' : 'rgba(255,255,255,0.35)',
                   borderBottom: activeTab === tab.id ? '2px solid #C4622D' : '2px solid transparent',
-                  background: 'none', border_bottom: activeTab === tab.id ? '2px solid #C4622D' : '2px solid transparent',
-                  cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+                  background: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
                 }}>
                 {tab.label}
               </button>
@@ -272,7 +270,6 @@ export default function InfluencerProfile() {
 
           <div ref={mapContainer} style={{ height: '440px', borderRadius: '20px', overflow: 'hidden', border: '1px solid rgba(196,98,45,0.15)' }} />
 
-          {/* Hotel cards below map */}
           {recommendations.length > 0 && (
             <div className="mt-8">
               <h3 className="font-display text-xl text-espresso mb-4">Recent Stays</h3>
@@ -318,14 +315,13 @@ export default function InfluencerProfile() {
           onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false) }}>
           <div className="w-full max-w-md rounded-3xl p-8 relative" style={{ background: 'white' }}>
             <button onClick={() => setShowModal(false)}
-              className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-muted hover:bg-sand transition-colors"
-              style={{ background: '#F5EFE6' }}>✕</button>
+              className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center"
+              style={{ background: '#F5EFE6', border: 'none', cursor: 'pointer' }}>✕</button>
 
-            <div className="text-xs uppercase tracking-widest font-semibold text-terracotta mb-1">{selectedHotel.city}, {selectedHotel.country}</div>
-            <h3 className="font-display text-2xl text-espresso mb-1">{selectedHotel.hotel_name}</h3>
-            {selectedHotel.price_from && (
-              <div className="text-sm text-muted mb-6">from <strong className="text-espresso text-lg">${selectedHotel.price_from}</strong>/night</div>
-            )}
+            <div className="text-xs uppercase tracking-widest font-semibold text-terracotta mb-1">
+              {[selectedHotel.city, selectedHotel.country].filter(Boolean).join(', ')}
+            </div>
+            <h3 className="font-display text-2xl text-espresso mb-4">{selectedHotel.hotel_name}</h3>
 
             {selectedHotel.influencer_quote && (
               <blockquote className="text-sm italic text-muted mb-6 pl-4 border-l-2 border-terracotta leading-relaxed">
@@ -348,7 +344,7 @@ export default function InfluencerProfile() {
                   </a>
                 ))
               ) : (
-                <div className="text-sm text-muted text-center py-4">No booking links added yet.</div>
+                <div className="text-sm text-muted text-center py-4">Booking links coming soon.</div>
               )}
             </div>
 
@@ -378,9 +374,8 @@ function HotelCard({ rec, index, onBook, onMapFocus }) {
   const emojis = ['🏯', '🏜', '🌿', '🌊', '🏔', '🌴', '🏛', '🗼']
 
   return (
-    <div className={`fade-up fade-up-${(index % 4) + 1} rounded-2xl overflow-hidden transition-all hover:-translate-y-1 hover:shadow-lg cursor-pointer`}
+    <div className="rounded-2xl overflow-hidden transition-all hover:-translate-y-1 hover:shadow-lg cursor-pointer"
       style={{ background: 'white', border: '1px solid rgba(28,20,16,0.07)' }}>
-      {/* Image / Placeholder */}
       <div style={{ height: '140px', background: gradients[index % gradients.length], display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '44px', position: 'relative' }}>
         {rec.photo_url
           ? <img src={rec.photo_url} style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} />
@@ -392,33 +387,29 @@ function HotelCard({ rec, index, onBook, onMapFocus }) {
       </div>
 
       <div className="p-4">
-        <div className="text-xs font-semibold uppercase tracking-wider text-terracotta mb-1 flex items-center gap-1">
-          📍 {rec.city}, {rec.country}
+        <div className="text-xs font-semibold uppercase tracking-wider text-terracotta mb-1">
+          📍 {[rec.city, rec.country].filter(Boolean).join(', ')}
         </div>
         <h3 className="font-display text-lg text-espresso mb-1">{rec.hotel_name}</h3>
-        {rec.star_rating && <div className="text-xs mb-2" style={{ color: '#D4A853' }}>{'★'.repeat(rec.star_rating)}</div>}
+        {rec.star_rating && (
+          <div className="text-xs mb-2" style={{ color: '#D4A853' }}>{'★'.repeat(rec.star_rating)}</div>
+        )}
         {rec.influencer_quote && (
           <p className="text-xs text-muted italic leading-relaxed mb-3 line-clamp-2">"{rec.influencer_quote}"</p>
         )}
 
         <div className="flex items-center justify-between mt-2">
-          <div className="text-sm text-muted">
-            {rec.price_from ? <>from <strong className="text-espresso text-base">${rec.price_from}</strong>/night</> : <span className="opacity-0">—</span>}
-          </div>
-          <button onClick={onBook}
-            className="text-xs font-semibold text-white px-4 py-2 rounded-full transition-colors hover:bg-terracotta-light"
-            style={{ background: '#1C1410', fontFamily: 'DM Sans, sans-serif' }}>
-            Book Now →
-          </button>
-        </div>
-
-        {rec.booking_links?.length > 0 && (
-          <div className="flex gap-1 mt-3 flex-wrap">
-            {rec.booking_links.map((l, i) => (
+          <div className="flex gap-1 flex-wrap">
+            {rec.booking_links?.map((l, i) => (
               <span key={i} className="text-xs px-2 py-0.5 rounded-md" style={{ background: '#F5EFE6', color: '#8B7D72' }}>{l.platform}</span>
             ))}
           </div>
-        )}
+          <button onClick={onBook}
+            className="text-xs font-semibold text-white px-4 py-2 rounded-full"
+            style={{ background: '#1C1410', fontFamily: 'DM Sans, sans-serif', border: 'none', cursor: 'pointer' }}>
+            Book Now →
+          </button>
+        </div>
       </div>
     </div>
   )

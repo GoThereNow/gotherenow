@@ -35,8 +35,9 @@ export default function Login() {
         .photo-img { width: 100%; height: 100%; object-fit: cover; object-position: center bottom; filter: brightness(0.65) saturate(0.8); }
         .photo-wash { position: absolute; inset: 0; background: rgba(0,50,60,0.45); mix-blend-mode: multiply; }
         .photo-gradient { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, rgba(0,86,99,0.9) 100%); }
-        .photo-logo { position: absolute; top: 36px; left: 48px; font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 400; color: white; text-decoration: none; letter-spacing: 1px; }
-        .photo-logo em { font-style: italic; color: rgba(255,255,255,0.6); }
+        .photo-logo { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: white; text-decoration: none; letter-spacing: -0.5px; }
+        .photo-logo em { font-style: italic; font-weight: 300; color: rgba(255,255,255,0.7); }
+        .photo-logo span { font-weight: 300; }
         .photo-content { position: absolute; bottom: 48px; left: 48px; right: 48px; }
         .photo-quote { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 300; color: white; line-height: 1.2; margin-bottom: 12px; }
         .photo-quote em { font-style: italic; }
@@ -73,7 +74,7 @@ export default function Login() {
           <img src="/positano.avif" alt="Positano" className="photo-img" />
           <div className="photo-wash" />
           <div className="photo-gradient" />
-          <Link href="/" className="photo-logo">Go<em>There</em>Now</Link>
+          <Link href="/" className="photo-logo">Go<em>There</em><span>Now</span></Link>
           <div className="photo-content">
             <div className="photo-quote">Stay where<br />the <em>story</em> begins.</div>
             <div className="photo-loc">📍 Positano, Italy</div>

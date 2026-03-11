@@ -195,7 +195,7 @@ export default function Home() {
         }
         .eyebrow::before { content:''; display:block; width:24px; height:1px; background: rgb(0,86,99); }
         .section-title {
-          font-family: 'Cormorant Garamond', serif;
+          font-family: 'Playfair Display', serif;
           font-size: clamp(32px, 3.5vw, 48px);
           font-weight: 300; color: white; line-height: 1.05;
         }
@@ -241,7 +241,7 @@ export default function Home() {
           color: rgba(255,255,255,0.6); margin-bottom: 4px;
         }
         .stay-name {
-          font-family: 'Cormorant Garamond', serif;
+          font-family: 'Playfair Display', serif;
           font-size: 19px; font-weight: 300; color: white; margin-bottom: 5px;
         }
         .stay-creator { font-size: 10px; color: rgba(255,255,255,0.3); }
@@ -255,12 +255,12 @@ export default function Home() {
         .how-steps { display: flex; flex-direction: column; gap: 44px; }
         .how-step { display: flex; gap: 24px; }
         .step-n {
-          font-family: 'Cormorant Garamond', serif;
+          font-family: 'Playfair Display', serif;
           font-size: 13px; color: rgb(0,86,99);
           letter-spacing: 2px; padding-top: 3px; flex-shrink: 0; width: 28px;
         }
         .step-title {
-          font-family: 'Cormorant Garamond', serif;
+          font-family: 'Playfair Display', serif;
           font-size: 22px; font-weight: 400; color: white; margin-bottom: 8px;
         }
         .step-desc { font-size: 13px; color: rgba(255,255,255,0.3); line-height: 1.8; }
@@ -282,7 +282,7 @@ export default function Home() {
           color: rgba(255,255,255,0.5); margin-bottom: 6px;
         }
         .how-caption-name {
-          font-family: 'Cormorant Garamond', serif;
+          font-family: 'Playfair Display', serif;
           font-size: 26px; font-weight: 300; color: white;
         }
 
@@ -293,7 +293,7 @@ export default function Home() {
           display: grid; grid-template-columns: 1fr 1fr; gap: 96px; align-items: center;
         }
         .cta-title {
-          font-family: 'Cormorant Garamond', serif;
+          font-family: 'Playfair Display', serif;
           font-size: clamp(36px, 4vw, 56px);
           font-weight: 300; color: white; line-height: 1.05;
           margin-bottom: 16px;
@@ -317,7 +317,7 @@ export default function Home() {
         }
         .cta-stat-row:last-child { border-bottom: none; padding-bottom: 0; }
         .cta-stat-num {
-          font-family: 'Cormorant Garamond', serif;
+          font-family: 'Playfair Display', serif;
           font-size: 56px; font-weight: 300; color: white; line-height: 1;
           margin-bottom: 4px;
         }
@@ -334,7 +334,7 @@ export default function Home() {
           display: flex; align-items: center; justify-content: space-between;
         }
         .footer-logo {
-          font-family: 'DM Sans', sans-serif;
+          font-family: 'Playfair Display', serif;
           font-size: 18px; font-weight: 700;
           color: rgba(255,255,255,0.3); text-decoration: none;
         }

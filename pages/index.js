@@ -75,7 +75,7 @@ export default function Home() {
         }
         .hero-img {
           width: 100%; height: 100%;
-          object-fit: cover; object-position: bottom;
+          object-fit: cover; object-position: center;
         }
         /* subtle vignette only — keep photo vivid */
         .hero-vignette {

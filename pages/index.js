@@ -384,7 +384,7 @@ export default function Home() {
       <section className="hero">
         <div className="hero-photo">
           <img
-            src="https://images.unsplash.com/photo-1533105079780-92b9be482077?w=1800&q=85"
+            src="/positano.avif"
             alt="Positano coastline"
             className="hero-img"
           />

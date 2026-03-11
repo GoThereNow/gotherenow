@@ -24,7 +24,7 @@ export default function Home() {
       <Head>
         <title>GoThereNow — Your feed, now bookable</title>
         <meta name="description" content="The first interactive map of creator-verified stays." />
-        <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,700;1,300;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
       </Head>
 
       <style>{`
@@ -183,7 +183,7 @@ export default function Home() {
         .strip-text { font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.7); }
 
         /* STAYS */
-        .stays { padding: 96px 48px; background: #080E0D; }
+        .stays { padding: 96px 48px; background: rgb(0,86,99); }
         .stays-header {
           display: flex; align-items: flex-end; justify-content: space-between;
           margin-bottom: 48px;

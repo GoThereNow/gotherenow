@@ -29,7 +29,7 @@ export default function Home() {
 
       <style>{`
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: rgb(0,86,99); font-family: 'DM Sans', sans-serif; color: white; overflow-x: hidden; }
+        body { background: rgb(0,86,99); font-family: 'Playfair Display', sans-serif; color: white; overflow-x: hidden; }
 
         /* NAV */
         .nav {
@@ -44,7 +44,7 @@ export default function Home() {
           padding: 16px 48px;
         }
         .logo {
-          font-family: 'DM Sans', sans-serif;
+          font-family: 'Playfair Display', sans-serif;
           font-size: 20px; font-weight: 700;
           color: white; letter-spacing: -0.5px;
           text-decoration: none;
@@ -75,7 +75,7 @@ export default function Home() {
         }
         .hero-img {
           width: 100%; height: 100%;
-          object-fit: cover; object-position: center;
+          object-fit: cover; object-position: bottom;
         }
         /* subtle vignette only — keep photo vivid */
         .hero-vignette {
@@ -124,7 +124,7 @@ export default function Home() {
           border: none;
           padding: 14px 18px;
           font-size: 14px;
-          font-family: 'DM Sans', sans-serif;
+          font-family: 'Playfair Display', sans-serif;
           color: #333;
           margin-bottom: 10px;
           outline: none;
@@ -140,7 +140,7 @@ export default function Home() {
           font-weight: 700;
           letter-spacing: 2px;
           text-transform: uppercase;
-          font-family: 'DM Sans', sans-serif;
+          font-family: 'Playfair Display', sans-serif;
           cursor: pointer;
           transition: all 0.2s;
           text-decoration: none;

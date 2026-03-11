@@ -42,9 +42,9 @@ export default function Home() {
           box-shadow: 0 2px 24px rgba(0,0,0,0.2);
         }
         .nav.scrolled {
-          background: rgba(0,86,99,0.95);
+          background: rgb(0,86,99);
           backdrop-filter: blur(20px);
-          padding: 16px 48px;
+          padding: 18px 48px;
         }
         .logo {
           font-family: 'Playfair Display', sans-serif;

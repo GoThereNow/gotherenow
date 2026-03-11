@@ -1,176 +1,273 @@
-export const dynamic = 'force-dynamic'
-
 import { useState } from 'react'
+import { useRouter } from 'next/router'
 import Head from 'next/head'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabase'
 
 export default function Signup() {
   const router = useRouter()
-  const defaultRole = router.query.role || 'user'
-
-  const [role, setRole] = useState(defaultRole)
-  const [form, setForm] = useState({ email: '', password: '', full_name: '', handle: '' })
-  const [loading, setLoading] = useState(false)
+  const [role, setRole] = useState(router.query?.role === 'influencer' ? 'influencer' : 'traveller')
+  const [fullName, setFullName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [handle, setHandle] = useState('')
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
 
   const handleSignup = async (e) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
-    // Create auth user
-    const { data, error: authError } = await supabase.auth.signUp({
-      email: form.email,
-      password: form.password,
-      options: { data: { full_name: form.full_name, role } }
+    const { data, error: signupError } = await supabase.auth.signUp({
+      email, password,
+      options: { data: { full_name: fullName } }
     })
+    if (signupError) { setError(signupError.message); setLoading(false); return }
 
-    if (authError) { setError(authError.message); setLoading(false); return }
-
-    const userId = data.user?.id
-
-    // Insert into profiles
-    await supabase.from('profiles').upsert({
-      id: userId,
-      full_name: form.full_name,
-      email: form.email,
-      role,
-    })
-
-    // If influencer, create influencer record
-    if (role === 'influencer' && form.handle) {
+    if (role === 'influencer' && handle && data.user) {
       await supabase.from('influencers').insert({
-        user_id: userId,
-        handle: form.handle.toLowerCase().replace(/[^a-z0-9_]/g, ''),
+        user_id: data.user.id,
+        handle: handle.replace('@', '').toLowerCase(),
+        approved: false,
       })
-      router.push('/dashboard')
-    } else {
-      router.push('/')
     }
+
+    setSuccess(true)
+    setLoading(false)
   }
 
   return (
     <>
-      <Head><title>Join GoThereNow</title></Head>
-      <div className="min-h-screen flex" style={{ background: '#FAF7F2' }}>
+      <Head>
+        <title>Sign Up — GoThereNow</title>
+        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+      </Head>
+      <Page>
+        <div className="card">
+          <Link href="/" className="logo">Go<em>There</em>Now</Link>
 
-        {/* Left panel */}
-        <div className="hidden md:flex flex-col justify-between w-1/2 p-12 text-white relative overflow-hidden"
-          style={{ background: '#1C1410' }}>
-          <div className="absolute inset-0" style={{
-            backgroundImage: 'url(https://images.unsplash.com/photo-1488085061387-422e29b40080?w=900&q=70)',
-            backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.2
-          }} />
-          <div className="relative z-10">
-            <Link href="/" className="font-display text-2xl text-white">Go<span className="text-terracotta-light">There</span>Now</Link>
-          </div>
-          <div className="relative z-10">
-            <h2 className="font-display text-4xl leading-tight mb-4">Travel through the eyes of creators you trust.</h2>
-            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '15px', lineHeight: '1.7' }}>
-              Every pin is a personal recommendation. Every booking supports the creator.
-            </p>
-          </div>
-          <div className="relative z-10 text-xs" style={{ color: 'rgba(255,255,255,0.25)' }}>© 2025 GoThereNow</div>
-        </div>
-
-        {/* Right panel */}
-        <div className="flex-1 flex items-center justify-center p-8">
-          <div className="w-full max-w-md">
-            <Link href="/" className="font-display text-xl text-espresso md:hidden block mb-8">Go<span className="text-terracotta">There</span>Now</Link>
-
-            <h1 className="font-display text-3xl text-espresso mb-2">Create your account</h1>
-            <p className="text-sm text-muted mb-8">Already have one? <Link href="/login" className="text-terracotta hover:underline">Sign in</Link></p>
-
-            {/* Role toggle */}
-            <div className="flex gap-2 p-1 rounded-xl mb-6" style={{ background: '#F5EFE6' }}>
-              {[
-                { id: 'user', label: '🌍 I\'m a Traveller' },
-                { id: 'influencer', label: '✈️ I\'m a Creator' },
-              ].map(r => (
-                <button key={r.id} onClick={() => setRole(r.id)}
-                  className="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all"
-                  style={{
-                    background: role === r.id ? 'white' : 'transparent',
-                    color: role === r.id ? '#1C1410' : '#8B7D72',
-                    boxShadow: role === r.id ? '0 1px 8px rgba(28,20,16,0.1)' : 'none',
-                    border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif'
-                  }}>
-                  {r.label}
-                </button>
-              ))}
+          {success ? (
+            <div className="success-state">
+              <div className="success-icon">✓</div>
+              <h2 className="title">Check your email.</h2>
+              <p className="subtitle">We sent a confirmation link to <strong style={{color:'white'}}>{email}</strong>. Click it to activate your account.</p>
+              <Link href="/login" className="btn" style={{display:'block', textAlign:'center', textDecoration:'none', marginTop:'28px'}}>
+                Back to sign in →
+              </Link>
             </div>
+          ) : (
+            <>
+              <h1 className="title">Join GoThereNow.</h1>
+              <p className="subtitle">Create your free account</p>
 
-            <form onSubmit={handleSignup} className="flex flex-col gap-4">
-              <div>
-                <label className="text-xs font-semibold uppercase tracking-wider text-muted block mb-1.5">Full Name</label>
-                <input type="text" required value={form.full_name}
-                  onChange={e => setForm({ ...form, full_name: e.target.value })}
-                  placeholder="Your full name"
-                  className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all"
-                  style={{ border: '1.5px solid rgba(28,20,16,0.12)', background: 'white', fontFamily: 'DM Sans, sans-serif' }}
-                  onFocus={e => e.target.style.borderColor = '#C4622D'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(28,20,16,0.12)'} />
+              <div className="role-toggle">
+                <button className={`role-btn${role === 'traveller' ? ' active' : ''}`} onClick={() => setRole('traveller')}>
+                  🌍 Traveller
+                </button>
+                <button className={`role-btn${role === 'influencer' ? ' active' : ''}`} onClick={() => setRole('influencer')}>
+                  ✈️ Creator
+                </button>
               </div>
 
-              {role === 'influencer' && (
-                <div>
-                  <label className="text-xs font-semibold uppercase tracking-wider text-muted block mb-1.5">Your Handle</label>
-                  <div className="flex items-center rounded-xl overflow-hidden" style={{ border: '1.5px solid rgba(28,20,16,0.12)', background: 'white' }}>
-                    <span className="px-3 py-3 text-sm font-medium text-muted" style={{ background: '#F5EFE6', borderRight: '1px solid rgba(28,20,16,0.1)' }}>@</span>
-                    <input type="text" required={role === 'influencer'} value={form.handle}
-                      onChange={e => setForm({ ...form, handle: e.target.value })}
-                      placeholder="yourname"
-                      className="flex-1 px-3 py-3 text-sm outline-none"
-                      style={{ fontFamily: 'DM Sans, sans-serif' }} />
-                  </div>
-                  <p className="text-xs text-muted mt-1">Your page will be: gotherenow.app/@{form.handle || 'yourname'}</p>
+              {error && <div className="error">{error}</div>}
+
+              <form onSubmit={handleSignup} className="form">
+                <div className="field">
+                  <label className="label">Full name</label>
+                  <input type="text" required value={fullName}
+                    onChange={e => setFullName(e.target.value)}
+                    placeholder="Your name" className="input" />
                 </div>
-              )}
 
-              <div>
-                <label className="text-xs font-semibold uppercase tracking-wider text-muted block mb-1.5">Email</label>
-                <input type="email" required value={form.email}
-                  onChange={e => setForm({ ...form, email: e.target.value })}
-                  placeholder="you@example.com"
-                  className="w-full px-4 py-3 rounded-xl text-sm outline-none"
-                  style={{ border: '1.5px solid rgba(28,20,16,0.12)', background: 'white', fontFamily: 'DM Sans, sans-serif' }}
-                  onFocus={e => e.target.style.borderColor = '#C4622D'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(28,20,16,0.12)'} />
-              </div>
+                <div className="field">
+                  <label className="label">Email</label>
+                  <input type="email" required value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    placeholder="your@email.com" className="input" />
+                </div>
 
-              <div>
-                <label className="text-xs font-semibold uppercase tracking-wider text-muted block mb-1.5">Password</label>
-                <input type="password" required minLength={6} value={form.password}
-                  onChange={e => setForm({ ...form, password: e.target.value })}
-                  placeholder="At least 6 characters"
-                  className="w-full px-4 py-3 rounded-xl text-sm outline-none"
-                  style={{ border: '1.5px solid rgba(28,20,16,0.12)', background: 'white', fontFamily: 'DM Sans, sans-serif' }}
-                  onFocus={e => e.target.style.borderColor = '#C4622D'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(28,20,16,0.12)'} />
-              </div>
+                <div className="field">
+                  <label className="label">Password</label>
+                  <input type="password" required value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    placeholder="••••••••" className="input" />
+                </div>
 
-              {error && <div className="text-sm text-red-500 bg-red-50 px-4 py-3 rounded-xl">{error}</div>}
+                {role === 'influencer' && (
+                  <div className="field">
+                    <label className="label">Your handle</label>
+                    <input type="text" required value={handle}
+                      onChange={e => setHandle(e.target.value)}
+                      placeholder="e.g. sofiarami" className="input" />
+                    <div className="field-hint">gotherenow.app/@{handle || 'yourhandle'}</div>
+                  </div>
+                )}
 
-              <button type="submit" disabled={loading}
-                className="w-full py-3.5 rounded-xl font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50 mt-2"
-                style={{ background: '#C4622D', fontFamily: 'DM Sans, sans-serif', cursor: loading ? 'not-allowed' : 'pointer' }}>
-                {loading ? 'Creating account...' : 'Create free account →'}
-              </button>
-            </form>
+                <button type="submit" disabled={loading} className="btn">
+                  {loading ? 'Creating account...' : role === 'influencer' ? 'Create creator account →' : 'Create account →'}
+                </button>
+              </form>
 
-            <p className="text-xs text-muted text-center mt-6 leading-relaxed">
-              By signing up you agree to our Terms of Service.<br />No credit card required.
-            </p>
-          </div>
+              <div className="divider"><span>or</span></div>
+
+              <p className="switch">
+                Already have an account?{' '}
+                <Link href="/login" className="switch-link">Sign in</Link>
+              </p>
+            </>
+          )}
         </div>
-      </div>
+      </Page>
     </>
   )
 }
-export async function getServerSideProps() {
-  return { props: {} }
+
+function Page({ children }) {
+  return (
+    <div className="page">
+      <style>{`
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'DM Sans', sans-serif; }
+
+        .page {
+          min-height: 100vh;
+          background: rgb(0,86,99);
+          display: flex; align-items: center; justify-content: center;
+          padding: 24px;
+          position: relative; overflow: hidden;
+        }
+        .page::before {
+          content: '';
+          position: absolute; top: -200px; right: -200px;
+          width: 600px; height: 600px; border-radius: 50%;
+          background: rgba(255,255,255,0.04); pointer-events: none;
+        }
+        .page::after {
+          content: '';
+          position: absolute; bottom: -150px; left: -150px;
+          width: 500px; height: 500px; border-radius: 50%;
+          background: rgba(255,255,255,0.04); pointer-events: none;
+        }
+
+        .card {
+          background: rgba(255,255,255,0.07);
+          backdrop-filter: blur(20px);
+          border: 1px solid rgba(255,255,255,0.15);
+          border-radius: 4px;
+          padding: 52px 48px;
+          width: 100%; max-width: 440px;
+          position: relative; z-index: 1;
+        }
+
+        .logo {
+          display: block;
+          font-family: 'Playfair Display', serif;
+          font-size: 22px; font-weight: 400;
+          color: white; letter-spacing: 1px;
+          text-decoration: none; margin-bottom: 36px;
+        }
+        .logo em { font-style: italic; color: rgba(255,255,255,0.6); }
+
+        .title {
+          font-family: 'Playfair Display', serif;
+          font-size: 36px; font-weight: 400;
+          color: white; line-height: 1.1; margin-bottom: 8px;
+        }
+        .subtitle {
+          font-size: 14px; color: rgba(255,255,255,0.45); margin-bottom: 28px;
+        }
+
+        .role-toggle {
+          display: grid; grid-template-columns: 1fr 1fr;
+          gap: 2px; margin-bottom: 28px;
+          background: rgba(255,255,255,0.08);
+          border: 1px solid rgba(255,255,255,0.12);
+          border-radius: 2px; overflow: hidden;
+        }
+        .role-btn {
+          padding: 11px; font-size: 13px; font-weight: 500;
+          font-family: 'DM Sans', sans-serif;
+          border: none; cursor: pointer;
+          background: transparent; color: rgba(255,255,255,0.4);
+          transition: all 0.2s;
+        }
+        .role-btn.active { background: white; color: rgb(0,86,99); font-weight: 700; }
+
+        .error {
+          background: rgba(255,80,80,0.15);
+          border: 1px solid rgba(255,80,80,0.3);
+          color: #ffaaaa; font-size: 13px;
+          padding: 12px 16px; border-radius: 4px; margin-bottom: 20px;
+        }
+
+        .form { display: flex; flex-direction: column; gap: 18px; }
+        .field { display: flex; flex-direction: column; gap: 6px; }
+        .label {
+          font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+          color: rgba(255,255,255,0.5);
+        }
+        .input {
+          background: rgba(255,255,255,0.08);
+          border: 1px solid rgba(255,255,255,0.15);
+          color: white; padding: 13px 16px;
+          font-size: 14px; font-family: 'DM Sans', sans-serif;
+          outline: none; border-radius: 2px; transition: border-color 0.2s;
+        }
+        .input::placeholder { color: rgba(255,255,255,0.25); }
+        .input:focus { border-color: rgba(255,255,255,0.5); }
+        .field-hint {
+          font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 2px;
+        }
+
+        .btn {
+          background: white; color: rgb(0,86,99);
+          padding: 14px; font-size: 14px; font-weight: 700;
+          font-family: 'Playfair Display', serif;
+          border: none; cursor: pointer; border-radius: 2px;
+          transition: all 0.2s; margin-top: 4px; letter-spacing: 0.5px;
+        }
+        .btn:hover { background: rgba(255,255,255,0.9); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .divider {
+          display: flex; align-items: center; gap: 16px; margin: 24px 0;
+        }
+        .divider::before, .divider::after {
+          content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.1);
+        }
+        .divider span { font-size: 12px; color: rgba(255,255,255,0.25); }
+
+        .switch {
+          text-align: center; font-size: 13px; color: rgba(255,255,255,0.4);
+        }
+        .switch-link {
+          color: white; font-weight: 600; text-decoration: none;
+          border-bottom: 1px solid rgba(255,255,255,0.3);
+          padding-bottom: 1px; transition: border-color 0.2s;
+        }
+        .switch-link:hover { border-color: white; }
+
+        .success-state { text-align: center; }
+        .success-icon {
+          width: 56px; height: 56px; border-radius: 50%;
+          background: rgba(255,255,255,0.15);
+          display: flex; align-items: center; justify-content: center;
+          font-size: 22px; color: white;
+          margin: 0 auto 24px;
+        }
+
+        @media (max-width: 480px) {
+          .card { padding: 36px 28px; }
+          .title { font-size: 28px; }
+        }
+      `}</style>
+      {children}
+    </div>
+  )
 }
 
-
+export async function getServerSideProps(context) {
+  return { props: {} }
+}

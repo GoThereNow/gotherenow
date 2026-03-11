@@ -34,9 +34,12 @@ export default function Home() {
         /* NAV */
         .nav {
           position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-          padding: 24px 48px;
+          padding: 18px 48px;
           display: flex; align-items: center; justify-content: space-between;
           transition: all 0.4s ease;
+          background: rgb(0,86,99);
+          border-bottom: 1px solid rgba(255,255,255,0.15);
+          box-shadow: 0 2px 24px rgba(0,0,0,0.2);
         }
         .nav.scrolled {
           background: rgba(0,86,99,0.95);

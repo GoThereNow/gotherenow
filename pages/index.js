@@ -29,7 +29,7 @@ export default function Home() {
 
       <style>{`
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #080E0D; font-family: 'DM Sans', sans-serif; color: white; overflow-x: hidden; }
+        body { background: rgb(0,86,99); font-family: 'DM Sans', sans-serif; color: white; overflow-x: hidden; }
 
         /* NAV */
         .nav {

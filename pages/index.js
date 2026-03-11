@@ -475,7 +475,7 @@ export default function Home() {
 
         <div className="how-visual">
           <img
-            src="https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=800&q=80"
+            src="/positano.avif"
             alt="Italy"
             className="how-visual-img"
           />

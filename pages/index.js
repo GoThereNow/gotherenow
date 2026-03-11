@@ -98,7 +98,7 @@ export default function Home() {
           width: 42%;
         }
         .panel-headline {
-          font-family: 'DM Sans', sans-serif;
+          font-family: 'Playfair Display', sans-serif;
           font-size: clamp(32px, 4vw, 52px);
           font-weight: 700;
           color: white;

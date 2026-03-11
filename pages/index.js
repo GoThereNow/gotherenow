@@ -83,7 +83,7 @@ export default function Home() {
           background: linear-gradient(
             to right,
             rgba(0,86,99,0.15) 0%,
-            transparent 60%
+            transparent 0%
           );
         }
 

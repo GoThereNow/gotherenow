@@ -30,7 +30,7 @@ export default function Login() {
       <style>{`
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'DM Sans', sans-serif; }
-        .split { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; }
+        .split { height: 100vh; overflow: hidden; display: grid; grid-template-columns: 1fr 1fr; }
         .photo-side { position: relative; overflow: hidden; }
         .photo-img { width: 100%; height: 100%; object-fit: cover; object-position: center bottom; filter: brightness(0.65) saturate(0.8); }
         .photo-wash { position: absolute; inset: 0; background: rgba(0,50,60,0.45); mix-blend-mode: multiply; }
@@ -42,12 +42,12 @@ export default function Login() {
         .photo-quote { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 300; color: white; line-height: 1.2; margin-bottom: 12px; }
         .photo-quote em { font-style: italic; }
         .photo-loc { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.45); }
-        .form-side { background: rgb(0,86,99); display: flex; align-items: center; justify-content: center; padding: 48px; }
+        .form-side { background: rgb(0,86,99); display: flex; align-items: center; justify-content: center; padding: 24px 48px; height: 100vh; overflow: hidden; }
         .form-inner { width: 100%; max-width: 380px; }
-        .form-title { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 400; color: white; margin-bottom: 8px; }
-        .form-sub { font-size: 14px; color: rgba(255,255,255,0.45); margin-bottom: 36px; }
+        .form-title { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 400; color: white; margin-bottom: 6px; }
+        .form-sub { font-size: 14px; color: rgba(255,255,255,0.45); margin-bottom: 20px; }
         .error { background: rgba(255,80,80,0.15); border: 1px solid rgba(255,80,80,0.3); color: #ffaaaa; font-size: 13px; padding: 12px 16px; border-radius: 4px; margin-bottom: 20px; }
-        .form { display: flex; flex-direction: column; gap: 20px; }
+        .form { display: flex; flex-direction: column; gap: 12px; }
         .field { display: flex; flex-direction: column; gap: 6px; }
         .label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.5); }
         .input { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: white; padding: 13px 16px; font-size: 14px; font-family: 'DM Sans', sans-serif; outline: none; transition: border-color 0.2s; }

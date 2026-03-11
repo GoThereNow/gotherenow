@@ -374,7 +374,7 @@ export default function Home() {
       `}</style>
 
       {/* NAV */}
-      <nav className={`nav${scrolled ? ' scrolled' : ''}`}>
+      <nav className="nav">
         <a href="/" className="logo">Go<em>There</em>Now</a>
         <div className="nav-right">
           <a href="#stays" className="nav-link">Discover</a>

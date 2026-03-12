@@ -201,19 +201,19 @@ export default function Dashboard() {
 
         /* MODAL */
         .modal-overlay { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); }
-        .modal { background: #f7f5f2; border: 1px solid rgba(26,107,122,0.15); width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; position: relative; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
-        .modal-header { padding: 32px 36px 20px; position: sticky; top: 0; background: #f7f5f2; z-index: 1; border-bottom: 1px solid rgba(26,107,122,0.1); border-radius: 20px 20px 0 0; }
+        .modal { background: #f7f5f2; border: 1px solid rgba(26,107,122,0.15); width: 100%; max-width: 520px; position: relative; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); overflow: hidden; }
+        .modal-header { padding: 20px 28px 14px; position: sticky; top: 0; background: #f7f5f2; z-index: 1; border-bottom: 1px solid rgba(26,107,122,0.1); border-radius: 20px 20px 0 0; }
         .modal-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #b5654a; margin-bottom: 6px; }
-        .modal-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 300; color: #1a6b7a; }
+        .modal-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: #1a6b7a; }
         .modal-title em { font-style: italic; }
-        .modal-close { position: absolute; top: 28px; right: 28px; width: 32px; height: 32px; background: rgba(26,107,122,0.08); border: none; cursor: pointer; color: #1a6b7a; font-size: 14px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
-        .modal-body { padding: 28px 36px 36px; display: flex; flex-direction: column; gap: 18px; }
+        .modal-close { position: absolute; top: 18px; right: 20px; width: 32px; height: 32px; background: rgba(26,107,122,0.08); border: none; cursor: pointer; color: #1a6b7a; font-size: 14px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+        .modal-body { padding: 16px 28px 24px; display: flex; flex-direction: column; gap: 10px; }
 
-        .field-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: rgba(26,107,122,0.55); margin-bottom: 7px; display: block; }
-        .field-input { width: 100%; padding: 13px 16px; background: white; border: 1px solid rgba(26,107,122,0.15); color: #1a6b7a; font-size: 14px; font-family: 'DM Sans', sans-serif; outline: none; transition: border-color 0.2s; border-radius: 8px; }
+        .field-label { font-size: 12px; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; color: #1a6b7a; margin-bottom: 5px; display: block; }
+        .field-input { width: 100%; padding: 10px 14px; background: white; border: 1px solid rgba(26,107,122,0.15); color: #1a6b7a; font-size: 13px; font-family: 'DM Sans', sans-serif; outline: none; transition: border-color 0.2s; border-radius: 8px; }
         .field-input::placeholder { color: rgba(26,107,122,0.3); }
         .field-input:focus { border-color: rgba(26,107,122,0.4); background: white; }
-        textarea.field-input { resize: vertical; min-height: 90px; }
+        textarea.field-input { resize: none; height: 64px; }
 
         .autocomplete-drop { position: absolute; top: 100%; left: 0; right: 0; z-index: 100; background: white; border: 1px solid rgba(26,107,122,0.15); border-radius: 8px; margin-top: 4px; max-height: 240px; overflow-y: auto; box-shadow: 0 8px 24px rgba(26,107,122,0.12); }
         .autocomplete-item { padding: 12px 16px; cursor: pointer; border-bottom: 1px solid rgba(26,107,122,0.06); transition: background 0.15s; }
@@ -223,18 +223,18 @@ export default function Dashboard() {
         .autocomplete-sub { font-size: 12px; color: rgba(26,107,122,0.45); }
 
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .coord-box { padding: 16px; background: rgba(26,107,122,0.05); border: 1px solid rgba(26,107,122,0.12); border-radius: 10px; }
+        .coord-box { padding: 10px 14px; background: rgba(26,107,122,0.05); border: 1px solid rgba(26,107,122,0.12); border-radius: 10px; }
         .coord-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: rgba(26,107,122,0.5); margin-bottom: 8px; }
-        .coord-hint { font-size: 12px; color: rgba(26,107,122,0.45); margin-bottom: 12px; line-height: 1.5; }
+        .coord-hint { font-size: 11px; color: rgba(26,107,122,0.45); margin-bottom: 8px; line-height: 1.4; }
         .coord-hint a { color: #1a6b7a; text-decoration: underline; }
 
         .rating-row { display: flex; gap: 6px; }
-        .rating-btn { flex: 1; padding: 11px 0; font-size: 14px; font-weight: 700; cursor: pointer; border: 1px solid rgba(26,107,122,0.15); background: white; color: rgba(26,107,122,0.4); font-family: 'DM Sans', sans-serif; transition: all 0.2s; border-radius: 8px; }
+        .rating-btn { flex: 1; padding: 8px 0; font-size: 13px; font-weight: 700; cursor: pointer; border: 1px solid rgba(26,107,122,0.15); background: white; color: rgba(26,107,122,0.4); font-family: 'DM Sans', sans-serif; transition: all 0.2s; border-radius: 8px; }
         .rating-btn.active { background: #1a6b7a; color: white; border-color: #1a6b7a; }
         .rating-sub { display: flex; justify-content: space-between; margin-top: 5px; }
         .rating-sub span { font-size: 11px; color: rgba(26,107,122,0.35); }
 
-        .tip-box { background: rgba(26,107,122,0.05); border: 1px solid rgba(26,107,122,0.12); padding: 14px 16px; font-size: 12px; color: rgba(26,107,122,0.6); line-height: 1.6; border-radius: 8px; }
+        .tip-box { background: rgba(26,107,122,0.05); border: 1px solid rgba(26,107,122,0.12); padding: 10px 14px; font-size: 11px; color: rgba(26,107,122,0.6); line-height: 1.5; border-radius: 8px; }
         .tip-box strong { color: #1a6b7a; }
 
         .submit-btn { width: 100%; padding: 16px; background: #b5654a; color: white; font-size: 14px; font-weight: 700; font-family: 'Playfair Display', serif; border: none; cursor: pointer; transition: all 0.2s; border-radius: 10px; }

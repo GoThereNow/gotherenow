@@ -50,8 +50,8 @@ export default function Signup() {
         .photo-img { width: 100%; height: 100%; object-fit: cover; object-position: center bottom; filter: brightness(0.65) saturate(0.8); }
         .photo-wash { position: absolute; inset: 0; background: rgba(0,50,60,0.45); mix-blend-mode: multiply; }
         .photo-gradient { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, rgba(0,86,99,0.9) 100%); }
-        .photo-logo { position: absolute; top: 36px; left: 48px; font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: white; text-decoration: none; letter-spacing: -0.5px; }
-        .photo-logo em { font-style: italic; font-weight: 300; color: rgba(255,255,255,0.7); }
+        .photo-logo { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: white text-decoration: none; letter-spacing: -0.5px; }
+        .photo-logo em { font-style: italic; font-weight: 300; color: white; }
         .photo-content { position: absolute; bottom: 48px; left: 48px; right: 48px; }
         .photo-quote { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 300; color: white; line-height: 1.2; margin-bottom: 12px; }
         .photo-quote em { font-style: italic; }

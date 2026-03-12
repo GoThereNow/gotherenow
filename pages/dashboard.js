@@ -156,9 +156,9 @@ export default function Dashboard() {
         .link-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
         .link-label { font-size: 13px; color: rgba(255,255,255,0.4); }
         .link-url { font-size: 13px; color: white; font-weight: 500; }
-        .copy-btn { padding: 6px 16px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+        .copy-btn { padding: 6px 16px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; border-radius: 100px; }
         .copy-btn:hover { background: rgba(255,255,255,0.18); }
-        .add-btn { background: white; color: rgb(0,86,99); padding: 13px 28px; font-size: 13px; font-weight: 700; border: none; cursor: pointer; font-family: 'Playfair Display', serif; transition: all 0.2s; white-space: nowrap; flex-shrink: 0; }
+        .add-btn { background: white; color: rgb(0,86,99); padding: 13px 28px; font-size: 13px; font-weight: 700; border: none; cursor: pointer; font-family: 'Playfair Display', serif; transition: all 0.2s; white-space: nowrap; flex-shrink: 0; border-radius: 100px; }
         .add-btn:hover { background: rgba(255,255,255,0.9); }
         .sign-out-btn { background: none; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 12px; color: rgba(255,255,255,0.3); padding: 0; transition: color 0.2s; display: block; margin-top: 6px; }
         .sign-out-btn:hover { color: rgba(255,255,255,0.6); }
@@ -171,7 +171,7 @@ export default function Dashboard() {
 
         /* STAT BUBBLES */
         .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 36px; }
-        .stat-bubble { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); padding: 24px 20px; text-align: center; border-radius: 16px; }
+        .stat-bubble { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.22); padding: 24px 20px; text-align: center; border-radius: 16px; }
         .stat-icon { font-size: 24px; margin-bottom: 10px; }
         .stat-num { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 300; color: white; line-height: 1; margin-bottom: 6px; }
         .stat-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.35); }
@@ -185,8 +185,8 @@ export default function Dashboard() {
         .empty-sub { font-size: 13px; color: rgba(255,255,255,0.35); margin-bottom: 24px; }
 
         /* STAY ROW */
-        .stay-row { display: flex; align-items: center; gap: 16px; padding: 16px 18px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; transition: background 0.2s; border-radius: 14px; }
-        .stay-row:hover { background: rgba(255,255,255,0.1); }
+        .stay-row { display: flex; align-items: center; gap: 16px; padding: 16px 18px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.22); margin-bottom: 8px; transition: background 0.2s; border-radius: 14px; }
+        .stay-row:hover { background: rgba(255,255,255,0.2); }
         .stay-thumb { width: 48px; height: 48px; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 22px; background: rgba(255,255,255,0.1); border-radius: 10px; }
         .stay-thumb img { width: 100%; height: 100%; object-fit: cover; }
         .stay-info { flex: 1; min-width: 0; }
@@ -267,7 +267,7 @@ export default function Dashboard() {
           <div className="dash-topbar">
             <div>
               <h1 className="dash-greeting">
-                Hey {profile?.full_name?.split(' ')[0] || 'there'} 👋
+                Hey {profile?.full_name?.split(' ')[0] || 'there'}
               </h1>
               <div className="link-row">
                 <span className="link-label">Your link:</span>

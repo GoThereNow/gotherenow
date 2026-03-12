@@ -171,10 +171,10 @@ export default function Dashboard() {
 
         /* STAT BUBBLES */
         .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 36px; }
-        .stat-bubble { background: white; border: 1px solid rgba(26,107,122,0.12); padding: 24px 20px; text-align: center; border-radius: 16px; box-shadow: 0 2px 12px rgba(26,107,122,0.07); }
+        .stat-bubble { background: #ffffff; border: 1px solid rgba(26,107,122,0.15); padding: 24px 20px; text-align: center; border-radius: 16px; box-shadow: 0 4px 20px rgba(26,107,122,0.12); }
         .stat-icon { font-size: 24px; margin-bottom: 10px; }
-        .stat-num { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 300; color: #1a6b7a; line-height: 1; margin-bottom: 6px; }
-        .stat-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: rgba(26,107,122,0.4); }
+        .stat-num { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 700; color: #1a6b7a; line-height: 1; margin-bottom: 6px; }
+        .stat-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #1a6b7a; font-weight: 600; }
 
         /* STAYS SECTION */
         .section-label { font-family: 'Playfair Display', serif; font-size: 14px; font-style: italic; color: #b5654a; margin-bottom: 4px; display: block; }

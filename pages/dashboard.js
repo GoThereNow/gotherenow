@@ -5,6 +5,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabase'
+import Nav from '../components/Nav'
 
 const MAPBOX_TOKEN = 'pk.eyJ1IjoiZ290aGVyZW5vdyIsImEiOiJjbWxmYXJpYm0wMzByM2lwcGpzNjl4Ymx5In0.lipvyNXWoQmIDCah_0Ss_w'
 
@@ -54,25 +55,16 @@ export default function Dashboard() {
   const handleHotelNameChange = (value) => {
     setForm(prev => ({ ...prev, hotel_name: value }))
     if (searchTimeout.current) clearTimeout(searchTimeout.current)
-    if (value.length < 5) {
-      setSuggestions([])
-      setShowSuggestions(false)
-      return
-    }
+    if (value.length < 5) { setSuggestions([]); setShowSuggestions(false); return }
     setSearching(true)
     searchTimeout.current = setTimeout(async () => {
       try {
         const query = encodeURIComponent(value)
-        const url = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + query + '.json?access_token=' + MAPBOX_TOKEN + '&limit=6&language=en'
+        const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${query}.json?access_token=${MAPBOX_TOKEN}&types=poi&limit=6&language=en`
         const res = await fetch(url)
         const data = await res.json()
-        if (data.features) {
-          setSuggestions(data.features)
-          setShowSuggestions(true)
-        }
-      } catch (err) {
-        console.error('Autocomplete error:', err)
-      }
+        if (data.features) { setSuggestions(data.features); setShowSuggestions(true) }
+      } catch (err) { console.error('Autocomplete error:', err) }
       setSearching(false)
     }, 600)
   }
@@ -81,32 +73,16 @@ export default function Dashboard() {
     const name = feature.text || feature.place_name.split(',')[0]
     const lng = feature.center[0]
     const lat = feature.center[1]
-    let city = ''
-    let country = ''
+    let city = '', country = ''
     if (feature.context) {
-      feature.context.forEach(function(ctx) {
-        if ((ctx.id.startsWith('place') || ctx.id.startsWith('district') || ctx.id.startsWith('locality')) && !city) {
-          city = ctx.text
-        }
-        if (ctx.id.startsWith('country')) {
-          country = ctx.text
-        }
+      feature.context.forEach(ctx => {
+        if ((ctx.id.startsWith('place') || ctx.id.startsWith('district') || ctx.id.startsWith('locality')) && !city) city = ctx.text
+        if (ctx.id.startsWith('country')) country = ctx.text
       })
     }
-    if (!city) {
-      const parts = feature.place_name.split(',')
-      if (parts.length > 1) city = parts[1].trim()
-    }
-    setForm(prev => ({
-      ...prev,
-      hotel_name: name,
-      city: city,
-      country: country,
-      latitude: lat.toFixed(6),
-      longitude: lng.toFixed(6),
-    }))
-    setSuggestions([])
-    setShowSuggestions(false)
+    if (!city) { const parts = feature.place_name.split(','); if (parts.length > 1) city = parts[1].trim() }
+    setForm(prev => ({ ...prev, hotel_name: name, city, country, latitude: lat.toFixed(6), longitude: lng.toFixed(6) }))
+    setSuggestions([]); setShowSuggestions(false)
   }
 
   const handleAddRecommendation = async (e) => {
@@ -125,10 +101,8 @@ export default function Dashboard() {
     })
     if (!error) {
       const { data: recs } = await supabase
-        .from('recommendations')
-        .select('*, booking_links(*)')
-        .eq('influencer_id', influencer.id)
-        .order('created_at', { ascending: false })
+        .from('recommendations').select('*, booking_links(*)')
+        .eq('influencer_id', influencer.id).order('created_at', { ascending: false })
       setRecommendations(recs || [])
       setShowAddModal(false)
       setForm({ hotel_name: '', city: '', country: '', latitude: '', longitude: '', influencer_quote: '', personal_rating: '5', photo_url: '' })
@@ -150,115 +124,220 @@ export default function Dashboard() {
   }
 
   if (loading) return (
-    <div className="flex items-center justify-center min-h-screen" style={{ background: '#FAF7F2' }}>
-      <div className="font-display text-xl text-espresso">Loading...</div>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'rgb(0,86,99)' }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontFamily: 'Playfair Display,serif', fontSize: '24px', color: 'white', marginBottom: '8px' }}>Go<em>There</em>Now</div>
+        <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', letterSpacing: '2px', textTransform: 'uppercase' }}>Loading...</div>
+      </div>
     </div>
   )
 
   const profile = influencer?.profiles
+  const countries = new Set(recommendations.map(r => r.country)).size
 
   return (
-    <>
-      <Head><title>Dashboard — GoThereNow</title></Head>
+    <div style={{ background: 'rgb(0,86,99)', minHeight: '100vh', fontFamily: 'DM Sans, sans-serif' }}>
+      <Head>
+        <title>Dashboard — GoThereNow</title>
+        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;0,700;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+      </Head>
 
-      <nav className="sticky top-0 z-40 flex items-center justify-between px-6 py-4"
-        style={{ background: 'white', borderBottom: '1px solid rgba(28,20,16,0.08)' }}>
-        <Link href="/" className="font-display text-xl text-espresso">Go<span className="text-terracotta">There</span>Now</Link>
-        <div className="flex items-center gap-4">
-          <a href={'/' + influencer?.handle} target="_blank" className="text-xs font-semibold text-terracotta hover:underline">View my page →</a>
-          <button onClick={async () => { await supabase.auth.signOut(); router.push('/') }}
-            className="text-xs text-muted hover:text-espresso" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
-            Sign out
-          </button>
-        </div>
-      </nav>
+      <style>{`
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'DM Sans', sans-serif; }
 
-      <div className="max-w-3xl mx-auto px-6 py-8">
+        .dash-header { padding: 100px 56px 48px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .dash-greeting { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+        .dash-greeting::before { content:''; display:block; width:20px; height:1px; background:rgba(255,255,255,0.3); }
+        .dash-title { font-family: 'Playfair Display', serif; font-size: clamp(28px, 4vw, 48px); font-weight: 300; color: white; margin-bottom: 32px; line-height: 1.1; }
+        .dash-title em { font-style: italic; }
 
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-          <div>
-            <h1 className="font-display text-3xl text-espresso mb-1">
-              Hey {profile?.full_name?.split(' ')[0] || 'there'} 👋
-            </h1>
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm text-muted">Your link:</span>
-              <span className="text-sm font-medium text-espresso">gotherenow.app/{influencer?.handle}</span>
-              <button onClick={copyLink}
-                className="text-xs px-3 py-1 rounded-full font-semibold transition-all"
-                style={{ background: copied ? '#EEF5F1' : '#F5EFE6', color: copied ? '#7A9E87' : '#8B7D72', border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
-                {copied ? '✓ Copied!' : 'Copy link'}
-              </button>
-            </div>
-          </div>
-          <button onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 px-6 py-3 rounded-full font-semibold text-white transition-all hover:scale-105 flex-shrink-0"
-            style={{ background: '#C4622D', fontFamily: 'DM Sans, sans-serif', cursor: 'pointer' }}>
-            + Add a Stay
-          </button>
-        </div>
+        .stats-row { display: flex; gap: 48px; margin-bottom: 32px; }
+        .stat { }
+        .stat-num { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 300; color: white; line-height: 1; }
+        .stat-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-top: 4px; }
 
-        <div className="p-5 rounded-2xl mb-8 flex gap-4 items-start"
-          style={{ background: '#FFF8F2', border: '1px solid rgba(196,98,45,0.15)' }}>
-          <div className="text-2xl">💡</div>
-          <div>
-            <div className="font-semibold text-espresso text-sm mb-1">How GoThereNow works for you</div>
-            <div className="text-xs text-muted leading-relaxed">
-              You add the hotels you've stayed at. The GoThereNow team handles all booking links and affiliate setup. When your followers book, you earn — we'll handle the payouts monthly. Simple!
-            </div>
-          </div>
-        </div>
+        .link-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .page-link { font-size: 13px; color: rgba(255,255,255,0.5); font-family: 'DM Sans', sans-serif; }
+        .page-url { font-size: 13px; color: white; font-weight: 500; }
+        .copy-btn { padding: 8px 20px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; letter-spacing: 0.5px; }
+        .copy-btn:hover { background: rgba(255,255,255,0.18); }
+        .view-btn { padding: 8px 20px; background: white; color: rgb(0,86,99); font-size: 12px; font-weight: 700; cursor: pointer; font-family: 'DM Sans', sans-serif; text-decoration: none; transition: all 0.2s; display: inline-block; }
+        .view-btn:hover { background: rgba(255,255,255,0.9); }
 
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        .dash-content { padding: 48px 56px; }
+        .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+        .section-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+        .section-eyebrow::before { content:''; display:block; width:20px; height:1px; background:rgba(255,255,255,0.3); }
+        .section-title { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 300; color: white; }
+        .section-title em { font-style: italic; }
+
+        .add-btn { background: white; color: rgb(0,86,99); padding: 12px 28px; font-size: 13px; font-weight: 700; border: none; cursor: pointer; font-family: 'Playfair Display', serif; transition: all 0.2s; white-space: nowrap; }
+        .add-btn:hover { background: rgba(255,255,255,0.9); }
+
+        .empty-state { text-align: center; padding: 80px 0; border: 1px dashed rgba(255,255,255,0.15); }
+        .empty-icon { font-size: 48px; margin-bottom: 16px; }
+        .empty-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 300; color: white; margin-bottom: 8px; }
+        .empty-sub { font-size: 14px; color: rgba(255,255,255,0.35); margin-bottom: 28px; }
+
+        .recs-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 3px; }
+        .rec-card { position: relative; overflow: hidden; aspect-ratio: 4/3; }
+        .rec-card-bg { width: 100%; height: 100%; object-fit: cover; }
+        .rec-card-gradient { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,86,99,0.97) 0%, rgba(0,86,99,0.2) 60%, transparent 100%); }
+        .rec-card-teal { position: absolute; inset: 0; background: rgba(0,40,50,0.3); mix-blend-mode: multiply; }
+        .rec-card-info { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px; }
+        .rec-card-loc { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.45); margin-bottom: 4px; }
+        .rec-card-name { font-family: 'Playfair Display', serif; font-size: 19px; font-weight: 300; color: white; margin-bottom: 6px; line-height: 1.2; }
+        .rec-card-quote { font-size: 11px; color: rgba(255,255,255,0.4); font-style: italic; margin-bottom: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .rec-card-actions { display: flex; gap: 8px; }
+        .rec-card-links { font-size: 10px; color: rgba(255,255,255,0.35); display: flex; align-items: center; gap: 4px; flex: 1; }
+        .rec-del-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.5); padding: 6px 14px; font-size: 11px; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+        .rec-del-btn:hover { background: rgba(255,80,80,0.2); border-color: rgba(255,80,80,0.3); color: white; }
+
+        /* MODAL */
+        .modal-overlay { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); }
+        .modal { background: rgb(0,86,99); border: 1px solid rgba(255,255,255,0.15); width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; position: relative; }
+        .modal-header { padding: 32px 36px 0; position: sticky; top: 0; background: rgb(0,86,99); z-index: 1; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .modal-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 6px; }
+        .modal-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 300; color: white; }
+        .modal-title em { font-style: italic; }
+        .modal-close { position: absolute; top: 28px; right: 28px; width: 32px; height: 32px; background: rgba(255,255,255,0.1); border: none; cursor: pointer; color: white; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+        .modal-body { padding: 28px 36px 36px; display: flex; flex-direction: column; gap: 18px; }
+
+        .field-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.45); margin-bottom: 7px; display: block; }
+        .field-input { width: 100%; padding: 13px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: white; font-size: 14px; font-family: 'DM Sans', sans-serif; outline: none; transition: border-color 0.2s; }
+        .field-input::placeholder { color: rgba(255,255,255,0.2); }
+        .field-input:focus { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.12); }
+        textarea.field-input { resize: vertical; min-height: 90px; }
+
+        .autocomplete-drop { position: absolute; top: 100%; left: 0; right: 0; z-index: 100; background: rgb(0,70,82); border: 1px solid rgba(255,255,255,0.15); margin-top: 2px; max-height: 240px; overflow-y: auto; }
+        .autocomplete-item { padding: 12px 16px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.06); transition: background 0.15s; }
+        .autocomplete-item:hover { background: rgba(255,255,255,0.08); }
+        .autocomplete-item:last-child { border-bottom: none; }
+        .autocomplete-name { font-size: 14px; color: white; font-weight: 500; margin-bottom: 2px; }
+        .autocomplete-sub { font-size: 12px; color: rgba(255,255,255,0.35); }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .coord-box { padding: 16px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); }
+        .coord-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 10px; }
+        .coord-hint { font-size: 12px; color: rgba(255,255,255,0.3); margin-bottom: 12px; line-height: 1.5; }
+        .coord-hint a { color: rgba(255,255,255,0.5); }
+
+        .rating-row { display: flex; gap: 6px; }
+        .rating-btn { flex: 1; padding: 11px 0; font-size: 14px; font-weight: 700; cursor: pointer; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.4); font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+        .rating-btn.active { background: white; color: rgb(0,86,99); border-color: white; }
+        .rating-sub { display: flex; justify-content: space-between; margin-top: 5px; }
+        .rating-sub span { font-size: 11px; color: rgba(255,255,255,0.25); }
+
+        .tip-box { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); padding: 14px 16px; font-size: 12px; color: rgba(255,255,255,0.4); line-height: 1.6; }
+        .tip-box strong { color: rgba(255,255,255,0.6); }
+
+        .submit-btn { width: 100%; padding: 16px; background: white; color: rgb(0,86,99); font-size: 14px; font-weight: 700; font-family: 'Playfair Display', serif; border: none; cursor: pointer; transition: all 0.2s; }
+        .submit-btn:hover { background: rgba(255,255,255,0.92); }
+        .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .confirm-overlay { position: fixed; inset: 0; z-index: 300; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); }
+        .confirm-box { background: rgb(0,86,99); border: 1px solid rgba(255,255,255,0.15); padding: 40px; max-width: 360px; width: 100%; text-align: center; }
+        .confirm-icon { font-size: 40px; margin-bottom: 16px; }
+        .confirm-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 300; color: white; margin-bottom: 8px; }
+        .confirm-sub { font-size: 13px; color: rgba(255,255,255,0.4); margin-bottom: 28px; }
+        .confirm-btns { display: flex; gap: 10px; }
+        .confirm-cancel { flex: 1; padding: 13px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: white; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+        .confirm-delete { flex: 1; padding: 13px; background: rgba(255,80,80,0.25); border: 1px solid rgba(255,80,80,0.3); color: white; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+
+        .sign-out-btn { background: none; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 12px; color: rgba(255,255,255,0.3); padding: 0; transition: color 0.2s; }
+        .sign-out-btn:hover { color: rgba(255,255,255,0.6); }
+
+        @media (max-width: 768px) {
+          .dash-header { padding: 88px 24px 40px; }
+          .dash-content { padding: 32px 24px; }
+          .stats-row { gap: 28px; }
+          .recs-grid { grid-template-columns: 1fr; }
+          .grid-2 { grid-template-columns: 1fr; }
+          .modal { max-height: 100vh; }
+          .modal-header { padding: 24px 24px 16px; }
+          .modal-body { padding: 20px 24px 28px; }
+        }
+      `}</style>
+
+      <Nav />
+
+      {/* HEADER */}
+      <div className="dash-header">
+        <div className="dash-greeting">Your dashboard</div>
+        <h1 className="dash-title">
+          Hey {profile?.full_name?.split(' ')[0] || 'there'},<br />
+          <em>welcome back.</em>
+        </h1>
+
+        <div className="stats-row">
           {[
-            { num: recommendations.length, label: 'Stays Added', icon: '🏨' },
-            { num: new Set(recommendations.map(r => r.country)).size || 0, label: 'Countries', icon: '🌍' },
-            { num: recommendations.filter(r => r.booking_links?.length > 0).length, label: 'Bookable', icon: '🔗' },
+            { num: recommendations.length, label: 'Stays' },
+            { num: countries, label: 'Countries' },
+            { num: recommendations.filter(r => r.booking_links?.length > 0).length, label: 'With links' },
           ].map((s, i) => (
-            <div key={i} className="p-5 rounded-2xl text-center" style={{ background: 'white', border: '1px solid rgba(28,20,16,0.08)' }}>
-              <div className="text-2xl mb-1">{s.icon}</div>
-              <div className="font-display text-3xl text-espresso">{s.num}</div>
-              <div className="text-xs text-muted uppercase tracking-wider mt-1">{s.label}</div>
+            <div className="stat" key={i}>
+              <div className="stat-num">{s.num}</div>
+              <div className="stat-label">{s.label}</div>
             </div>
           ))}
         </div>
 
-        <h2 className="font-display text-xl text-espresso mb-4">Your Stays</h2>
+        <div className="link-bar">
+          <span className="page-link">Your page:</span>
+          <span className="page-url">gotherenow.app/{influencer?.handle}</span>
+          <button className="copy-btn" onClick={copyLink}>
+            {copied ? '✓ Copied' : 'Copy link'}
+          </button>
+          <a className="view-btn" href={`/${influencer?.handle}`} target="_blank" rel="noopener noreferrer">
+            View page →
+          </a>
+          <button className="sign-out-btn" onClick={async () => { await supabase.auth.signOut(); router.push('/') }}>
+            Sign out
+          </button>
+        </div>
+      </div>
+
+      {/* STAYS */}
+      <div className="dash-content">
+        <div className="section-header">
+          <div>
+            <div className="section-eyebrow">Your recommendations</div>
+            <h2 className="section-title">Your <em>stays</em></h2>
+          </div>
+          <button className="add-btn" onClick={() => setShowAddModal(true)}>+ Add a stay</button>
+        </div>
 
         {recommendations.length === 0 ? (
-          <div className="text-center py-20 rounded-2xl" style={{ background: 'white', border: '2px dashed rgba(196,98,45,0.2)' }}>
-            <div className="text-4xl mb-4">🗺️</div>
-            <h3 className="font-display text-xl text-espresso mb-2">No stays yet</h3>
-            <p className="text-sm text-muted mb-6 max-w-xs mx-auto">Add a hotel you've personally stayed at and loved. Your followers will be able to book it directly.</p>
-            <button onClick={() => setShowAddModal(true)}
-              className="px-6 py-3 rounded-full font-semibold text-white"
-              style={{ background: '#C4622D', fontFamily: 'DM Sans, sans-serif', cursor: 'pointer' }}>
-              + Add your first stay
-            </button>
+          <div className="empty-state">
+            <div className="empty-icon">🗺️</div>
+            <div className="empty-title">No stays yet</div>
+            <div className="empty-sub">Add your first hotel recommendation and share it with your followers.</div>
+            <button className="add-btn" onClick={() => setShowAddModal(true)}>+ Add your first stay</button>
           </div>
         ) : (
-          <div className="flex flex-col gap-3">
-            {recommendations.map(rec => (
-              <div key={rec.id} className="flex items-center gap-4 p-4 rounded-2xl"
-                style={{ background: 'white', border: '1px solid rgba(28,20,16,0.08)' }}>
-                <div className="w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center text-xl overflow-hidden"
-                  style={{ background: 'linear-gradient(135deg, #C4622D22, #D4A85322)' }}>
-                  {rec.photo_url ? <img src={rec.photo_url} className="w-full h-full object-cover rounded-xl" /> : '🏨'}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-espresso text-sm truncate">{rec.hotel_name}</div>
-                  <div className="text-xs text-muted">{[rec.city, rec.country].filter(Boolean).join(', ')}</div>
-                </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  {rec.booking_links?.length > 0 ? (
-                    <span className="text-xs px-2 py-1 rounded-full font-semibold" style={{ background: '#EEF5F1', color: '#7A9E87' }}>✓ Bookable</span>
-                  ) : (
-                    <span className="text-xs px-2 py-1 rounded-full font-semibold" style={{ background: '#FFF0E8', color: '#C4622D' }}>Pending links</span>
-                  )}
-                  <button onClick={() => setDeleteId(rec.id)}
-                    className="text-xs px-3 py-1.5 rounded-lg text-red-400 hover:bg-red-50 transition-colors"
-                    style={{ border: '1px solid rgba(239,68,68,0.2)', background: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
-                    Remove
-                  </button>
+          <div className="recs-grid">
+            {recommendations.map((rec, i) => (
+              <div className="rec-card" key={rec.id}>
+                {rec.photo_url ? (
+                  <img src={rec.photo_url} alt={rec.hotel_name} className="rec-card-bg" />
+                ) : (
+                  <div style={{ position:'absolute', inset:0, background: i % 2 === 0 ? 'linear-gradient(135deg,#0a2a35,#0d4050)' : 'linear-gradient(135deg,#0a3028,#0d5040)' }} />
+                )}
+                <div className="rec-card-teal" />
+                <div className="rec-card-gradient" />
+                <div className="rec-card-info">
+                  <div className="rec-card-loc">📍 {[rec.city, rec.country].filter(Boolean).join(', ')}</div>
+                  <div className="rec-card-name">{rec.hotel_name}</div>
+                  {rec.influencer_quote && <div className="rec-card-quote">"{rec.influencer_quote}"</div>}
+                  <div className="rec-card-actions">
+                    <div className="rec-card-links">
+                      {rec.booking_links?.length > 0
+                        ? `${rec.booking_links.length} booking link${rec.booking_links.length > 1 ? 's' : ''}`
+                        : '⏳ Links being added'}
+                    </div>
+                    <button className="rec-del-btn" onClick={() => setDeleteId(rec.id)}>Remove</button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -266,200 +345,134 @@ export default function Dashboard() {
         )}
       </div>
 
+      {/* ADD MODAL */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto"
-          style={{ background: 'rgba(28,20,16,0.6)', backdropFilter: 'blur(4px)' }}>
-          <div className="w-full max-w-lg my-8 rounded-3xl overflow-hidden" style={{ background: 'white' }}>
-            <div className="flex items-center justify-between p-6 pb-4" style={{ borderBottom: '1px solid rgba(28,20,16,0.08)' }}>
-              <h2 className="font-display text-xl text-espresso">Add a Stay</h2>
-              <button onClick={() => { setShowAddModal(false); setSuggestions([]); setShowSuggestions(false) }}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-muted"
-                style={{ background: '#F5EFE6', border: 'none', cursor: 'pointer' }}>✕</button>
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowAddModal(false) }}>
+          <div className="modal">
+            <div className="modal-header">
+              <div className="modal-eyebrow">New recommendation</div>
+              <h2 className="modal-title">Add a <em>stay</em></h2>
+              <button className="modal-close" onClick={() => setShowAddModal(false)}>✕</button>
             </div>
+            <form onSubmit={handleAddRecommendation} className="modal-body">
 
-            <form onSubmit={handleAddRecommendation} className="p-6 flex flex-col gap-4">
-
-              <div style={{ position: 'relative' }}>
-                <label className="text-xs font-semibold uppercase tracking-wider text-muted block mb-1.5">
-                  Hotel Name<span className="text-terracotta ml-0.5">*</span>
-                </label>
+              {/* Hotel name with autocomplete */}
+              <div>
+                <label className="field-label">Hotel name *</label>
                 <div style={{ position: 'relative' }}>
                   <input
-                    type="text"
-                    required
+                    type="text" required
                     value={form.hotel_name}
                     onChange={e => handleHotelNameChange(e.target.value)}
                     onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                     onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
                     placeholder="Start typing a hotel name..."
                     autoComplete="off"
-                    style={{
-                      width: '100%', padding: '10px 14px',
-                      borderRadius: '12px', border: '1.5px solid rgba(28,20,16,0.12)',
-                      fontSize: '14px', fontFamily: 'DM Sans, sans-serif',
-                      outline: 'none', background: 'white', boxSizing: 'border-box'
-                    }}
+                    className="field-input"
                   />
                   {searching && (
-                    <div style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '12px', color: '#8B7D72' }}>
+                    <div style={{ position:'absolute', right:'12px', top:'50%', transform:'translateY(-50%)', fontSize:'11px', color:'rgba(255,255,255,0.35)' }}>
                       searching...
                     </div>
                   )}
+                  {showSuggestions && suggestions.length > 0 && (
+                    <div className="autocomplete-drop">
+                      {suggestions.map((feature, i) => {
+                        const name = feature.text || feature.place_name.split(',')[0]
+                        const subtitle = feature.place_name.split(',').slice(1).join(',').trim()
+                        return (
+                          <div key={i} className="autocomplete-item" onMouseDown={() => handleSelectSuggestion(feature)}>
+                            <div className="autocomplete-name">{name}</div>
+                            <div className="autocomplete-sub">{subtitle}</div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
                 </div>
+              </div>
 
-                {showSuggestions && suggestions.length > 0 && (
-                  <div style={{
-                    position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
-                    background: 'white', borderRadius: '12px', marginTop: '4px',
-                    border: '1.5px solid rgba(28,20,16,0.12)',
-                    boxShadow: '0 8px 24px rgba(28,20,16,0.12)', overflow: 'hidden'
-                  }}>
-                    {suggestions.map((feature, i) => {
-                      const name = feature.text || feature.place_name.split(',')[0]
-                      const subtitle = feature.place_name.split(',').slice(1).join(',').trim()
-                      return (
-                        <div key={i}
-                          onMouseDown={() => handleSelectSuggestion(feature)}
-                          style={{
-                            padding: '10px 14px', cursor: 'pointer',
-                            borderBottom: i < suggestions.length - 1 ? '1px solid rgba(28,20,16,0.06)' : 'none',
-                          }}
-                          onMouseEnter={e => e.currentTarget.style.background = '#FAF7F2'}
-                          onMouseLeave={e => e.currentTarget.style.background = 'white'}>
-                          <div style={{ fontSize: '14px', fontWeight: 600, color: '#1C1410' }}>{name}</div>
-                          <div style={{ fontSize: '12px', color: '#8B7D72', marginTop: '2px' }}>{subtitle}</div>
-                        </div>
-                      )
-                    })}
+              <div className="grid-2">
+                <div>
+                  <label className="field-label">City</label>
+                  <input type="text" value={form.city} onChange={e => setForm({ ...form, city: e.target.value })} placeholder="Auto-filled" className="field-input" />
+                </div>
+                <div>
+                  <label className="field-label">Country *</label>
+                  <input type="text" required value={form.country} onChange={e => setForm({ ...form, country: e.target.value })} placeholder="Auto-filled" className="field-input" />
+                </div>
+              </div>
+
+              <div className="coord-box">
+                <div className="coord-label">📍 Map Location</div>
+                <div className="coord-hint">
+                  Auto-filled when you select a hotel above. Or find on <a href="https://maps.google.com" target="_blank">Google Maps</a>: right-click → copy coordinates.
+                </div>
+                <div className="grid-2">
+                  <div>
+                    <label className="field-label">Latitude</label>
+                    <input type="number" step="any" value={form.latitude} onChange={e => setForm({ ...form, latitude: e.target.value })} placeholder="e.g. 35.0116" className="field-input" />
                   </div>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="City">
-                  <input type="text" value={form.city}
-                    onChange={e => setForm({ ...form, city: e.target.value })}
-                    placeholder="Auto-filled or type" />
-                </Field>
-                <Field label="Country" required>
-                  <input type="text" required value={form.country}
-                    onChange={e => setForm({ ...form, country: e.target.value })}
-                    placeholder="Auto-filled or type" />
-                </Field>
-              </div>
-
-              <div className="p-4 rounded-xl" style={{ background: '#F5EFE6' }}>
-                <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-1">📍 Map Location</p>
-                <p className="text-xs text-muted mb-3">
-                  Auto-filled when you select a hotel above. Or find on <a href="https://maps.google.com" target="_blank" className="text-terracotta underline">Google Maps</a>: right-click the location → copy coordinates.
-                </p>
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="Latitude">
-                    <input type="number" step="any" value={form.latitude}
-                      onChange={e => setForm({ ...form, latitude: e.target.value })}
-                      placeholder="e.g. 35.0116" />
-                  </Field>
-                  <Field label="Longitude">
-                    <input type="number" step="any" value={form.longitude}
-                      onChange={e => setForm({ ...form, longitude: e.target.value })}
-                      placeholder="e.g. 135.768" />
-                  </Field>
+                  <div>
+                    <label className="field-label">Longitude</label>
+                    <input type="number" step="any" value={form.longitude} onChange={e => setForm({ ...form, longitude: e.target.value })} placeholder="e.g. 135.768" className="field-input" />
+                  </div>
                 </div>
               </div>
-
-              <Field label="Your Personal Quote">
-                <textarea value={form.influencer_quote}
-                  onChange={e => setForm({ ...form, influencer_quote: e.target.value })}
-                  placeholder="What made this place special? Your followers trust your voice."
-                  rows={3} style={{ resize: 'vertical' }} />
-              </Field>
 
               <div>
-                <label className="text-xs font-semibold uppercase tracking-wider text-muted block mb-2">
-                  Your Personal Rating
-                </label>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  {[1, 2, 3, 4, 5].map(n => (
+                <label className="field-label">Your personal quote</label>
+                <textarea value={form.influencer_quote} onChange={e => setForm({ ...form, influencer_quote: e.target.value })} placeholder="What made this place special? Your followers trust your voice." className="field-input" />
+              </div>
+
+              <div>
+                <label className="field-label">Your rating</label>
+                <div className="rating-row">
+                  {[1,2,3,4,5].map(n => (
                     <button key={n} type="button"
-                      onClick={() => setForm({ ...form, personal_rating: String(n) })}
-                      style={{
-                        flex: 1, padding: '10px 0', borderRadius: '12px',
-                        fontWeight: 700, fontSize: '15px', cursor: 'pointer',
-                        border: '1.5px solid',
-                        borderColor: parseInt(form.personal_rating) === n ? '#C4622D' : 'rgba(28,20,16,0.12)',
-                        background: parseInt(form.personal_rating) === n ? '#FFF0E8' : 'white',
-                        color: parseInt(form.personal_rating) === n ? '#C4622D' : '#8B7D72',
-                        fontFamily: 'DM Sans, sans-serif'
-                      }}>
+                      className={`rating-btn${parseInt(form.personal_rating) === n ? ' active' : ''}`}
+                      onClick={() => setForm({ ...form, personal_rating: String(n) })}>
                       {n}★
                     </button>
                   ))}
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
-                  <span style={{ fontSize: '11px', color: '#8B7D72' }}>It was ok</span>
-                  <span style={{ fontSize: '11px', color: '#8B7D72' }}>Absolutely loved it</span>
+                <div className="rating-sub">
+                  <span>It was ok</span>
+                  <span>Absolutely loved it</span>
                 </div>
               </div>
 
-              <Field label="Photo URL (optional)">
-                <input type="url" value={form.photo_url}
-                  onChange={e => setForm({ ...form, photo_url: e.target.value })}
-                  placeholder="Paste a photo link (from Google, hotel website, etc.)" />
-              </Field>
+              <div>
+                <label className="field-label">Photo URL (optional)</label>
+                <input type="url" value={form.photo_url} onChange={e => setForm({ ...form, photo_url: e.target.value })} placeholder="Paste a photo link from Google, hotel website, etc." className="field-input" />
+              </div>
 
-              <div className="p-3 rounded-xl text-xs text-muted" style={{ background: '#F5EFE6' }}>
+              <div className="tip-box">
                 💡 <strong>That's it!</strong> The GoThereNow team will add booking links to your hotel within 24 hours.
               </div>
 
-              <button type="submit" disabled={saving}
-                className="w-full py-4 rounded-xl font-semibold text-white mt-1"
-                style={{ background: '#C4622D', fontFamily: 'DM Sans, sans-serif', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>
-                {saving ? 'Saving...' : 'Save Stay →'}
+              <button type="submit" disabled={saving} className="submit-btn">
+                {saving ? 'Saving...' : 'Save stay →'}
               </button>
             </form>
           </div>
         </div>
       )}
 
+      {/* DELETE CONFIRM */}
       {deleteId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(28,20,16,0.6)' }}>
-          <div className="p-8 rounded-2xl max-w-sm w-full text-center" style={{ background: 'white' }}>
-            <div className="text-3xl mb-4">🗑️</div>
-            <h3 className="font-display text-xl mb-2">Remove this stay?</h3>
-            <p className="text-sm text-muted mb-6">This will remove it from your map page.</p>
-            <div className="flex gap-3">
-              <button onClick={() => setDeleteId(null)}
-                className="flex-1 py-3 rounded-xl font-semibold"
-                style={{ background: '#F5EFE6', border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>Cancel</button>
-              <button onClick={() => handleDelete(deleteId)}
-                className="flex-1 py-3 rounded-xl font-semibold text-white"
-                style={{ background: '#ef4444', border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>Remove</button>
+        <div className="confirm-overlay" onClick={(e) => { if (e.target === e.currentTarget) setDeleteId(null) }}>
+          <div className="confirm-box">
+            <div className="confirm-icon">🗑️</div>
+            <div className="confirm-title">Remove this stay?</div>
+            <div className="confirm-sub">This will remove it from your map page permanently.</div>
+            <div className="confirm-btns">
+              <button className="confirm-cancel" onClick={() => setDeleteId(null)}>Cancel</button>
+              <button className="confirm-delete" onClick={() => handleDelete(deleteId)}>Remove</button>
             </div>
           </div>
         </div>
       )}
-    </>
-  )
-}
-
-import React from 'react'
-
-function Field({ label, children, required }) {
-  return (
-    <div>
-      <label className="text-xs font-semibold uppercase tracking-wider text-muted block mb-1.5">
-        {label}{required && <span className="text-terracotta ml-0.5">*</span>}
-      </label>
-      {React.cloneElement(children, {
-        style: {
-          width: '100%', padding: '10px 14px',
-          borderRadius: '12px', border: '1.5px solid rgba(28,20,16,0.12)',
-          fontSize: '14px', fontFamily: 'DM Sans, sans-serif',
-          outline: 'none', background: 'white',
-          boxSizing: 'border-box',
-          ...children.props.style
-        }
-      })}
     </div>
   )
 }

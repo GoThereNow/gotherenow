@@ -192,8 +192,6 @@ export default function Dashboard() {
         .stay-thumb { width: 48px; height: 48px; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 22px; background: rgba(0,86,99,0.08); border-radius: 10px; }
         .stay-thumb img { width: 100%; height: 100%; object-fit: cover; }
         .stay-info { flex: 1; min-width: 0; }
-        .stay-name { font-size: 15px; font-weight: 600; color: white; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .stay-loc { font-size: 12px; color: rgba(255,255,255,0.4); }
         .stay-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
         .pending-badge { padding: 5px 12px; background: rgba(255,200,50,0.15); border: 1px solid rgba(255,200,50,0.25); color: rgba(255,200,50,0.8); font-size: 11px; font-weight: 600; letter-spacing: 0.5px; }
         .live-badge { padding: 5px 12px; background: rgba(100,255,150,0.12); border: 1px solid rgba(100,255,150,0.2); color: rgba(100,255,180,0.8); font-size: 11px; font-weight: 600; letter-spacing: 0.5px; }

@@ -164,14 +164,14 @@ export default function Dashboard() {
         .sign-out-btn:hover { color: rgba(255,255,255,0.6); }
 
         /* HOW IT WORKS BOX */
-        .how-box { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); padding: 18px 22px; margin-bottom: 28px; display: flex; gap: 14px; align-items: flex-start; }
+        .how-box { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); padding: 18px 22px; margin-bottom: 28px; display: flex; gap: 14px; align-items: flex-start; border-radius: 16px; }
         .how-icon { font-size: 22px; flex-shrink: 0; margin-top: 2px; }
         .how-title { font-size: 14px; font-weight: 600; color: white; margin-bottom: 4px; }
         .how-text { font-size: 13px; color: rgba(255,255,255,0.45); line-height: 1.6; }
 
         /* STAT BUBBLES */
         .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 36px; }
-        .stat-bubble { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); padding: 24px 20px; text-align: center; }
+        .stat-bubble { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); padding: 24px 20px; text-align: center; border-radius: 16px; }
         .stat-icon { font-size: 24px; margin-bottom: 10px; }
         .stat-num { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 300; color: white; line-height: 1; margin-bottom: 6px; }
         .stat-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.35); }
@@ -185,9 +185,9 @@ export default function Dashboard() {
         .empty-sub { font-size: 13px; color: rgba(255,255,255,0.35); margin-bottom: 24px; }
 
         /* STAY ROW */
-        .stay-row { display: flex; align-items: center; gap: 16px; padding: 16px 18px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; transition: background 0.2s; }
+        .stay-row { display: flex; align-items: center; gap: 16px; padding: 16px 18px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; transition: background 0.2s; border-radius: 14px; }
         .stay-row:hover { background: rgba(255,255,255,0.1); }
-        .stay-thumb { width: 48px; height: 48px; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 22px; background: rgba(255,255,255,0.1); }
+        .stay-thumb { width: 48px; height: 48px; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 22px; background: rgba(255,255,255,0.1); border-radius: 10px; }
         .stay-thumb img { width: 100%; height: 100%; object-fit: cover; }
         .stay-info { flex: 1; min-width: 0; }
         .stay-name { font-size: 15px; font-weight: 600; color: white; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -200,7 +200,7 @@ export default function Dashboard() {
 
         /* MODAL */
         .modal-overlay { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); }
-        .modal { background: rgb(0,86,99); border: 1px solid rgba(255,255,255,0.15); width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; position: relative; }
+        .modal { background: rgb(0,86,99); border: 1px solid rgba(255,255,255,0.15); width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; position: relative; border-radius: 20px; }
         .modal-header { padding: 32px 36px 20px; position: sticky; top: 0; background: rgb(0,86,99); z-index: 1; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .modal-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 6px; }
         .modal-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 300; color: white; }
@@ -241,7 +241,7 @@ export default function Dashboard() {
         .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
         .confirm-overlay { position: fixed; inset: 0; z-index: 300; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); }
-        .confirm-box { background: rgb(0,86,99); border: 1px solid rgba(255,255,255,0.15); padding: 40px; max-width: 360px; width: 100%; text-align: center; }
+        .confirm-box { background: rgb(0,86,99); border: 1px solid rgba(255,255,255,0.15); padding: 40px; max-width: 360px; width: 100%; text-align: center; border-radius: 20px; }
         .confirm-icon { font-size: 40px; margin-bottom: 16px; }
         .confirm-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 300; color: white; margin-bottom: 8px; }
         .confirm-sub { font-size: 13px; color: rgba(255,255,255,0.4); margin-bottom: 28px; }

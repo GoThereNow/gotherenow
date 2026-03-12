@@ -36,9 +36,9 @@ export default function Login() {
         .photo-wash { position: absolute; inset: 0; background: rgba(0,50,60,0.45); mix-blend-mode: multiply; }
         .photo-gradient { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, rgba(0,86,99,0.9) 100%); }
         .photo-logo { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: white; text-decoration: none; letter-spacing: -0.5px; 
-   }
+        }
         .photo-logo em { font-style: italic; font-weight: 300; color: white; 
-   }
+        }
         .photo-logo span { font-weight: 300; }
         .photo-content { position: absolute; bottom: 48px; left: 48px; right: 48px; }
         .photo-quote { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 300; color: white; line-height: 1.2; margin-bottom: 12px; }

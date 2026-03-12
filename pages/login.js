@@ -71,7 +71,7 @@ export default function Login() {
 
       <div className="split">
         <div className="photo-side">
-          <img src="/hero.jpg" alt="GoThereNow" className="photo-img" />
+          <img src="/positano.avif" alt="GoThereNow" className="photo-img" />
           <div className="photo-wash" />
           <div className="photo-gradient" />
           <div className="photo-content">

@@ -171,10 +171,10 @@ export default function Dashboard() {
 
         /* STAT BUBBLES */
         .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 36px; }
-        .stat-bubble { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.22); padding: 24px 20px; text-align: center; border-radius: 16px; }
+        .stat-bubble { background: white; border: 1px solid rgba(255,255,255,0.22); padding: 24px 20px; text-align: center; border-radius: 16px; }
         .stat-icon { font-size: 24px; margin-bottom: 10px; }
-        .stat-num { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 300; color: white; line-height: 1; margin-bottom: 6px; }
-        .stat-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.35); }
+        .stat-num { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 300; color: rgb(0,86,99); line-height: 1; margin-bottom: 6px; }
+        .stat-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: rgba(0,86,99,0.5); }
 
         /* STAYS SECTION */
         .section-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 400; color: white; margin-bottom: 16px; }
@@ -185,9 +185,11 @@ export default function Dashboard() {
         .empty-sub { font-size: 13px; color: rgba(255,255,255,0.35); margin-bottom: 24px; }
 
         /* STAY ROW */
-        .stay-row { display: flex; align-items: center; gap: 16px; padding: 16px 18px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.22); margin-bottom: 8px; transition: background 0.2s; border-radius: 14px; }
-        .stay-row:hover { background: rgba(255,255,255,0.2); }
-        .stay-thumb { width: 48px; height: 48px; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 22px; background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .stay-row { display: flex; align-items: center; gap: 16px; padding: 16px 18px; background: white; border: 1px solid rgba(255,255,255,0.22); margin-bottom: 8px; transition: all 0.2s; border-radius: 14px; }
+        .stay-row:hover { background: rgba(255,255,255,0.92); }
+        .stay-name { font-size: 15px; font-weight: 600; color: rgb(0,86,99); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .stay-loc { font-size: 12px; color: rgba(0,86,99,0.5); }
+        .stay-thumb { width: 48px; height: 48px; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 22px; background: rgba(0,86,99,0.08); border-radius: 10px; }
         .stay-thumb img { width: 100%; height: 100%; object-fit: cover; }
         .stay-info { flex: 1; min-width: 0; }
         .stay-name { font-size: 15px; font-weight: 600; color: white; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -195,8 +197,8 @@ export default function Dashboard() {
         .stay-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
         .pending-badge { padding: 5px 12px; background: rgba(255,200,50,0.15); border: 1px solid rgba(255,200,50,0.25); color: rgba(255,200,50,0.8); font-size: 11px; font-weight: 600; letter-spacing: 0.5px; }
         .live-badge { padding: 5px 12px; background: rgba(100,255,150,0.12); border: 1px solid rgba(100,255,150,0.2); color: rgba(100,255,180,0.8); font-size: 11px; font-weight: 600; letter-spacing: 0.5px; }
-        .remove-btn { padding: 6px 14px; background: transparent; border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.4); font-size: 12px; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
-        .remove-btn:hover { border-color: rgba(255,80,80,0.4); color: rgba(255,120,120,0.8); background: rgba(255,80,80,0.1); }
+        .remove-btn { padding: 6px 14px; background: transparent; border: 1px solid rgba(0,86,99,0.2); color: rgba(0,86,99,0.4); font-size: 12px; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; border-radius: 100px; }
+        .remove-btn:hover { border-color: rgba(255,80,80,0.4); color: rgba(200,50,50,0.8); background: rgba(255,80,80,0.08); }
 
         /* MODAL */
         .modal-overlay { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); }
@@ -274,11 +276,14 @@ export default function Dashboard() {
                 <span className="link-url">gotherenow.app/{influencer?.handle}</span>
                 <button className="copy-btn" onClick={copyLink}>{copied ? '✓ Copied!' : 'Copy link'}</button>
               </div>
-              <button className="sign-out-btn" onClick={async () => { await supabase.auth.signOut(); router.push('/') }}>
-                Sign out
-              </button>
             </div>
-            <button className="add-btn" onClick={() => setShowAddModal(true)}>+ Add a Stay</button>
+            <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:'8px', flexShrink:0 }}>
+              <button className="add-btn" onClick={() => setShowAddModal(true)}>+ Add a Stay</button>
+              <div style={{ display:'flex', gap:'16px' }}>
+                <a href={`/${influencer?.handle}`} target="_blank" rel="noopener noreferrer" style={{ fontSize:'12px', color:'rgba(255,255,255,0.5)', textDecoration:'none' }}>View my page →</a>
+                <button className="sign-out-btn" onClick={async () => { await supabase.auth.signOut(); router.push('/') }}>Sign out</button>
+              </div>
+            </div>
           </div>
 
           {/* HOW IT WORKS */}

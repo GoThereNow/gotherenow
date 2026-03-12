@@ -1,4 +1,3 @@
-import Nav from '../components/Nav'
 import { useState } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'

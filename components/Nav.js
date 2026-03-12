@@ -2,31 +2,51 @@ import Link from 'next/link'
 
 export default function Nav() {
   return (
-    <nav style={{
-      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
-      padding: '18px 48px',
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      background: 'rgb(0,86,99)',
-      borderBottom: '1px solid rgba(255,255,255,0.15)',
-      boxShadow: '0 2px 24px rgba(0,0,0,0.2)',
-      fontFamily: 'DM Sans, sans-serif',
-    }}>
-      <Link href="/" style={{
-        fontFamily: 'Playfair Display, serif',
-        fontSize: '24px', fontWeight: 700,
-        color: 'white', textDecoration: 'none', letterSpacing: '-0.5px',
-      }}>
-        Go<em style={{fontStyle:'italic', fontWeight:300, color:'rgba(255,255,255,0.7)'}}>There</em>Now
-      </Link>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '40px' }}>
-        <Link href="/" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>Discover</Link>
-        <Link href="/signup?role=influencer" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>For creators</Link>
-        <Link href="/login" style={{
-          background: 'white', color: 'rgb(0,86,99)',
-          padding: '9px 22px', borderRadius: '100px',
-          fontSize: '13px', fontWeight: 600, textDecoration: 'none',
-        }}>Sign in</Link>
-      </div>
-    </nav>
+    <>
+      <style>{`
+        .gtn-nav {
+          position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+          padding: 18px 48px;
+          display: flex; align-items: center; justify-content: space-between;
+          background: white;
+          border-bottom: 1px solid rgba(26,107,122,0.12);
+          box-shadow: 0 2px 16px rgba(26,107,122,0.07);
+        }
+        .gtn-logo {
+          font-family: 'Playfair Display', serif;
+          font-size: 24px; font-weight: 700;
+          color: #1a6b7a; text-decoration: none; letter-spacing: -0.5px;
+        }
+        .gtn-logo em { font-style: italic; font-weight: 300; color: #b5654a; }
+        .gtn-nav-right { display: flex; align-items: center; gap: 40px; }
+        .gtn-nav-link {
+          font-size: 13px; color: rgba(26,107,122,0.6);
+          text-decoration: none; transition: color 0.2s;
+          font-family: 'DM Sans', sans-serif;
+        }
+        .gtn-nav-link:hover { color: #1a6b7a; }
+        .gtn-nav-btn {
+          background: #b5654a; color: white;
+          padding: 9px 22px; border-radius: 100px;
+          font-size: 13px; font-weight: 600;
+          text-decoration: none; transition: all 0.2s;
+          font-family: 'DM Sans', sans-serif;
+        }
+        .gtn-nav-btn:hover { background: #a05540; }
+        @media (max-width: 768px) {
+          .gtn-nav { padding: 16px 24px; }
+          .gtn-nav-right .gtn-nav-link { display: none; }
+        }
+      `}</style>
+
+      <nav className="gtn-nav">
+        <Link href="/" className="gtn-logo">Go<em>There</em>Now</Link>
+        <div className="gtn-nav-right">
+          <Link href="/#stays" className="gtn-nav-link">Discover</Link>
+          <Link href="/signup?role=influencer" className="gtn-nav-link">For creators</Link>
+          <Link href="/login" className="gtn-nav-btn">Sign in</Link>
+        </div>
+      </nav>
+    </>
   )
 }

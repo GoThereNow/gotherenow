@@ -1,3 +1,4 @@
+import Nav from '../components/Nav'
 import { useState } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
@@ -21,7 +22,6 @@ export default function Login() {
   }
 
   return (
-    <>
       <Head>
         <title>Sign In — GoThereNow</title>
         <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Playfair+Display:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -105,8 +105,7 @@ export default function Login() {
             <p className="switch">Don't have an account?{' '}<Link href="/signup" className="switch-link">Sign up free</Link></p>
           </div>
         </div>
-      </div>
-    </>
+     </div>
   )
 }
 

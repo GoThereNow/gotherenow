@@ -1,3 +1,4 @@
+import Nav from '../components/Nav'
 import { useState } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
@@ -69,6 +70,8 @@ export default function Login() {
         }
       `}</style>
 
+      <>
+      <Nav />
       <div className="split">
         <div className="photo-side">
           <img src="/positano.avif" alt="Positano" className="photo-img" />

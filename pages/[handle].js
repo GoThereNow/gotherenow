@@ -71,7 +71,7 @@ export default function InfluencerProfile() {
         const el = document.createElement('div')
         el.style.cssText = `
           width: 32px; height: 32px;
-          background: rgb(0,86,99);
+          background: #1a6b7a;
           border: 2px solid white;
           border-radius: 50% 50% 50% 0;
           transform: rotate(-45deg);
@@ -86,15 +86,15 @@ export default function InfluencerProfile() {
         el.appendChild(inner)
         el.addEventListener('mouseenter', () => { el.style.background = 'white'; el.style.transform = 'rotate(-45deg) scale(1.2)' })
         el.addEventListener('mouseleave', () => {
-          if (selectedHotel?.id !== rec.id) { el.style.background = 'rgb(0,86,99)'; el.style.transform = 'rotate(-45deg) scale(1)' }
+          if (selectedHotel?.id !== rec.id) { el.style.background = '#1a6b7a'; el.style.transform = 'rotate(-45deg) scale(1)' }
         })
         const popup = new mapboxgl.Popup({ offset: 25, closeButton: false })
           .setHTML(`
-            <div style="padding:16px;background:rgb(0,86,99);min-width:180px;">
+            <div style="padding:16px;background:#1a6b7a;min-width:180px;">
               <div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,0.5);margin-bottom:4px;">${rec.city || ''}, ${rec.country}</div>
               <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:400;margin-bottom:10px;color:white;">${rec.hotel_name}</div>
               <button onclick="document.dispatchEvent(new CustomEvent('openHotel', {detail: '${rec.id}'}))"
-                style="width:100%;background:white;color:rgb(0,86,99);border:none;padding:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:sans-serif;">
+                style="width:100%;background:white;color:#1a6b7a;border:none;padding:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:sans-serif;">
                 View & Book →
               </button>
             </div>
@@ -121,7 +121,7 @@ export default function InfluencerProfile() {
   const openBookingModal = (hotel) => { setSelectedHotel(hotel); setShowModal(true) }
 
   if (loading) return (
-    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', minHeight:'100vh', background:'rgb(0,86,99)' }}>
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', minHeight:'100vh', background:'#1a6b7a' }}>
       <div style={{ textAlign:'center' }}>
         <div style={{ fontFamily:'Playfair Display,serif', fontSize:'24px', color:'white', marginBottom:'8px' }}>Go<em>There</em>Now</div>
         <div style={{ fontSize:'13px', color:'rgba(255,255,255,0.4)', letterSpacing:'2px', textTransform:'uppercase' }}>Loading...</div>
@@ -130,7 +130,7 @@ export default function InfluencerProfile() {
   )
 
   if (!influencer) return (
-    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', minHeight:'100vh', background:'rgb(0,86,99)' }}>
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', minHeight:'100vh', background:'#1a6b7a' }}>
       <div style={{ textAlign:'center' }}>
         <div style={{ fontSize:'48px', marginBottom:'16px' }}>🗺️</div>
         <h1 style={{ fontFamily:'Playfair Display,serif', fontSize:'28px', color:'white', marginBottom:'8px' }}>Creator not found</h1>
@@ -143,7 +143,7 @@ export default function InfluencerProfile() {
   const profile = influencer.profiles
 
   return (
-    <div style={{ background: 'rgb(0,86,99)', minHeight: '100vh', fontFamily: 'DM Sans, sans-serif' }}>
+    <div style={{ background: '#1a6b7a', minHeight: '100vh', fontFamily: 'DM Sans, sans-serif' }}>
       <Head>
         <title>{profile?.full_name || influencer.handle} — GoThereNow</title>
         <meta name="description" content={`Travel recommendations by ${profile?.full_name || influencer.handle}.`} />
@@ -154,25 +154,25 @@ export default function InfluencerProfile() {
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'DM Sans', sans-serif; }
         .profile-hero { padding: 100px 56px 60px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: flex-end; gap: 40px; }
-        .avatar { width: 96px; height: 96px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 36px; background: rgba(255,255,255,0.1); }
+        .avatar { width: 96px; height: 96px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 36px; background: rgba(26,107,122,0.08); }
         .avatar img { width: 100%; height: 100%; object-fit: cover; }
         .profile-info { flex: 1; }
-        .profile-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+        .profile-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: rgba(26,107,122,0.45); margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
         .profile-eyebrow::before { content:''; display:block; width:20px; height:1px; background:rgba(255,255,255,0.3); }
         .profile-name { font-family: 'Playfair Display', serif; font-size: clamp(32px, 4vw, 52px); font-weight: 400; color: white; line-height: 1.05; margin-bottom: 10px; }
-        .profile-bio { font-size: 14px; color: rgba(255,255,255,0.45); line-height: 1.8; max-width: 480px; margin-bottom: 20px; }
+        .profile-bio { font-size: 14px; color: rgba(26,107,122,0.5); line-height: 1.8; max-width: 480px; margin-bottom: 20px; }
         .profile-stats { display: flex; gap: 40px; }
         .stat-num { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 300; color: white; line-height: 1; }
         .stat-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-top: 3px; }
         .profile-socials { display: flex; gap: 10px; flex-shrink: 0; align-self: flex-start; margin-top: 8px; }
         .social-btn { padding: 9px 18px; border-radius: 100px; font-size: 12px; font-weight: 600; color: white; text-decoration: none; border: 1px solid rgba(255,255,255,0.2); transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
-        .social-btn:hover { background: rgba(255,255,255,0.1); }
+        .social-btn:hover { background: rgba(26,107,122,0.08); }
         .tabs { display: flex; padding: 0 56px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .tab-btn { padding: 18px 24px; font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.35); background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; font-family: 'DM Sans', sans-serif; margin-bottom: -1px; }
+        .tab-btn { padding: 18px 24px; font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: rgba(26,107,122,0.4); background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; font-family: 'DM Sans', sans-serif; margin-bottom: -1px; }
         .tab-btn.active { color: white; border-bottom-color: white; }
         .content { padding: 48px 56px; }
-        .map-container { border-radius: 4px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); height: 460px; margin-bottom: 56px; }
-        .section-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+        .map-container { border-radius: 4px; overflow: hidden; border: 1px solid rgba(26,107,122,0.12); height: 460px; margin-bottom: 56px; }
+        .section-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: rgba(26,107,122,0.45); margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
         .section-eyebrow::before { content:''; display:block; width:20px; height:1px; background:rgba(255,255,255,0.3); }
         .section-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 300; color: white; margin-bottom: 24px; }
         .section-title em { font-style: italic; }
@@ -181,30 +181,30 @@ export default function InfluencerProfile() {
         .hotel-card:hover { transform: scale(1.01); }
         .hotel-card-bg { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
         .hotel-card:hover .hotel-card-bg { transform: scale(1.06); }
-        .hotel-card-gradient { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,86,99,0.95) 0%, transparent 55%); }
-        .hotel-card-teal { position: absolute; inset: 0; background: rgba(0,40,50,0.3); mix-blend-mode: multiply; }
+        .hotel-card-gradient { position: absolute; inset: 0; background: linear-gradient(to top, rgba(26,107,122,0.95) 0%, transparent 55%); }
+        .hotel-card-teal { position: absolute; inset: 0; background: rgba(10,45,55,0.3); mix-blend-mode: multiply; }
         .hotel-card-info { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px; }
-        .hotel-card-loc { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 4px; }
+        .hotel-card-loc { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: rgba(26,107,122,0.5); margin-bottom: 4px; }
         .hotel-card-name { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 300; color: white; margin-bottom: 6px; }
-        .hotel-card-quote { font-size: 11px; color: rgba(255,255,255,0.4); font-style: italic; margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .hotel-card-book { background: white; color: rgb(0,86,99); padding: 8px 18px; font-size: 11px; font-weight: 700; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
-        .hotel-card-book:hover { background: rgba(255,255,255,0.9); }
-        .hotel-card-latest { position: absolute; top: 16px; left: 16px; background: white; color: rgb(0,86,99); font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 5px 12px; }
+        .hotel-card-quote { font-size: 11px; color: rgba(26,107,122,0.45); font-style: italic; margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .hotel-card-book { background: #b5654a; color: white; padding: 8px 18px; font-size: 11px; font-weight: 700; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+        .hotel-card-book:hover { background: #a05540; }
+        .hotel-card-latest { position: absolute; top: 16px; left: 16px; background: white; color: #1a6b7a; font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 5px 12px; }
         .modal-overlay { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); }
-        .modal { background: rgb(0,86,99); border: 1px solid rgba(255,255,255,0.15); width: 100%; max-width: 440px; padding: 40px; position: relative; }
-        .modal-close { position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; background: rgba(255,255,255,0.1); border: none; cursor: pointer; color: white; font-size: 14px; display: flex; align-items: center; justify-content: center; }
-        .modal-loc { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 8px; }
+        .modal { background: #1a6b7a; border: 1px solid rgba(26,107,122,0.15); width: 100%; max-width: 440px; padding: 40px; position: relative; }
+        .modal-close { position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; background: rgba(26,107,122,0.08); border: none; cursor: pointer; color: white; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+        .modal-loc { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: rgba(26,107,122,0.45); margin-bottom: 8px; }
         .modal-name { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 300; color: white; margin-bottom: 20px; }
         .modal-quote { font-size: 14px; color: rgba(255,255,255,0.55); font-style: italic; line-height: 1.8; padding-left: 16px; border-left: 2px solid rgba(255,255,255,0.2); margin-bottom: 28px; }
         .modal-book-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 12px; }
         .modal-links { display: flex; flex-direction: column; gap: 8px; }
-        .modal-link { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border: 1px solid rgba(255,255,255,0.15); text-decoration: none; color: white; transition: all 0.2s; }
+        .modal-link { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border: 1px solid rgba(26,107,122,0.15); text-decoration: none; color: white; transition: all 0.2s; }
         .modal-link:hover { background: rgba(255,255,255,0.08); }
         .modal-link-name { font-size: 14px; font-weight: 500; }
-        .modal-link-note { font-size: 11px; color: rgba(255,255,255,0.35); margin-top: 2px; }
+        .modal-link-note { font-size: 11px; color: rgba(26,107,122,0.4); margin-top: 2px; }
         .modal-disclaimer { text-align: center; font-size: 11px; color: rgba(255,255,255,0.25); margin-top: 20px; line-height: 1.6; }
         .footer { text-align: center; padding: 40px 56px; border-top: 1px solid rgba(255,255,255,0.08); }
-        .footer-logo { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 300; color: rgba(255,255,255,0.4); text-decoration: none; display: block; margin-bottom: 8px; }
+        .footer-logo { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 300; color: rgba(26,107,122,0.45); text-decoration: none; display: block; margin-bottom: 8px; }
         .footer-logo em { font-style: italic; }
         .footer-text { font-size: 12px; color: rgba(255,255,255,0.2); }
         @media (max-width: 768px) {

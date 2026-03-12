@@ -22,9 +22,10 @@ export default function Login() {
   }
 
   return (
+    <div>
       <Head>
         <title>Sign In — GoThereNow</title>
-        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Playfair+Display:wght@300;400;500;600&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;0,700;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
       </Head>
 
       <style>{`
@@ -35,9 +36,6 @@ export default function Login() {
         .photo-img { width: 100%; height: 100%; object-fit: cover; object-position: center bottom; filter: brightness(0.65) saturate(0.8); }
         .photo-wash { position: absolute; inset: 0; background: rgba(0,50,60,0.45); mix-blend-mode: multiply; }
         .photo-gradient { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, rgba(0,86,99,0.9) 100%); }
-        .photo-logo { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: white; text-decoration: none; letter-spacing: -0.5px; }
-        .photo-logo em { font-style: italic; font-weight: 300; color: white; }
-        .photo-logo span { font-weight: 300; }
         .photo-content { position: absolute; bottom: 48px; left: 48px; right: 48px; }
         .photo-quote { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 300; color: white; line-height: 1.2; margin-bottom: 12px; }
         .photo-quote em { font-style: italic; }
@@ -69,14 +67,13 @@ export default function Login() {
         }
       `}</style>
 
-      <>
       <Nav />
+
       <div className="split">
         <div className="photo-side">
           <img src="/positano.avif" alt="Positano" className="photo-img" />
           <div className="photo-wash" />
           <div className="photo-gradient" />
-          <Link href="/" className="photo-logo">Go<em>There</em><span>Now</span></Link>
           <div className="photo-content">
             <div className="photo-quote">Stay where<br />the <em>story</em> begins.</div>
             <div className="photo-loc">📍 Positano, Italy</div>
@@ -105,7 +102,8 @@ export default function Login() {
             <p className="switch">Don't have an account?{' '}<Link href="/signup" className="switch-link">Sign up free</Link></p>
           </div>
         </div>
-     </div>
+      </div>
+    </div>
   )
 }
 

@@ -1,3 +1,4 @@
+import Nav from '../components/Nav'
 import { useState } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
@@ -36,10 +37,10 @@ export default function Signup() {
   }
 
   return (
-    <>
+    <div>
       <Head>
         <title>Sign Up — GoThereNow</title>
-        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;0,700;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
       </Head>
 
       <style>{`
@@ -50,8 +51,6 @@ export default function Signup() {
         .photo-img { width: 100%; height: 100%; object-fit: cover; object-position: center bottom; filter: brightness(0.65) saturate(0.8); }
         .photo-wash { position: absolute; inset: 0; background: rgba(0,50,60,0.45); mix-blend-mode: multiply; }
         .photo-gradient { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, rgba(0,86,99,0.9) 100%); }
-        .photo-logo { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: white text-decoration: none; letter-spacing: -0.5px; }
-        .photo-logo em { font-style: italic; font-weight: 300; color: white; }
         .photo-content { position: absolute; bottom: 48px; left: 48px; right: 48px; }
         .photo-quote { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 300; color: white; line-height: 1.2; margin-bottom: 12px; }
         .photo-quote em { font-style: italic; }
@@ -60,7 +59,7 @@ export default function Signup() {
         .form-inner { width: 100%; max-width: 380px; }
         .form-title { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 400; color: white; margin-bottom: 6px; }
         .form-sub { font-size: 14px; color: rgba(255,255,255,0.45); margin-bottom: 20px; }
-        .role-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; margin-bottom: 28px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); overflow: hidden; }
+        .role-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; margin-bottom: 20px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); overflow: hidden; }
         .role-btn { padding: 11px; font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif; border: none; cursor: pointer; background: transparent; color: rgba(255,255,255,0.4); transition: all 0.2s; }
         .role-btn.active { background: white; color: rgb(0,86,99); font-weight: 700; }
         .error { background: rgba(255,80,80,0.15); border: 1px solid rgba(255,80,80,0.3); color: #ffaaaa; font-size: 13px; padding: 12px 16px; border-radius: 4px; margin-bottom: 20px; }
@@ -74,7 +73,7 @@ export default function Signup() {
         .btn { background: white; color: rgb(0,86,99); padding: 14px; font-size: 14px; font-weight: 700; font-family: 'Playfair Display', serif; border: none; cursor: pointer; transition: all 0.2s; margin-top: 4px; width: 100%; }
         .btn:hover { background: rgba(255,255,255,0.9); }
         .btn:disabled { opacity: 0.6; cursor: not-allowed; }
-        .divider { display: flex; align-items: center; gap: 16px; margin: 24px 0; }
+        .divider { display: flex; align-items: center; gap: 16px; margin: 20px 0; }
         .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.1); }
         .divider span { font-size: 12px; color: rgba(255,255,255,0.25); }
         .switch { text-align: center; font-size: 13px; color: rgba(255,255,255,0.4); }
@@ -88,14 +87,13 @@ export default function Signup() {
         }
       `}</style>
 
-      <>
       <Nav />
+
       <div className="split">
         <div className="photo-side">
           <img src="/positano.avif" alt="Positano" className="photo-img" />
           <div className="photo-wash" />
           <div className="photo-gradient" />
-          <Link href="/" className="photo-logo">Go<em>There</em>Now</Link>
           <div className="photo-content">
             <div className="photo-quote">Your feed,<br /><em>now bookable.</em></div>
             <div className="photo-loc">📍 Positano, Italy</div>
@@ -109,7 +107,9 @@ export default function Signup() {
                 <div className="success-icon">✓</div>
                 <h2 className="form-title">Check your email.</h2>
                 <p className="form-sub">We sent a confirmation link to <strong style={{color:'white'}}>{email}</strong>.</p>
-                <Link href="/login" className="btn" style={{display:'block', textAlign:'center', textDecoration:'none', marginTop:'28px'}}>Back to sign in →</Link>
+                <Link href="/login" className="btn" style={{display:'block', textAlign:'center', textDecoration:'none', marginTop:'28px'}}>
+                  Back to sign in →
+                </Link>
               </div>
             ) : (
               <>
@@ -151,7 +151,7 @@ export default function Signup() {
           </div>
         </div>
       </div>
-    </>
+    </div>
   )
 }
 

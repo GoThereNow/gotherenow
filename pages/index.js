@@ -387,7 +387,7 @@ export default function Home() {
       <section className="hero">
         <div className="hero-photo">
           <img
-            src="/IMG_1623.JPEG"
+            src="/positano.avif"
             alt="Positano coastline"
             className="hero-img"
           />

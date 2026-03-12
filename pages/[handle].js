@@ -5,6 +5,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabase'
+import Nav from '../components/Nav'
 
 export default function InfluencerProfile() {
   const router = useRouter()
@@ -22,7 +23,6 @@ export default function InfluencerProfile() {
   const [showModal, setShowModal] = useState(false)
   const [activeTab, setActiveTab] = useState('map')
 
-  // Fetch influencer + recommendations
   useEffect(() => {
     if (!slug) return
     async function fetchData() {
@@ -31,23 +31,19 @@ export default function InfluencerProfile() {
         .select('*, profiles(full_name, avatar_url, bio)')
         .eq('handle', slug)
         .single()
-
       if (!inf) { setLoading(false); return }
       setInfluencer(inf)
-
       const { data: recs } = await supabase
         .from('recommendations')
         .select('*, booking_links(*)')
         .eq('influencer_id', inf.id)
         .order('created_at', { ascending: false })
-
       setRecommendations(recs || [])
       setLoading(false)
     }
     fetchData()
   }, [slug])
 
-  // Init map — dynamically import mapbox to avoid SSR issues
   useEffect(() => {
     if (!mapContainer.current || map.current) return
     import('mapbox-gl').then(mapboxgl => {
@@ -55,7 +51,7 @@ export default function InfluencerProfile() {
       mapboxgl.accessToken = 'pk.eyJ1IjoiZ290aGVyZW5vdyIsImEiOiJjbWxmYXJpYm0wMzByM2lwcGpzNjl4Ymx5In0.lipvyNXWoQmIDCah_0Ss_w'
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/light-v11',
+        style: 'mapbox://styles/mapbox/dark-v11',
         center: [20, 25],
         zoom: 1.8,
         attributionControl: false,
@@ -64,66 +60,55 @@ export default function InfluencerProfile() {
     })
   }, [])
 
-  // Add markers when recommendations load
   useEffect(() => {
     if (!map.current || recommendations.length === 0) return
-
     import('mapbox-gl').then(mapboxgl => {
       mapboxgl = mapboxgl.default || mapboxgl
-
-      // Clear old markers
       markersRef.current.forEach(m => m.remove())
       markersRef.current = []
-
       recommendations.forEach((rec) => {
         if (!rec.latitude || !rec.longitude) return
-
         const el = document.createElement('div')
         el.style.cssText = `
-          width: 36px; height: 36px;
-          background: #1C1410;
-          border: 2.5px solid white;
+          width: 32px; height: 32px;
+          background: rgb(0,86,99);
+          border: 2px solid white;
           border-radius: 50% 50% 50% 0;
           transform: rotate(-45deg);
           cursor: pointer;
           display: flex; align-items: center; justify-content: center;
-          box-shadow: 0 4px 12px rgba(28,20,16,0.3);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.4);
           transition: all 0.2s;
         `
         const inner = document.createElement('span')
-        inner.style.cssText = 'transform: rotate(45deg); font-size: 14px;'
-        inner.textContent = '📍'
+        inner.style.cssText = 'transform: rotate(45deg); font-size: 12px; color: white;'
+        inner.textContent = '✦'
         el.appendChild(inner)
-        el.addEventListener('mouseenter', () => { el.style.background = '#C4622D'; el.style.transform = 'rotate(-45deg) scale(1.2)' })
+        el.addEventListener('mouseenter', () => { el.style.background = 'white'; el.style.transform = 'rotate(-45deg) scale(1.2)' })
         el.addEventListener('mouseleave', () => {
-          if (selectedHotel?.id !== rec.id) { el.style.background = '#1C1410'; el.style.transform = 'rotate(-45deg) scale(1)' }
+          if (selectedHotel?.id !== rec.id) { el.style.background = 'rgb(0,86,99)'; el.style.transform = 'rotate(-45deg) scale(1)' }
         })
-
         const popup = new mapboxgl.Popup({ offset: 25, closeButton: false })
           .setHTML(`
-            <div style="padding:16px;">
-              <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#C4622D;font-weight:600;margin-bottom:3px;">${rec.city || ''}, ${rec.country}</div>
-              <div style="font-family:'Georgia',serif;font-size:15px;font-weight:600;margin-bottom:6px;color:#1C1410;">${rec.hotel_name}</div>
+            <div style="padding:16px;background:rgb(0,86,99);min-width:180px;">
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,0.5);margin-bottom:4px;">${rec.city || ''}, ${rec.country}</div>
+              <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:400;margin-bottom:10px;color:white;">${rec.hotel_name}</div>
               <button onclick="document.dispatchEvent(new CustomEvent('openHotel', {detail: '${rec.id}'}))"
-                style="width:100%;background:#C4622D;color:white;border:none;padding:9px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:sans-serif;">
+                style="width:100%;background:white;color:rgb(0,86,99);border:none;padding:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:sans-serif;">
                 View & Book →
               </button>
             </div>
           `)
-
         const marker = new mapboxgl.Marker(el)
           .setLngLat([rec.longitude, rec.latitude])
           .setPopup(popup)
           .addTo(map.current)
-
         el.addEventListener('click', () => {
           setSelectedHotel(rec)
           map.current.flyTo({ center: [rec.longitude, rec.latitude], zoom: 10, duration: 800 })
         })
-
         markersRef.current.push(marker)
       })
-
       const handleOpenHotel = (e) => {
         const rec = recommendations.find(r => r.id === e.detail)
         if (rec) { setSelectedHotel(rec); setShowModal(true) }
@@ -133,27 +118,24 @@ export default function InfluencerProfile() {
     })
   }, [recommendations])
 
-  const openBookingModal = (hotel) => {
-    setSelectedHotel(hotel)
-    setShowModal(true)
-  }
+  const openBookingModal = (hotel) => { setSelectedHotel(hotel); setShowModal(true) }
 
   if (loading) return (
-    <div className="flex items-center justify-center min-h-screen" style={{ background: '#FAF7F2' }}>
-      <div className="text-center">
-        <div className="font-display text-2xl text-espresso mb-2">Go<span className="text-terracotta">There</span>Now</div>
-        <div className="text-sm text-muted">Loading...</div>
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', minHeight:'100vh', background:'rgb(0,86,99)' }}>
+      <div style={{ textAlign:'center' }}>
+        <div style={{ fontFamily:'Playfair Display,serif', fontSize:'24px', color:'white', marginBottom:'8px' }}>Go<em>There</em>Now</div>
+        <div style={{ fontSize:'13px', color:'rgba(255,255,255,0.4)', letterSpacing:'2px', textTransform:'uppercase' }}>Loading...</div>
       </div>
     </div>
   )
 
   if (!influencer) return (
-    <div className="flex items-center justify-center min-h-screen" style={{ background: '#FAF7F2' }}>
-      <div className="text-center">
-        <div className="text-4xl mb-4">🗺️</div>
-        <h1 className="font-display text-2xl text-espresso mb-2">Creator not found</h1>
-        <p className="text-muted mb-6">This profile doesn't exist yet.</p>
-        <Link href="/" className="text-sm font-medium text-terracotta hover:underline">← Back home</Link>
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', minHeight:'100vh', background:'rgb(0,86,99)' }}>
+      <div style={{ textAlign:'center' }}>
+        <div style={{ fontSize:'48px', marginBottom:'16px' }}>🗺️</div>
+        <h1 style={{ fontFamily:'Playfair Display,serif', fontSize:'28px', color:'white', marginBottom:'8px' }}>Creator not found</h1>
+        <p style={{ color:'rgba(255,255,255,0.4)', marginBottom:'24px' }}>This profile doesn't exist yet.</p>
+        <Link href="/" style={{ color:'white', fontSize:'13px', textDecoration:'none', borderBottom:'1px solid rgba(255,255,255,0.3)' }}>← Back home</Link>
       </div>
     </div>
   )
@@ -161,260 +143,221 @@ export default function InfluencerProfile() {
   const profile = influencer.profiles
 
   return (
-    <>
+    <div style={{ background: 'rgb(0,86,99)', minHeight: '100vh', fontFamily: 'DM Sans, sans-serif' }}>
       <Head>
         <title>{profile?.full_name || influencer.handle} — GoThereNow</title>
-        <meta name="description" content={`Travel recommendations by ${profile?.full_name || influencer.handle}. Book the hotels they've personally stayed at.`} />
+        <meta name="description" content={`Travel recommendations by ${profile?.full_name || influencer.handle}.`} />
+        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;0,700;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
       </Head>
 
-      {/* NAV */}
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-3"
-        style={{ background: 'rgba(250,247,242,0.95)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(196,98,45,0.1)' }}>
-        <Link href="/" className="font-display text-xl text-espresso">Go<span className="text-terracotta">There</span>Now</Link>
-        <Link href="/signup" className="text-xs font-semibold text-white bg-terracotta px-4 py-2 rounded-full hover:bg-terracotta-light transition-colors">
-          Join free
-        </Link>
-      </nav>
+      <style>{`
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'DM Sans', sans-serif; }
+        .profile-hero { padding: 100px 56px 60px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: flex-end; gap: 40px; }
+        .avatar { width: 96px; height: 96px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 36px; background: rgba(255,255,255,0.1); }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .profile-info { flex: 1; }
+        .profile-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+        .profile-eyebrow::before { content:''; display:block; width:20px; height:1px; background:rgba(255,255,255,0.3); }
+        .profile-name { font-family: 'Playfair Display', serif; font-size: clamp(32px, 4vw, 52px); font-weight: 400; color: white; line-height: 1.05; margin-bottom: 10px; }
+        .profile-bio { font-size: 14px; color: rgba(255,255,255,0.45); line-height: 1.8; max-width: 480px; margin-bottom: 20px; }
+        .profile-stats { display: flex; gap: 40px; }
+        .stat-num { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 300; color: white; line-height: 1; }
+        .stat-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-top: 3px; }
+        .profile-socials { display: flex; gap: 10px; flex-shrink: 0; align-self: flex-start; margin-top: 8px; }
+        .social-btn { padding: 9px 18px; border-radius: 100px; font-size: 12px; font-weight: 600; color: white; text-decoration: none; border: 1px solid rgba(255,255,255,0.2); transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+        .social-btn:hover { background: rgba(255,255,255,0.1); }
+        .tabs { display: flex; padding: 0 56px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .tab-btn { padding: 18px 24px; font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.35); background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; font-family: 'DM Sans', sans-serif; margin-bottom: -1px; }
+        .tab-btn.active { color: white; border-bottom-color: white; }
+        .content { padding: 48px 56px; }
+        .map-container { border-radius: 4px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); height: 460px; margin-bottom: 56px; }
+        .section-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+        .section-eyebrow::before { content:''; display:block; width:20px; height:1px; background:rgba(255,255,255,0.3); }
+        .section-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 300; color: white; margin-bottom: 24px; }
+        .section-title em { font-style: italic; }
+        .hotels-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 3px; }
+        .hotel-card { position: relative; overflow: hidden; cursor: pointer; aspect-ratio: 4/3; transition: transform 0.3s; }
+        .hotel-card:hover { transform: scale(1.01); }
+        .hotel-card-bg { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
+        .hotel-card:hover .hotel-card-bg { transform: scale(1.06); }
+        .hotel-card-gradient { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,86,99,0.95) 0%, transparent 55%); }
+        .hotel-card-teal { position: absolute; inset: 0; background: rgba(0,40,50,0.3); mix-blend-mode: multiply; }
+        .hotel-card-info { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px; }
+        .hotel-card-loc { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 4px; }
+        .hotel-card-name { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 300; color: white; margin-bottom: 6px; }
+        .hotel-card-quote { font-size: 11px; color: rgba(255,255,255,0.4); font-style: italic; margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .hotel-card-book { background: white; color: rgb(0,86,99); padding: 8px 18px; font-size: 11px; font-weight: 700; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+        .hotel-card-book:hover { background: rgba(255,255,255,0.9); }
+        .hotel-card-latest { position: absolute; top: 16px; left: 16px; background: white; color: rgb(0,86,99); font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 5px 12px; }
+        .modal-overlay { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); }
+        .modal { background: rgb(0,86,99); border: 1px solid rgba(255,255,255,0.15); width: 100%; max-width: 440px; padding: 40px; position: relative; }
+        .modal-close { position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; background: rgba(255,255,255,0.1); border: none; cursor: pointer; color: white; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+        .modal-loc { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 8px; }
+        .modal-name { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 300; color: white; margin-bottom: 20px; }
+        .modal-quote { font-size: 14px; color: rgba(255,255,255,0.55); font-style: italic; line-height: 1.8; padding-left: 16px; border-left: 2px solid rgba(255,255,255,0.2); margin-bottom: 28px; }
+        .modal-book-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 12px; }
+        .modal-links { display: flex; flex-direction: column; gap: 8px; }
+        .modal-link { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border: 1px solid rgba(255,255,255,0.15); text-decoration: none; color: white; transition: all 0.2s; }
+        .modal-link:hover { background: rgba(255,255,255,0.08); }
+        .modal-link-name { font-size: 14px; font-weight: 500; }
+        .modal-link-note { font-size: 11px; color: rgba(255,255,255,0.35); margin-top: 2px; }
+        .modal-disclaimer { text-align: center; font-size: 11px; color: rgba(255,255,255,0.25); margin-top: 20px; line-height: 1.6; }
+        .footer { text-align: center; padding: 40px 56px; border-top: 1px solid rgba(255,255,255,0.08); }
+        .footer-logo { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 300; color: rgba(255,255,255,0.4); text-decoration: none; display: block; margin-bottom: 8px; }
+        .footer-logo em { font-style: italic; }
+        .footer-text { font-size: 12px; color: rgba(255,255,255,0.2); }
+        @media (max-width: 768px) {
+          .profile-hero { padding: 88px 24px 40px; flex-direction: column; align-items: flex-start; gap: 20px; }
+          .profile-socials { align-self: auto; }
+          .tabs { padding: 0 24px; }
+          .content { padding: 32px 24px; }
+          .hotels-grid { grid-template-columns: 1fr; }
+          .profile-stats { gap: 24px; }
+        }
+      `}</style>
 
-      {/* PROFILE HERO */}
-      <div className="pt-14" style={{ background: '#1C1410' }}>
-        <div className="relative overflow-hidden">
-          <div className="absolute inset-0" style={{
-            backgroundImage: 'url(https://images.unsplash.com/photo-1530521954074-e64f6810b32d?w=1400&q=60)',
-            backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.18
-          }} />
-          <div className="relative z-10 max-w-4xl mx-auto px-6 py-10 flex flex-col md:flex-row items-start md:items-end gap-6">
-            <div className="relative flex-shrink-0">
-              <div className="w-24 h-24 rounded-full flex items-center justify-center text-3xl border-2 overflow-hidden"
-                style={{ background: 'linear-gradient(135deg, #C4622D, #D4A853)', borderColor: '#C4622D' }}>
-                {profile?.avatar_url
-                  ? <img src={profile.avatar_url} className="w-full h-full object-cover" />
-                  : '✈️'}
-              </div>
-              <div className="absolute bottom-1 right-1 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white border"
-                style={{ background: '#C4622D', borderColor: '#1C1410', fontSize: '9px' }}>✓</div>
-            </div>
+      <Nav />
 
-            <div className="flex-1">
-              <h1 className="font-display text-3xl text-white mb-1">{profile?.full_name || influencer.handle}</h1>
-              <div className="text-sm mb-2" style={{ color: '#E8845A' }}>@{influencer.handle} · Travel Creator</div>
-              {profile?.bio && <p className="text-sm mb-4 max-w-md leading-relaxed" style={{ color: 'rgba(255,255,255,0.55)' }}>{profile.bio}</p>}
-              <div className="flex gap-8">
-                {[
-                  { num: recommendations.length, label: 'Stays' },
-                  { num: influencer.follower_count ? `${(influencer.follower_count/1000).toFixed(0)}K` : '—', label: 'Followers' },
-                  { num: new Set(recommendations.map(r => r.country)).size, label: 'Countries' },
-                ].map((s, i) => (
-                  <div key={i}>
-                    <div className="font-display text-xl text-white">{s.num}</div>
-                    <div className="text-xs uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.35)' }}>{s.label}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex gap-2 self-start md:self-auto mt-2 md:mt-0">
-              {influencer.instagram_url && (
-                <a href={influencer.instagram_url} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold text-white"
-                  style={{ background: 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' }}>
-                  📸 Instagram
-                </a>
-              )}
-              {influencer.tiktok_url && (
-                <a href={influencer.tiktok_url} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold text-white"
-                  style={{ background: '#010101' }}>
-                  ♪ TikTok
-                </a>
-              )}
-            </div>
-          </div>
+      <div className="profile-hero">
+        <div className="avatar">
+          {profile?.avatar_url ? <img src={profile.avatar_url} alt={profile.full_name} /> : '✈️'}
         </div>
-
-        {/* TABS */}
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-          <div className="max-w-4xl mx-auto px-6 flex gap-0">
+        <div className="profile-info">
+          <div className="profile-eyebrow">@{influencer.handle} · Travel Creator</div>
+          <h1 className="profile-name">{profile?.full_name || influencer.handle}</h1>
+          {profile?.bio && <p className="profile-bio">{profile.bio}</p>}
+          <div className="profile-stats">
             {[
-              { id: 'map', label: '🗺 Map View' },
-              { id: 'list', label: '🏨 All Stays' },
-            ].map(tab => (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                className="px-6 py-4 text-xs font-semibold uppercase tracking-widest transition-all"
-                style={{
-                  color: activeTab === tab.id ? '#E8845A' : 'rgba(255,255,255,0.35)',
-                  borderBottom: activeTab === tab.id ? '2px solid #C4622D' : '2px solid transparent',
-                  background: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
-                }}>
-                {tab.label}
-              </button>
+              { num: recommendations.length, label: 'Stays' },
+              { num: influencer.follower_count ? `${(influencer.follower_count/1000).toFixed(0)}K` : '—', label: 'Followers' },
+              { num: new Set(recommendations.map(r => r.country)).size, label: 'Countries' },
+            ].map((s, i) => (
+              <div key={i}>
+                <div className="stat-num">{s.num}</div>
+                <div className="stat-label">{s.label}</div>
+              </div>
             ))}
           </div>
         </div>
+        <div className="profile-socials">
+          {influencer.instagram_url && (
+            <a href={influencer.instagram_url} target="_blank" rel="noopener noreferrer" className="social-btn">📸 Instagram</a>
+          )}
+          {influencer.tiktok_url && (
+            <a href={influencer.tiktok_url} target="_blank" rel="noopener noreferrer" className="social-btn">♪ TikTok</a>
+          )}
+        </div>
       </div>
 
-      {/* MAIN CONTENT */}
-      <div className="max-w-4xl mx-auto px-6 py-8">
+      <div className="tabs">
+        {[{ id: 'map', label: 'Map View' }, { id: 'list', label: 'All Stays' }].map(tab => (
+          <button key={tab.id} className={`tab-btn${activeTab === tab.id ? ' active' : ''}`} onClick={() => setActiveTab(tab.id)}>
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
-        {/* MAP */}
-        <div className={activeTab === 'map' ? '' : 'hidden'}>
-          <div className="mb-6 flex items-center justify-between">
-            <div>
-              <h2 className="font-display text-2xl text-espresso">{profile?.full_name?.split(' ')[0]}'s Recommendations</h2>
-              <p className="text-sm text-muted mt-1">Click any pin to see details & book</p>
-            </div>
-            <div className="text-xs font-medium px-3 py-1.5 rounded-full" style={{ background: '#F5EFE6', color: '#8B7D72' }}>
-              {recommendations.length} stays
-            </div>
+      <div className="content">
+        {activeTab === 'map' && (
+          <div>
+            <div className="map-container" ref={mapContainer} />
+            {recommendations.length > 0 && (
+              <div>
+                <div className="section-eyebrow">Recent stays</div>
+                <h2 className="section-title">{profile?.full_name?.split(' ')[0]}'s <em>recommendations</em></h2>
+                <div className="hotels-grid">
+                  {recommendations.slice(0, 4).map((rec, i) => (
+                    <HotelCard key={rec.id} rec={rec} index={i} onBook={() => openBookingModal(rec)}
+                      onMapFocus={() => { setActiveTab('map'); map.current?.flyTo({ center: [rec.longitude, rec.latitude], zoom: 10, duration: 800 }) }} />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
+        )}
 
-          <div ref={mapContainer} style={{ height: '440px', borderRadius: '20px', overflow: 'hidden', border: '1px solid rgba(196,98,45,0.15)' }} />
-
-          {recommendations.length > 0 && (
-            <div className="mt-8">
-              <h3 className="font-display text-xl text-espresso mb-4">Recent Stays</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {recommendations.slice(0, 4).map((rec, i) => (
+        {activeTab === 'list' && (
+          <div>
+            <div className="section-eyebrow">All stays</div>
+            <h2 className="section-title">{recommendations.length} personal <em>recommendations</em></h2>
+            {recommendations.length === 0 ? (
+              <div style={{ textAlign:'center', padding:'80px 0', color:'rgba(255,255,255,0.3)', fontSize:'14px' }}>No recommendations yet.</div>
+            ) : (
+              <div className="hotels-grid">
+                {recommendations.map((rec, i) => (
                   <HotelCard key={rec.id} rec={rec} index={i} onBook={() => openBookingModal(rec)}
-                    onMapFocus={() => {
-                      setActiveTab('map')
-                      map.current?.flyTo({ center: [rec.longitude, rec.latitude], zoom: 10, duration: 800 })
-                    }} />
+                    onMapFocus={() => { setActiveTab('map'); map.current?.flyTo({ center: [rec.longitude, rec.latitude], zoom: 10, duration: 800 }) }} />
                 ))}
               </div>
-            </div>
-          )}
-        </div>
-
-        {/* ALL STAYS LIST */}
-        <div className={activeTab === 'list' ? '' : 'hidden'}>
-          <div className="mb-6">
-            <h2 className="font-display text-2xl text-espresso">All Stays</h2>
-            <p className="text-sm text-muted mt-1">{recommendations.length} personal recommendations</p>
+            )}
           </div>
-          {recommendations.length === 0 ? (
-            <div className="text-center py-16 text-muted">No recommendations yet.</div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {recommendations.map((rec, i) => (
-                <HotelCard key={rec.id} rec={rec} index={i} onBook={() => openBookingModal(rec)}
-                  onMapFocus={() => {
-                    setActiveTab('map')
-                    map.current?.flyTo({ center: [rec.longitude, rec.latitude], zoom: 10, duration: 800 })
-                  }} />
-              ))}
-            </div>
-          )}
-        </div>
+        )}
       </div>
 
-      {/* BOOKING MODAL */}
       {showModal && selectedHotel && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: 'rgba(28,20,16,0.6)', backdropFilter: 'blur(4px)' }}
-          onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false) }}>
-          <div className="w-full max-w-md rounded-3xl p-8 relative" style={{ background: 'white' }}>
-            <button onClick={() => setShowModal(false)}
-              className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center"
-              style={{ background: '#F5EFE6', border: 'none', cursor: 'pointer' }}>✕</button>
-
-            <div className="text-xs uppercase tracking-widest font-semibold text-terracotta mb-1">
-              {[selectedHotel.city, selectedHotel.country].filter(Boolean).join(', ')}
-            </div>
-            <h3 className="font-display text-2xl text-espresso mb-4">{selectedHotel.hotel_name}</h3>
-
-            {selectedHotel.influencer_quote && (
-              <blockquote className="text-sm italic text-muted mb-6 pl-4 border-l-2 border-terracotta leading-relaxed">
-                "{selectedHotel.influencer_quote}"
-              </blockquote>
-            )}
-
-            <div className="text-xs uppercase tracking-widest font-semibold text-muted mb-3">Book on</div>
-            <div className="flex flex-col gap-3">
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false) }}>
+          <div className="modal">
+            <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
+            <div className="modal-loc">📍 {[selectedHotel.city, selectedHotel.country].filter(Boolean).join(', ')}</div>
+            <h3 className="modal-name">{selectedHotel.hotel_name}</h3>
+            {selectedHotel.influencer_quote && <blockquote className="modal-quote">"{selectedHotel.influencer_quote}"</blockquote>}
+            <div className="modal-book-label">Book on</div>
+            <div className="modal-links">
               {selectedHotel.booking_links?.length > 0 ? (
                 selectedHotel.booking_links.map((link, i) => (
-                  <a key={i} href={link.affiliate_url} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center justify-between p-4 rounded-xl transition-all hover:scale-[1.02]"
-                    style={{ border: '1px solid rgba(28,20,16,0.1)', textDecoration: 'none', color: '#1C1410' }}>
+                  <a key={i} href={link.affiliate_url} target="_blank" rel="noopener noreferrer" className="modal-link">
                     <div>
-                      <div className="font-semibold text-sm">{link.platform}</div>
-                      {link.note && <div className="text-xs text-muted mt-0.5">{link.note}</div>}
+                      <div className="modal-link-name">{link.platform}</div>
+                      {link.note && <div className="modal-link-note">{link.note}</div>}
                     </div>
-                    <span className="text-muted text-sm">→</span>
+                    <span style={{ color:'rgba(255,255,255,0.4)' }}>→</span>
                   </a>
                 ))
               ) : (
-                <div className="text-sm text-muted text-center py-4">Booking links coming soon.</div>
+                <div style={{ textAlign:'center', padding:'20px', color:'rgba(255,255,255,0.3)', fontSize:'13px' }}>Booking links coming soon.</div>
               )}
             </div>
-
-            <p className="text-center text-xs text-muted mt-5 leading-relaxed">
-              🤝 Booking links may earn affiliate commissions that support {profile?.full_name?.split(' ')[0]} — at no extra cost to you.
-            </p>
+            <p className="modal-disclaimer">🤝 Booking links may earn affiliate commissions that support {profile?.full_name?.split(' ')[0]} — at no extra cost to you.</p>
           </div>
         </div>
       )}
 
-      {/* Footer */}
-      <div className="text-center py-8 text-xs text-muted" style={{ borderTop: '1px solid rgba(28,20,16,0.08)' }}>
-        <Link href="/" className="font-display text-base text-espresso">Go<span className="text-terracotta">There</span>Now</Link>
-        <p className="mt-1">Travel the world through creators you trust.</p>
-      </div>
-    </>
+      <footer className="footer">
+        <Link href="/" className="footer-logo">Go<em>There</em>Now</Link>
+        <div className="footer-text">Travel the world through creators you trust.</div>
+      </footer>
+    </div>
   )
 }
 
-function HotelCard({ rec, index, onBook, onMapFocus }) {
+function HotelCard({ rec, index, onBook }) {
   const gradients = [
-    'linear-gradient(135deg, #1a3a4a, #2d6a8a)',
-    'linear-gradient(135deg, #3a2a1a, #8a6a2d)',
-    'linear-gradient(135deg, #1a3a2a, #2d8a5a)',
-    'linear-gradient(135deg, #2a1a3a, #6a2d8a)',
+    'linear-gradient(135deg, #0a2a35, #0d4050)',
+    'linear-gradient(135deg, #0a3028, #0d5040)',
+    'linear-gradient(135deg, #1a2a3a, #1d4060)',
+    'linear-gradient(135deg, #2a1a2a, #3d2040)',
   ]
-  const emojis = ['🏯', '🏜', '🌿', '🌊', '🏔', '🌴', '🏛', '🗼']
-
   return (
-    <div className="rounded-2xl overflow-hidden transition-all hover:-translate-y-1 hover:shadow-lg cursor-pointer"
-      style={{ background: 'white', border: '1px solid rgba(28,20,16,0.07)' }}>
-      <div style={{ height: '140px', background: gradients[index % gradients.length], display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '44px', position: 'relative' }}>
-        {rec.photo_url
-          ? <img src={rec.photo_url} style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} />
-          : emojis[index % emojis.length]}
-        {index === 0 && (
-          <div className="absolute top-3 left-3 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide"
-            style={{ background: '#C4622D' }}>Latest</div>
-        )}
-      </div>
-
-      <div className="p-4">
-        <div className="text-xs font-semibold uppercase tracking-wider text-terracotta mb-1">
-          📍 {[rec.city, rec.country].filter(Boolean).join(', ')}
-        </div>
-        <h3 className="font-display text-lg text-espresso mb-1">{rec.hotel_name}</h3>
-        {rec.star_rating && (
-          <div className="text-xs mb-2" style={{ color: '#D4A853' }}>{'★'.repeat(rec.star_rating)}</div>
-        )}
-        {rec.influencer_quote && (
-          <p className="text-xs text-muted italic leading-relaxed mb-3 line-clamp-2">"{rec.influencer_quote}"</p>
-        )}
-
-        <div className="flex items-center justify-between mt-2">
-          <div className="flex gap-1 flex-wrap">
-            {rec.booking_links?.map((l, i) => (
-              <span key={i} className="text-xs px-2 py-0.5 rounded-md" style={{ background: '#F5EFE6', color: '#8B7D72' }}>{l.platform}</span>
-            ))}
-          </div>
-          <button onClick={onBook}
-            className="text-xs font-semibold text-white px-4 py-2 rounded-full"
-            style={{ background: '#1C1410', fontFamily: 'DM Sans, sans-serif', border: 'none', cursor: 'pointer' }}>
-            Book Now →
-          </button>
-        </div>
+    <div className="hotel-card">
+      {rec.photo_url ? (
+        <img src={rec.photo_url} alt={rec.hotel_name} className="hotel-card-bg" />
+      ) : (
+        <div style={{ background: gradients[index % gradients.length], width:'100%', height:'100%', position:'absolute', inset:0 }} />
+      )}
+      <div className="hotel-card-teal" />
+      <div className="hotel-card-gradient" />
+      {index === 0 && <div className="hotel-card-latest">Latest</div>}
+      <div className="hotel-card-info">
+        <div className="hotel-card-loc">📍 {[rec.city, rec.country].filter(Boolean).join(', ')}</div>
+        <div className="hotel-card-name">{rec.hotel_name}</div>
+        {rec.influencer_quote && <div className="hotel-card-quote">"{rec.influencer_quote}"</div>}
+        <button className="hotel-card-book" onClick={onBook}>Book Now →</button>
       </div>
     </div>
   )
 }
+
 export async function getServerSideProps() {
   return { props: {} }
 }
-

@@ -134,6 +134,7 @@ export default function Dashboard() {
 
   const profile = influencer?.profiles
   const countries = new Set(recommendations.map(r => r.country)).size
+  const bookable = recommendations.filter(r => r.booking_links?.length > 0).length
 
   return (
     <div style={{ background: 'rgb(0,86,99)', minHeight: '100vh', fontFamily: 'DM Sans, sans-serif' }}>
@@ -145,59 +146,62 @@ export default function Dashboard() {
       <style>{`
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'DM Sans', sans-serif; }
+        .wrap { max-width: 720px; margin: 0 auto; padding: 0 24px; }
 
-        .dash-header { padding: 100px 56px 48px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .dash-greeting { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
-        .dash-greeting::before { content:''; display:block; width:20px; height:1px; background:rgba(255,255,255,0.3); }
-        .dash-title { font-family: 'Playfair Display', serif; font-size: clamp(28px, 4vw, 48px); font-weight: 300; color: white; margin-bottom: 32px; line-height: 1.1; }
-        .dash-title em { font-style: italic; }
-
-        .stats-row { display: flex; gap: 48px; margin-bottom: 32px; }
-        .stat { }
-        .stat-num { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 300; color: white; line-height: 1; }
-        .stat-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-top: 4px; }
-
-        .link-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-        .page-link { font-size: 13px; color: rgba(255,255,255,0.5); font-family: 'DM Sans', sans-serif; }
-        .page-url { font-size: 13px; color: white; font-weight: 500; }
-        .copy-btn { padding: 8px 20px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; letter-spacing: 0.5px; }
+        /* HEADER */
+        .dash-top { padding: 100px 0 40px; }
+        .dash-topbar { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 20px; }
+        .dash-greeting { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 400; color: white; margin-bottom: 10px; }
+        .dash-greeting em { font-style: italic; font-weight: 300; }
+        .link-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .link-label { font-size: 13px; color: rgba(255,255,255,0.4); }
+        .link-url { font-size: 13px; color: white; font-weight: 500; }
+        .copy-btn { padding: 6px 16px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
         .copy-btn:hover { background: rgba(255,255,255,0.18); }
-        .view-btn { padding: 8px 20px; background: white; color: rgb(0,86,99); font-size: 12px; font-weight: 700; cursor: pointer; font-family: 'DM Sans', sans-serif; text-decoration: none; transition: all 0.2s; display: inline-block; }
-        .view-btn:hover { background: rgba(255,255,255,0.9); }
-
-        .dash-content { padding: 48px 56px; }
-        .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
-        .section-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
-        .section-eyebrow::before { content:''; display:block; width:20px; height:1px; background:rgba(255,255,255,0.3); }
-        .section-title { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 300; color: white; }
-        .section-title em { font-style: italic; }
-
-        .add-btn { background: white; color: rgb(0,86,99); padding: 12px 28px; font-size: 13px; font-weight: 700; border: none; cursor: pointer; font-family: 'Playfair Display', serif; transition: all 0.2s; white-space: nowrap; }
+        .add-btn { background: white; color: rgb(0,86,99); padding: 13px 28px; font-size: 13px; font-weight: 700; border: none; cursor: pointer; font-family: 'Playfair Display', serif; transition: all 0.2s; white-space: nowrap; flex-shrink: 0; }
         .add-btn:hover { background: rgba(255,255,255,0.9); }
+        .sign-out-btn { background: none; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 12px; color: rgba(255,255,255,0.3); padding: 0; transition: color 0.2s; display: block; margin-top: 6px; }
+        .sign-out-btn:hover { color: rgba(255,255,255,0.6); }
 
-        .empty-state { text-align: center; padding: 80px 0; border: 1px dashed rgba(255,255,255,0.15); }
-        .empty-icon { font-size: 48px; margin-bottom: 16px; }
-        .empty-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 300; color: white; margin-bottom: 8px; }
-        .empty-sub { font-size: 14px; color: rgba(255,255,255,0.35); margin-bottom: 28px; }
+        /* HOW IT WORKS BOX */
+        .how-box { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); padding: 18px 22px; margin-bottom: 28px; display: flex; gap: 14px; align-items: flex-start; }
+        .how-icon { font-size: 22px; flex-shrink: 0; margin-top: 2px; }
+        .how-title { font-size: 14px; font-weight: 600; color: white; margin-bottom: 4px; }
+        .how-text { font-size: 13px; color: rgba(255,255,255,0.45); line-height: 1.6; }
 
-        .recs-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 3px; }
-        .rec-card { position: relative; overflow: hidden; aspect-ratio: 4/3; }
-        .rec-card-bg { width: 100%; height: 100%; object-fit: cover; }
-        .rec-card-gradient { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,86,99,0.97) 0%, rgba(0,86,99,0.2) 60%, transparent 100%); }
-        .rec-card-teal { position: absolute; inset: 0; background: rgba(0,40,50,0.3); mix-blend-mode: multiply; }
-        .rec-card-info { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px; }
-        .rec-card-loc { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.45); margin-bottom: 4px; }
-        .rec-card-name { font-family: 'Playfair Display', serif; font-size: 19px; font-weight: 300; color: white; margin-bottom: 6px; line-height: 1.2; }
-        .rec-card-quote { font-size: 11px; color: rgba(255,255,255,0.4); font-style: italic; margin-bottom: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .rec-card-actions { display: flex; gap: 8px; }
-        .rec-card-links { font-size: 10px; color: rgba(255,255,255,0.35); display: flex; align-items: center; gap: 4px; flex: 1; }
-        .rec-del-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.5); padding: 6px 14px; font-size: 11px; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
-        .rec-del-btn:hover { background: rgba(255,80,80,0.2); border-color: rgba(255,80,80,0.3); color: white; }
+        /* STAT BUBBLES */
+        .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 36px; }
+        .stat-bubble { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); padding: 24px 20px; text-align: center; }
+        .stat-icon { font-size: 24px; margin-bottom: 10px; }
+        .stat-num { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 300; color: white; line-height: 1; margin-bottom: 6px; }
+        .stat-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.35); }
+
+        /* STAYS SECTION */
+        .section-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 400; color: white; margin-bottom: 16px; }
+
+        .empty-state { text-align: center; padding: 60px 0; border: 1px dashed rgba(255,255,255,0.15); }
+        .empty-icon { font-size: 40px; margin-bottom: 14px; }
+        .empty-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 300; color: white; margin-bottom: 6px; }
+        .empty-sub { font-size: 13px; color: rgba(255,255,255,0.35); margin-bottom: 24px; }
+
+        /* STAY ROW */
+        .stay-row { display: flex; align-items: center; gap: 16px; padding: 16px 18px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; transition: background 0.2s; }
+        .stay-row:hover { background: rgba(255,255,255,0.1); }
+        .stay-thumb { width: 48px; height: 48px; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 22px; background: rgba(255,255,255,0.1); }
+        .stay-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .stay-info { flex: 1; min-width: 0; }
+        .stay-name { font-size: 15px; font-weight: 600; color: white; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .stay-loc { font-size: 12px; color: rgba(255,255,255,0.4); }
+        .stay-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+        .pending-badge { padding: 5px 12px; background: rgba(255,200,50,0.15); border: 1px solid rgba(255,200,50,0.25); color: rgba(255,200,50,0.8); font-size: 11px; font-weight: 600; letter-spacing: 0.5px; }
+        .live-badge { padding: 5px 12px; background: rgba(100,255,150,0.12); border: 1px solid rgba(100,255,150,0.2); color: rgba(100,255,180,0.8); font-size: 11px; font-weight: 600; letter-spacing: 0.5px; }
+        .remove-btn { padding: 6px 14px; background: transparent; border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.4); font-size: 12px; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+        .remove-btn:hover { border-color: rgba(255,80,80,0.4); color: rgba(255,120,120,0.8); background: rgba(255,80,80,0.1); }
 
         /* MODAL */
         .modal-overlay { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); }
         .modal { background: rgb(0,86,99); border: 1px solid rgba(255,255,255,0.15); width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; position: relative; }
-        .modal-header { padding: 32px 36px 0; position: sticky; top: 0; background: rgb(0,86,99); z-index: 1; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .modal-header { padding: 32px 36px 20px; position: sticky; top: 0; background: rgb(0,86,99); z-index: 1; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .modal-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 6px; }
         .modal-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 300; color: white; }
         .modal-title em { font-style: italic; }
@@ -219,7 +223,7 @@ export default function Dashboard() {
 
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .coord-box { padding: 16px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); }
-        .coord-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 10px; }
+        .coord-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 8px; }
         .coord-hint { font-size: 12px; color: rgba(255,255,255,0.3); margin-bottom: 12px; line-height: 1.5; }
         .coord-hint a { color: rgba(255,255,255,0.5); }
 
@@ -245,16 +249,10 @@ export default function Dashboard() {
         .confirm-cancel { flex: 1; padding: 13px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: white; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; }
         .confirm-delete { flex: 1; padding: 13px; background: rgba(255,80,80,0.25); border: 1px solid rgba(255,80,80,0.3); color: white; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; }
 
-        .sign-out-btn { background: none; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 12px; color: rgba(255,255,255,0.3); padding: 0; transition: color 0.2s; }
-        .sign-out-btn:hover { color: rgba(255,255,255,0.6); }
-
-        @media (max-width: 768px) {
-          .dash-header { padding: 88px 24px 40px; }
-          .dash-content { padding: 32px 24px; }
-          .stats-row { gap: 28px; }
-          .recs-grid { grid-template-columns: 1fr; }
+        @media (max-width: 600px) {
+          .dash-topbar { flex-direction: column; }
+          .stats-row { grid-template-columns: repeat(3, 1fr); gap: 8px; }
           .grid-2 { grid-template-columns: 1fr; }
-          .modal { max-height: 100vh; }
           .modal-header { padding: 24px 24px 16px; }
           .modal-body { padding: 20px 24px 28px; }
         }
@@ -262,87 +260,86 @@ export default function Dashboard() {
 
       <Nav />
 
-      {/* HEADER */}
-      <div className="dash-header">
-        <div className="dash-greeting">Your dashboard</div>
-        <h1 className="dash-title">
-          Hey {profile?.full_name?.split(' ')[0] || 'there'},<br />
-          <em>welcome back.</em>
-        </h1>
+      <div className="wrap">
+        <div className="dash-top">
 
-        <div className="stats-row">
-          {[
-            { num: recommendations.length, label: 'Stays' },
-            { num: countries, label: 'Countries' },
-            { num: recommendations.filter(r => r.booking_links?.length > 0).length, label: 'With links' },
-          ].map((s, i) => (
-            <div className="stat" key={i}>
-              <div className="stat-num">{s.num}</div>
-              <div className="stat-label">{s.label}</div>
+          {/* TOP BAR */}
+          <div className="dash-topbar">
+            <div>
+              <h1 className="dash-greeting">
+                Hey {profile?.full_name?.split(' ')[0] || 'there'} 👋
+              </h1>
+              <div className="link-row">
+                <span className="link-label">Your link:</span>
+                <span className="link-url">gotherenow.app/{influencer?.handle}</span>
+                <button className="copy-btn" onClick={copyLink}>{copied ? '✓ Copied!' : 'Copy link'}</button>
+              </div>
+              <button className="sign-out-btn" onClick={async () => { await supabase.auth.signOut(); router.push('/') }}>
+                Sign out
+              </button>
             </div>
-          ))}
-        </div>
-
-        <div className="link-bar">
-          <span className="page-link">Your page:</span>
-          <span className="page-url">gotherenow.app/{influencer?.handle}</span>
-          <button className="copy-btn" onClick={copyLink}>
-            {copied ? '✓ Copied' : 'Copy link'}
-          </button>
-          <a className="view-btn" href={`/${influencer?.handle}`} target="_blank" rel="noopener noreferrer">
-            View page →
-          </a>
-          <button className="sign-out-btn" onClick={async () => { await supabase.auth.signOut(); router.push('/') }}>
-            Sign out
-          </button>
-        </div>
-      </div>
-
-      {/* STAYS */}
-      <div className="dash-content">
-        <div className="section-header">
-          <div>
-            <div className="section-eyebrow">Your recommendations</div>
-            <h2 className="section-title">Your <em>stays</em></h2>
+            <button className="add-btn" onClick={() => setShowAddModal(true)}>+ Add a Stay</button>
           </div>
-          <button className="add-btn" onClick={() => setShowAddModal(true)}>+ Add a stay</button>
-        </div>
 
-        {recommendations.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">🗺️</div>
-            <div className="empty-title">No stays yet</div>
-            <div className="empty-sub">Add your first hotel recommendation and share it with your followers.</div>
-            <button className="add-btn" onClick={() => setShowAddModal(true)}>+ Add your first stay</button>
+          {/* HOW IT WORKS */}
+          <div className="how-box">
+            <div className="how-icon">💡</div>
+            <div>
+              <div className="how-title">How GoThereNow works for you</div>
+              <div className="how-text">You add the hotels you've stayed at. The GoThereNow team handles all booking links and affiliate setup. When your followers book, you earn — we'll handle the payouts monthly. Simple!</div>
+            </div>
           </div>
-        ) : (
-          <div className="recs-grid">
-            {recommendations.map((rec, i) => (
-              <div className="rec-card" key={rec.id}>
-                {rec.photo_url ? (
-                  <img src={rec.photo_url} alt={rec.hotel_name} className="rec-card-bg" />
-                ) : (
-                  <div style={{ position:'absolute', inset:0, background: i % 2 === 0 ? 'linear-gradient(135deg,#0a2a35,#0d4050)' : 'linear-gradient(135deg,#0a3028,#0d5040)' }} />
-                )}
-                <div className="rec-card-teal" />
-                <div className="rec-card-gradient" />
-                <div className="rec-card-info">
-                  <div className="rec-card-loc">📍 {[rec.city, rec.country].filter(Boolean).join(', ')}</div>
-                  <div className="rec-card-name">{rec.hotel_name}</div>
-                  {rec.influencer_quote && <div className="rec-card-quote">"{rec.influencer_quote}"</div>}
-                  <div className="rec-card-actions">
-                    <div className="rec-card-links">
-                      {rec.booking_links?.length > 0
-                        ? `${rec.booking_links.length} booking link${rec.booking_links.length > 1 ? 's' : ''}`
-                        : '⏳ Links being added'}
-                    </div>
-                    <button className="rec-del-btn" onClick={() => setDeleteId(rec.id)}>Remove</button>
-                  </div>
-                </div>
+
+          {/* STAT BUBBLES */}
+          <div className="stats-row">
+            {[
+              { icon: '🏨', num: recommendations.length, label: 'Stays Added' },
+              { icon: '🌍', num: countries, label: 'Countries' },
+              { icon: '🔗', num: bookable, label: 'Bookable' },
+            ].map((s, i) => (
+              <div className="stat-bubble" key={i}>
+                <div className="stat-icon">{s.icon}</div>
+                <div className="stat-num">{s.num}</div>
+                <div className="stat-label">{s.label}</div>
               </div>
             ))}
           </div>
-        )}
+
+          {/* STAYS LIST */}
+          <div className="section-title">Your Stays</div>
+
+          {recommendations.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-icon">🗺️</div>
+              <div className="empty-title">No stays yet</div>
+              <div className="empty-sub">Add your first hotel recommendation and share it with your followers.</div>
+              <button className="add-btn" onClick={() => setShowAddModal(true)}>+ Add your first stay</button>
+            </div>
+          ) : (
+            <div>
+              {recommendations.map((rec) => (
+                <div className="stay-row" key={rec.id}>
+                  <div className="stay-thumb">
+                    {rec.photo_url
+                      ? <img src={rec.photo_url} alt={rec.hotel_name} />
+                      : '🏨'}
+                  </div>
+                  <div className="stay-info">
+                    <div className="stay-name">{rec.hotel_name}</div>
+                    <div className="stay-loc">{[rec.city, rec.country].filter(Boolean).join(', ')}</div>
+                  </div>
+                  <div className="stay-actions">
+                    {rec.booking_links?.length > 0
+                      ? <span className="live-badge">Live</span>
+                      : <span className="pending-badge">Pending links</span>}
+                    <button className="remove-btn" onClick={() => setDeleteId(rec.id)}>Remove</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+        </div>
       </div>
 
       {/* ADD MODAL */}
@@ -356,7 +353,6 @@ export default function Dashboard() {
             </div>
             <form onSubmit={handleAddRecommendation} className="modal-body">
 
-              {/* Hotel name with autocomplete */}
               <div>
                 <label className="field-label">Hotel name *</label>
                 <div style={{ position: 'relative' }}>

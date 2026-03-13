@@ -59,13 +59,15 @@ export default function InfluencerProfile() {
         map.current = new mapboxgl.Map({
           container: mapContainer.current,
           style: 'mapbox://styles/mapbox/light-v11',
-          center: [0, 20],
-          zoom: 1.2,
+          center: [0, 15],
+          zoom: 0.9,
         projection: 'mercator',
         renderWorldCopies: false,
           attributionControl: false,
         })
 
+        map.current.setMinZoom(0.9)
+        map.current.setMaxBounds([[-200, -85], [200, 85]])
         map.current.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right')
 
         map.current.on('load', () => {

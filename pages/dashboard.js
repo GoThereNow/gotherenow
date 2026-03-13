@@ -19,6 +19,7 @@ export default function Dashboard() {
   const [deleteId, setDeleteId] = useState(null)
   const [copied, setCopied] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [editRec, setEditRec] = useState(null)
   const [suggestions, setSuggestions] = useState([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [searching, setSearching] = useState(false)
@@ -127,6 +128,42 @@ export default function Dashboard() {
     setSaving(false)
   }
 
+  const openEdit = (rec) => {
+    setEditRec(rec)
+    setForm({
+      hotel_name: rec.hotel_name || '',
+      city: rec.city || '',
+      country: rec.country || '',
+      latitude: rec.latitude ? String(rec.latitude) : '',
+      longitude: rec.longitude ? String(rec.longitude) : '',
+      influencer_quote: rec.influencer_quote || '',
+      personal_rating: rec.star_rating ? String(rec.star_rating) : '5',
+      photo_url: rec.photo_url || '',
+    })
+  }
+
+  const handleEditSave = async (e) => {
+    e.preventDefault()
+    setSaving(true)
+    await supabase.from('recommendations').update({
+      hotel_name: form.hotel_name,
+      city: form.city || null,
+      country: form.country,
+      latitude: form.latitude ? parseFloat(form.latitude) : null,
+      longitude: form.longitude ? parseFloat(form.longitude) : null,
+      influencer_quote: form.influencer_quote,
+      star_rating: parseInt(form.personal_rating),
+      photo_url: form.photo_url || null,
+    }).eq('id', editRec.id)
+    const { data: recs } = await supabase
+      .from('recommendations').select('*, booking_links(*)')
+      .eq('influencer_id', influencer.id).order('created_at', { ascending: false })
+    setRecommendations(recs || [])
+    setEditRec(null)
+    setForm({ hotel_name: '', city: '', country: '', latitude: '', longitude: '', influencer_quote: '', personal_rating: '5', photo_url: '' })
+    setSaving(false)
+  }
+
   const handleDelete = async (id) => {
     await supabase.from('booking_links').delete().eq('recommendation_id', id)
     await supabase.from('recommendations').delete().eq('id', id)
@@ -215,6 +252,8 @@ export default function Dashboard() {
         .live-badge { padding: 5px 12px; background: rgba(0,150,70,0.08); border: 1px solid rgba(0,150,70,0.2); color: rgba(0,120,50,0.9); font-size: 11px; font-weight: 600; letter-spacing: 0.5px; border-radius: 100px; }
         .remove-btn { padding: 6px 14px; background: transparent; border: 1px solid rgba(26,107,122,0.15); color: rgba(26,107,122,0.35); font-size: 12px; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; border-radius: 100px; }
         .remove-btn:hover { border-color: rgba(200,50,50,0.3); color: rgba(200,50,50,0.7); background: rgba(255,80,80,0.05); }
+        .edit-btn { padding: 6px 14px; background: transparent; border: 1px solid rgba(26,107,122,0.2); color: #1a6b7a; font-size: 12px; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; border-radius: 100px; font-weight: 600; }
+        .edit-btn:hover { background: rgba(26,107,122,0.06); border-color: rgba(26,107,122,0.4); }
 
         /* MODAL */
         .modal-overlay { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); }
@@ -355,6 +394,7 @@ export default function Dashboard() {
                     {rec.booking_links?.length > 0
                       ? <span className="live-badge">Live</span>
                       : <span className="pending-badge">Pending links</span>}
+                    <button className="edit-btn" onClick={() => openEdit(rec)}>Edit</button>
                     <button className="remove-btn" onClick={() => setDeleteId(rec.id)}>Remove</button>
                   </div>
                 </div>

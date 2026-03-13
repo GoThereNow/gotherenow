@@ -60,7 +60,8 @@ export default function InfluencerProfile() {
           container: mapContainer.current,
           style: 'mapbox://styles/mapbox/light-v11',
           center: [20, 25],
-          zoom: 1.5,
+          zoom: 2,
+        projection: 'mercator',
           attributionControl: false,
         })
 

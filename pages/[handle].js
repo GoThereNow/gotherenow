@@ -59,8 +59,8 @@ export default function InfluencerProfile() {
         map.current = new mapboxgl.Map({
           container: mapContainer.current,
           style: 'mapbox://styles/mapbox/light-v11',
-          center: [20, 25],
-          zoom: 2,
+          center: [0, 20],
+          zoom: 1.2,
         projection: 'mercator',
           attributionControl: false,
         })

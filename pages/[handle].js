@@ -167,7 +167,7 @@ export default function InfluencerProfile() {
         .section-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: #1a6b7a; margin-bottom: 24px; text-transform: uppercase; letter-spacing: 1px; }
         .section-title em { text-transform: none; font-weight: 300; }
 
-        .hotels-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+        .hotels-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
         .hotel-card { position: relative; overflow: hidden; cursor: pointer; border-radius: 16px; aspect-ratio: 4/3; transition: transform 0.3s; box-shadow: 0 4px 20px rgba(26,107,122,0.1); background: white; }
         .hotel-card:hover { transform: scale(1.01); }
         .hotel-card-bg { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }

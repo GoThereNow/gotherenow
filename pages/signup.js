@@ -53,7 +53,7 @@ export default function Signup() {
         .photo-gradient { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, rgba(26,107,122,0.9) 100%); }
         .photo-content { position: absolute; bottom: 48px; left: 48px; right: 48px; }
         .photo-quote { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 300; color: white; line-height: 1.2; margin-bottom: 12px; }
-        .photo-quote em { font-style: italic; }
+        .photo-quote em { }
         .photo-loc { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.45); }
         .form-side { background: #1a6b7a; display: flex; align-items: center; justify-content: center; padding: 24px 48px; height: 100vh; overflow: hidden; }
         .form-inner { width: 100%; max-width: 380px; }
@@ -95,7 +95,7 @@ export default function Signup() {
           <div className="photo-wash" />
           <div className="photo-gradient" />
           <div className="photo-content">
-            <div className="photo-quote">Your feed,<br /><em>now bookable.</em></div>
+            <div className="photo-quote">Your feed,<br />now bookable.</div>
             <div className="photo-loc">📍 Positano, Italy</div>
           </div>
         </div>

@@ -22,6 +22,7 @@ export default function InfluencerProfile() {
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [activeTab, setActiveTab] = useState('map')
+  const [mapLoaded, setMapLoaded] = useState(false)
 
   useEffect(() => {
     if (!slug) return
@@ -57,11 +58,15 @@ export default function InfluencerProfile() {
         attributionControl: false,
       })
       map.current.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right')
+      map.current.on('load', () => {
+        setMapLoaded(true)
+        map.current.resize()
+      })
     })
   }, [])
 
   useEffect(() => {
-    if (!map.current || recommendations.length === 0) return
+    if (!mapLoaded || recommendations.length === 0) return
     import('mapbox-gl').then(mapboxgl => {
       mapboxgl = mapboxgl.default || mapboxgl
       markersRef.current.forEach(m => m.remove())
@@ -252,7 +257,7 @@ export default function InfluencerProfile() {
 
       <div className="tabs">
         {[{ id: 'map', label: 'Map View' }, { id: 'list', label: 'All Stays' }].map(tab => (
-          <button key={tab.id} className={`tab-btn${activeTab === tab.id ? ' active' : ''}`} onClick={() => setActiveTab(tab.id)}>
+          <button key={tab.id} className={`tab-btn${activeTab === tab.id ? ' active' : ''}`} onClick={() => { setActiveTab(tab.id); if (tab.id === 'map' && map.current) setTimeout(() => map.current.resize(), 50) }}>
             {tab.label}
           </button>
         ))}

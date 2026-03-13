@@ -142,16 +142,16 @@ export default function InfluencerProfile() {
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'DM Sans', sans-serif; background: #f7f5f2; }
 
-        .profile-hero { padding: 56px 56px 20px; border-bottom: 1px solid rgba(26,107,122,0.1); display: flex; align-items: flex-end; gap: 40px; }
-        .avatar { width: 96px; height: 96px; border-radius: 50%; border: 3px solid #1a6b7a; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 36px; background: rgba(26,107,122,0.08); }
+        .profile-hero { padding: 56px 56px 16px; border-bottom: 1px solid rgba(26,107,122,0.1); display: flex; align-items: center; gap: 24px; }
+        .avatar { width: 64px; height: 64px; border-radius: 50%; border: 2px solid #1a6b7a; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 24px; background: rgba(26,107,122,0.08); }
         .avatar img { width: 100%; height: 100%; object-fit: cover; }
         .profile-info { flex: 1; }
-        .profile-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #b5654a; font-style: italic; margin-bottom: 8px; }
-        .profile-name { font-family: 'Playfair Display', serif; font-size: clamp(28px, 4vw, 48px); font-weight: 700; color: #1a6b7a; line-height: 1.05; margin-bottom: 10px; }
-        .profile-bio { font-size: 14px; color: rgba(26,107,122,0.6); line-height: 1.8; max-width: 480px; margin-bottom: 20px; }
+        .profile-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #b5654a; font-style: italic; margin-bottom: 4px; }
+        .profile-name { font-family: 'Playfair Display', serif; font-size: clamp(20px, 3vw, 32px); font-weight: 700; color: #1a6b7a; line-height: 1.05; margin-bottom: 6px; }
+        .profile-bio { font-size: 12px; color: rgba(26,107,122,0.6); line-height: 1.6; max-width: 480px; margin-bottom: 12px; }
         .profile-stats { display: flex; gap: 32px; }
-        .stat-num { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: #1a6b7a; line-height: 1; }
-        .stat-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: rgba(26,107,122,0.5); margin-top: 3px; font-weight: 600; }
+        .stat-num { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #1a6b7a; line-height: 1; }
+        .stat-label { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: rgba(26,107,122,0.5); margin-top: 2px; font-weight: 600; }
         .profile-socials { display: flex; gap: 10px; flex-shrink: 0; align-self: flex-start; margin-top: 8px; }
         .social-btn { padding: 9px 18px; border-radius: 100px; font-size: 12px; font-weight: 600; color: #1a6b7a; text-decoration: none; border: 1px solid rgba(26,107,122,0.25); transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
         .social-btn:hover { background: rgba(26,107,122,0.06); }

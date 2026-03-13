@@ -13,11 +13,11 @@ export default function Nav() {
           box-shadow: 0 2px 24px rgba(0,0,0,0.2);
         }
         .gtn-logo {
-          font-family: 'Playfair Display', serif;
-          font-size: 24px; font-weight: 700;
+          font-family: 'DM Sans', sans-serif;
+          font-size: 20px; font-weight: 700;
           color: white; text-decoration: none; letter-spacing: -0.5px;
         }
-        .gtn-logo em { font-style: normal; font-weight: 700; color: rgba(255,255,255,0.7); }
+        .gtn-logo em { font-style: normal; font-weight: 700; color: rgba(255,255,255,0.6); }
         .gtn-nav-right { display: flex; align-items: center; gap: 40px; }
         .gtn-nav-link {
           font-size: 13px; color: rgba(255,255,255,0.7);

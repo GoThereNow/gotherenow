@@ -59,14 +59,14 @@ export default function InfluencerProfile() {
         map.current = new mapboxgl.Map({
           container: mapContainer.current,
           style: 'mapbox://styles/mapbox/light-v11',
-          center: [0, 15],
-          zoom: 0.9,
+          center: [0, 10],
+          zoom: 1.1,
         projection: 'mercator',
         renderWorldCopies: false,
           attributionControl: false,
         })
 
-        map.current.setMinZoom(0.9)
+        map.current.setMinZoom(1.1)
         map.current.setMaxBounds([[-200, -85], [200, 85]])
         map.current.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right')
 
@@ -161,7 +161,7 @@ export default function InfluencerProfile() {
         .tab-btn.active { color: #1a6b7a; border-bottom-color: #1a6b7a; }
 
         .content { padding: 48px 56px; }
-        .map-container { border-radius: 16px; overflow: hidden; border: 1px solid rgba(26,107,122,0.15); height: 460px; margin-bottom: 48px; box-shadow: 0 4px 20px rgba(26,107,122,0.1); }
+        .map-container { border-radius: 16px; overflow: hidden; border: 1px solid rgba(26,107,122,0.15); height: 520px; margin-bottom: 48px; box-shadow: 0 4px 20px rgba(26,107,122,0.1); }
 
         .section-eyebrow { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #b5654a; font-style: italic; font-weight: 600; margin-bottom: 6px; }
         .section-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: #1a6b7a; margin-bottom: 24px; text-transform: uppercase; letter-spacing: 1px; }

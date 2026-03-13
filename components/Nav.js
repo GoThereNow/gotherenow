@@ -17,7 +17,7 @@ export default function Nav() {
           font-size: 24px; font-weight: 700;
           color: white; text-decoration: none; letter-spacing: -0.5px;
         }
-        .gtn-logo em { font-style: italic; font-weight: 300; color: rgba(255,255,255,0.7); }
+        .gtn-logo em { font-style: normal; font-weight: 700; color: rgba(255,255,255,0.7); }
         .gtn-nav-right { display: flex; align-items: center; gap: 40px; }
         .gtn-nav-link {
           font-size: 13px; color: rgba(255,255,255,0.7);

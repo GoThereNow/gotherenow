@@ -17,7 +17,7 @@ export default function Nav() {
           font-size: 20px; font-weight: 700;
           color: white; text-decoration: none; letter-spacing: -0.5px;
         }
-        .gtn-logo em { font-style: normal; font-weight: 700; color: rgba(255,255,255,0.6); }
+        .gtn-logo em { font-style: normal; font-weight: 700; color: rgba(255,255,255,0.55); }
         .gtn-nav-right { display: flex; align-items: center; gap: 40px; }
         .gtn-nav-link {
           font-size: 13px; color: rgba(255,255,255,0.7);
@@ -40,7 +40,7 @@ export default function Nav() {
       `}</style>
 
       <nav className="gtn-nav">
-        <Link href="/" className="gtn-logo">GoThereNow</Link>
+        <Link href="/" className="gtn-logo">Go<em>There</em>Now</Link>
         <div className="gtn-nav-right">
           <Link href="/#stays" className="gtn-nav-link">Discover</Link>
           <Link href="/signup?role=influencer" className="gtn-nav-link">For creators</Link>

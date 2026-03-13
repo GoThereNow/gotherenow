@@ -251,12 +251,13 @@ export default function InfluencerProfile() {
             </a>
           )}
           <div className="profile-socials">
-          {influencer.instagram_url && (
-            <a href={influencer.instagram_url} target="_blank" rel="noopener noreferrer" className="social-btn">📸 Instagram</a>
-          )}
-          {influencer.tiktok_url && (
-            <a href={influencer.tiktok_url} target="_blank" rel="noopener noreferrer" className="social-btn">🎵 TikTok</a>
-          )}
+            {influencer.instagram_url && (
+              <a href={influencer.instagram_url} target="_blank" rel="noopener noreferrer" className="social-btn">📸 Instagram</a>
+            )}
+            {influencer.tiktok_url && (
+              <a href={influencer.tiktok_url} target="_blank" rel="noopener noreferrer" className="social-btn">🎵 TikTok</a>
+            )}
+          </div>
         </div>
       </div>
 

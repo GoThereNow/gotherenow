@@ -143,7 +143,7 @@ export default function Dashboard() {
   if (loading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#f7f5f2' }}>
       <div style={{ textAlign: 'center' }}>
-        <div style={{ fontFamily: 'Playfair Display,serif', fontSize: '24px', color: '#1a6b7a', marginBottom: '8px' }}>Go<em>There</em>Now</div>
+        <div style={{ fontFamily: 'Playfair Display,serif', fontSize: '24px', color: '#1a6b7a', marginBottom: '8px' }}>GoThereNow</div>
         <div style={{ fontSize: '13px', color: 'rgba(26,107,122,0.4)', letterSpacing: '2px', textTransform: 'uppercase' }}>Loading...</div>
       </div>
     </div>
@@ -169,7 +169,7 @@ export default function Dashboard() {
         .dash-top { padding: 100px 0 40px; }
         .dash-topbar { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 20px; }
         .dash-greeting { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 700; color: #1a6b7a; margin-bottom: 10px; }
-        .dash-greeting-sub { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 400; font-style: italic; color: #b5654a; margin-bottom: 10px; display: block; }
+        .dash-greeting-sub { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 400; color: #b5654a; margin-bottom: 10px; display: block; }
         .link-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
         .link-label { font-size: 13px; color: rgba(26,107,122,0.45); }
         .link-url { font-size: 13px; color: #1a6b7a; font-weight: 500; }
@@ -194,7 +194,7 @@ export default function Dashboard() {
         .stat-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #1a6b7a; font-weight: 600; }
 
         /* STAYS SECTION */
-        .section-label { font-family: 'Playfair Display', serif; font-size: 14px; font-style: italic; color: #b5654a; margin-bottom: 4px; display: block; }
+        .section-label { font-family: 'Playfair Display', serif; font-size: 14px; color: #b5654a; margin-bottom: 4px; display: block; }
         .section-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: #1a6b7a; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
 
         .empty-state { text-align: center; padding: 60px 0; border: 1px dashed rgba(26,107,122,0.2); border-radius: 16px; }
@@ -222,7 +222,7 @@ export default function Dashboard() {
         .modal-header { padding: 20px 28px 14px; position: sticky; top: 0; background: #f7f5f2; z-index: 1; border-bottom: 1px solid rgba(26,107,122,0.1); border-radius: 20px 20px 0 0; }
         .modal-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #b5654a; margin-bottom: 6px; }
         .modal-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: #1a6b7a; }
-        .modal-title em { font-style: italic; }
+        .modal-title em { }
         .modal-close { position: absolute; top: 18px; right: 20px; width: 32px; height: 32px; background: rgba(26,107,122,0.08); border: none; cursor: pointer; color: #1a6b7a; font-size: 14px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
         .modal-body { padding: 16px 28px 24px; display: flex; flex-direction: column; gap: 10px; }
 
@@ -371,7 +371,7 @@ export default function Dashboard() {
           <div className="modal">
             <div className="modal-header">
               <div className="modal-eyebrow">New recommendation</div>
-              <h2 className="modal-title">Add a <em>stay</em></h2>
+              <h2 className="modal-title">Add a stay</h2>
               <button className="modal-close" onClick={() => setShowAddModal(false)}>✕</button>
             </div>
             <form onSubmit={handleAddRecommendation} className="modal-body">

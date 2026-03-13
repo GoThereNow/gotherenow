@@ -146,7 +146,7 @@ export default function InfluencerProfile() {
         .avatar { width: 64px; height: 64px; border-radius: 50%; border: 2px solid #1a6b7a; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 24px; background: rgba(26,107,122,0.08); }
         .avatar img { width: 100%; height: 100%; object-fit: cover; }
         .profile-info { flex: 1; }
-        .profile-eyebrow { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #b5654a; font-style: italic; font-weight: 700; margin-bottom: 6px; display: block; }
+        .profile-eyebrow { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #b5654a; font-weight: 700; margin-bottom: 6px; display: block; }
         .profile-name { font-family: 'Playfair Display', serif; font-size: clamp(20px, 3vw, 32px); font-weight: 700; color: #1a6b7a; line-height: 1.05; margin-bottom: 6px; }
         .profile-bio { font-size: 12px; color: rgba(26,107,122,0.6); line-height: 1.6; max-width: 480px; margin-bottom: 12px; }
         .profile-stats { display: flex; gap: 32px; }
@@ -163,9 +163,9 @@ export default function InfluencerProfile() {
         .content { padding: 24px 56px; }
         .map-container { border-radius: 16px; overflow: hidden; border: 1px solid rgba(26,107,122,0.15); width: 100%; aspect-ratio: 2/1.4; box-shadow: 0 4px 20px rgba(26,107,122,0.1); }
 
-        .section-eyebrow { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #b5654a; font-style: italic; font-weight: 600; margin-bottom: 6px; }
+        .section-eyebrow { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #b5654a; font-weight: 600; margin-bottom: 6px; }
         .section-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: #1a6b7a; margin-bottom: 24px; text-transform: uppercase; letter-spacing: 1px; }
-        .section-title em { font-style: italic; text-transform: none; font-weight: 300; }
+        .section-title em { text-transform: none; font-weight: 300; }
 
         .hotels-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
         .hotel-card { position: relative; overflow: hidden; cursor: pointer; border-radius: 16px; aspect-ratio: 4/3; transition: transform 0.3s; box-shadow: 0 4px 20px rgba(26,107,122,0.1); background: white; }
@@ -186,9 +186,9 @@ export default function InfluencerProfile() {
         .modal-overlay { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); }
         .modal { background: #f7f5f2; border: 1px solid rgba(26,107,122,0.15); width: 100%; max-width: 440px; padding: 40px; position: relative; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
         .modal-close { position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; background: rgba(26,107,122,0.08); border: none; cursor: pointer; color: #1a6b7a; font-size: 14px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
-        .modal-loc { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #b5654a; font-style: italic; font-weight: 600; margin-bottom: 8px; }
+        .modal-loc { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #b5654a; font-weight: 600; margin-bottom: 8px; }
         .modal-name { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: #1a6b7a; margin-bottom: 20px; }
-        .modal-quote { font-size: 14px; color: rgba(26,107,122,0.6); font-style: italic; line-height: 1.8; padding-left: 16px; border-left: 2px solid rgba(26,107,122,0.2); margin-bottom: 28px; }
+        .modal-quote { font-size: 14px; color: rgba(26,107,122,0.6); line-height: 1.8; padding-left: 16px; border-left: 2px solid rgba(26,107,122,0.2); margin-bottom: 28px; }
         .modal-book-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: rgba(26,107,122,0.45); font-weight: 700; margin-bottom: 12px; }
         .modal-links { display: flex; flex-direction: column; gap: 8px; }
         .modal-link { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border: 1px solid rgba(26,107,122,0.15); text-decoration: none; color: #1a6b7a; transition: all 0.2s; border-radius: 10px; background: white; }
@@ -199,7 +199,7 @@ export default function InfluencerProfile() {
 
         .footer { text-align: center; padding: 40px 56px; border-top: 1px solid rgba(26,107,122,0.1); }
         .footer-logo { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #1a6b7a; text-decoration: none; display: block; margin-bottom: 8px; }
-        .footer-logo em { font-style: italic; font-weight: 300; color: #b5654a; }
+        .footer-logo em { font-weight: 300; color: #b5654a; }
         .footer-text { font-size: 12px; color: rgba(26,107,122,0.35); }
 
         @media (max-width: 768px) {
@@ -272,7 +272,7 @@ export default function InfluencerProfile() {
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="section-eyebrow">recent stays</div>
-            <h2 className="section-title" style={{ fontSize: '20px', marginBottom: '16px' }}>{profile?.full_name?.split(' ')[0]}'s <em>stays</em></h2>
+            <h2 className="section-title" style={{ fontSize: '20px', marginBottom: '16px' }}>{profile?.full_name?.split(' ')[0]}'s stays</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {recommendations.slice(0, 5).map((rec, i) => (
                 <div key={rec.id} onClick={() => openBookingModal(rec)} style={{ background: 'white', borderRadius: '12px', padding: '14px 16px', cursor: 'pointer', border: '1px solid rgba(26,107,122,0.1)', boxShadow: '0 2px 8px rgba(26,107,122,0.06)', transition: 'all 0.2s' }}
@@ -292,7 +292,7 @@ export default function InfluencerProfile() {
         {activeTab === 'list' && (
           <div>
             <div className="section-eyebrow">all stays</div>
-            <h2 className="section-title">{recommendations.length} personal <em>recommendations</em></h2>
+            <h2 className="section-title">{recommendations.length} personal recommendations</h2>
             {recommendations.length === 0 ? (
               <div style={{ textAlign:'center', padding:'80px 0', color:'rgba(26,107,122,0.3)', fontSize:'14px' }}>No recommendations yet.</div>
             ) : (
@@ -339,7 +339,7 @@ export default function InfluencerProfile() {
       )}
 
       <footer className="footer">
-        <Link href="/" className="footer-logo">Go<em>There</em>Now</Link>
+        <Link href="/" className="footer-logo">GoThereNow</Link>
         <div className="footer-text">Travel the world through creators you trust.</div>
       </footer>
 

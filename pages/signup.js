@@ -70,7 +70,7 @@ export default function Signup() {
         .input::placeholder { color: rgba(255,255,255,0.25); }
         .input:focus { border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.12); }
         .field-hint { font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 2px; }
-        .btn { background: #b5654a; color: white; padding: 14px; font-size: 14px; font-weight: 700; font-family: 'Playfair Display', serif; border: none; cursor: pointer; transition: all 0.2s; margin-top: 4px; width: 100%; }
+        .btn { background: white; color: #1a6b7a; padding: 14px; font-size: 14px; font-weight: 700; font-family: 'Playfair Display', serif; border: none; cursor: pointer; transition: all 0.2s; margin-top: 4px; width: 100%; }
         .btn:hover { background: #a05540; }
         .btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .divider { display: flex; align-items: center; gap: 16px; margin: 20px 0; }

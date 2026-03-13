@@ -175,7 +175,7 @@ export default function Dashboard() {
         .link-url { font-size: 13px; color: #1a6b7a; font-weight: 500; }
         .copy-btn { padding: 6px 16px; background: rgba(26,107,122,0.08); border: 1px solid rgba(26,107,122,0.2); color: #1a6b7a; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; border-radius: 100px; }
         .copy-btn:hover { background: rgba(26,107,122,0.15); }
-        .add-btn { background: #b5654a; color: white; padding: 13px 28px; font-size: 13px; font-weight: 700; border: none; cursor: pointer; font-family: 'Playfair Display', serif; transition: all 0.2s; white-space: nowrap; flex-shrink: 0; border-radius: 100px; }
+        .add-btn { background: #b5654a; color: white; padding: 13px 28px; font-size: 13px; font-weight: 700; border: none; cursor: pointer; font-family: 'Playfair Display', serif; transition: all 0.2s; white-space: nowrap; flex-shrink: 0; border-radius: 100px; display: inline-block; width: auto; }
         .add-btn:hover { background: #a05540; }
         .sign-out-btn { background: none; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 12px; color: rgba(26,107,122,0.35); padding: 0; transition: color 0.2s; display: block; margin-top: 6px; }
         .sign-out-btn:hover { color: rgba(0,86,99,0.7); }
@@ -336,7 +336,7 @@ export default function Dashboard() {
               <div className="empty-icon">🗺️</div>
               <div className="empty-title">No stays yet</div>
               <div className="empty-sub">Add your first hotel recommendation and share it with your followers.</div>
-              <button className="add-btn" onClick={() => setShowAddModal(true)}>+ Add your first stay</button>
+              <div style={{display:"flex", justifyContent:"center"}}><button className="add-btn" onClick={() => setShowAddModal(true)}>+ Add your first stay</button></div>
             </div>
           ) : (
             <div>

@@ -153,6 +153,7 @@ export default function InfluencerProfile() {
         <title>{profile?.full_name || influencer.handle} — GoThereNow</title>
         <meta name="description" content={`Travel recommendations by ${profile?.full_name || influencer.handle}.`} />
         <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;0,700;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+        <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
       </Head>
 
       <style>{`

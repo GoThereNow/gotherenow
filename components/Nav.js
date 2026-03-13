@@ -40,7 +40,7 @@ export default function Nav() {
       `}</style>
 
       <nav className="gtn-nav">
-        <Link href="/" className="gtn-logo">Go<em>There</em>Now</Link>
+        <Link href="/" className="gtn-logo">GoThereNow</Link>
         <div className="gtn-nav-right">
           <Link href="/#stays" className="gtn-nav-link">Discover</Link>
           <Link href="/signup?role=influencer" className="gtn-nav-link">For creators</Link>

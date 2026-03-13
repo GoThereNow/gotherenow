@@ -69,6 +69,7 @@ export default function InfluencerProfile() {
         map.current.setMinZoom(0.65)
         map.current.setMaxBounds([[-200, -85], [200, 85]])
         map.current.dragPan.disable()
+        map.current.scrollZoom.disable()
         map.current.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right')
 
         map.current.on('load', () => {

@@ -419,9 +419,18 @@ export default function Dashboard() {
             ))}
           </div>
 
-          {/* MAP + STAYS SIDE BY SIDE */}
+          {/* MAP */}
+          {recommendations.length > 0 && (
+            <div style={{marginBottom:'24px'}}>
+              <span className="section-label">your</span>
+              <div className="section-title" style={{marginBottom:'12px'}}>Map</div>
+              <div className="dash-map-container" ref={mapContainer} />
+            </div>
+          )}
+
+          {/* STAYS LIST */}
           <span className="section-label">your</span>
-          <div className="section-title" style={{marginBottom:'16px'}}>Stays</div>
+          <div className="section-title">Stays</div>
 
           {recommendations.length === 0 ? (
             <div className="empty-state">
@@ -431,13 +440,7 @@ export default function Dashboard() {
               <div style={{display:"flex", justifyContent:"center"}}><button className="add-btn" onClick={() => setShowAddModal(true)}>+ Add your first stay</button></div>
             </div>
           ) : (
-            <div style={{display:'flex', gap:'24px', alignItems:'flex-start'}}>
-              {/* MAP LEFT */}
-              <div style={{width:'52%', flexShrink:0}}>
-                <div className="dash-map-container" ref={mapContainer} />
-              </div>
-              {/* STAYS LIST RIGHT */}
-              <div style={{flex:1, minWidth:0, display:'flex', flexDirection:'column', gap:'10px', maxHeight:'400px', overflowY:'auto'}}>
+            <div style={{display:'flex', flexDirection:'column', gap:'10px'}}>
                 {recommendations.map((rec) => (
                   <div className="stay-row" key={rec.id}>
                     <div className="stay-thumb">
@@ -458,7 +461,6 @@ export default function Dashboard() {
                     </div>
                   </div>
                 ))}
-              </div>
             </div>
           )}
 

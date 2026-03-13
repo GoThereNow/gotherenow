@@ -46,8 +46,9 @@ export default function InfluencerProfile() {
   }, [slug])
 
   useEffect(() => {
-    if (!mapContainer.current || map.current) return
-    import('mapbox-gl').then(mapboxgl => {
+    const initMap = () => {
+      if (!mapContainer.current || map.current) return
+      import('mapbox-gl').then(mapboxgl => {
       mapboxgl = mapboxgl.default || mapboxgl
       mapboxgl.accessToken = 'pk.eyJ1IjoiZ290aGVyZW5vdyIsImEiOiJjbWxmYXJpYm0wMzByM2lwcGpzNjl4Ymx5In0.lipvyNXWoQmIDCah_0Ss_w'
       map.current = new mapboxgl.Map({
@@ -63,6 +64,8 @@ export default function InfluencerProfile() {
         map.current.resize()
       })
     })
+    }
+    setTimeout(initMap, 100)
   }, [])
 
   useEffect(() => {
@@ -282,7 +285,7 @@ export default function InfluencerProfile() {
       </div>
 
       <div className="content">
-        {activeTab === 'map' && (
+        <div style={{display: activeTab === 'map' ? 'block' : 'none'}}>
           <div>
             <div className="map-container" ref={mapContainer} />
             {recommendations.length > 0 && (
@@ -300,6 +303,7 @@ export default function InfluencerProfile() {
           </div>
         )}
 
+        </div>
         {activeTab === 'list' && (
           <div>
             <div className="section-eyebrow">All stays</div>

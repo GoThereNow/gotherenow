@@ -22,6 +22,7 @@ export default function InfluencerProfile() {
   const [showModal, setShowModal] = useState(false)
   const [selectedHotel, setSelectedHotel] = useState(null)
   const [activeTab, setActiveTab] = useState('map')
+  const [isOwner, setIsOwner] = useState(false)
 
   // Fetch data
   useEffect(() => {
@@ -41,6 +42,9 @@ export default function InfluencerProfile() {
         .order('created_at', { ascending: false })
       setRecommendations(recs || [])
       setLoading(false)
+      // Check if viewer is the owner
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session && inf && session.user.id === inf.user_id) setIsOwner(true)
     }
     fetchData()
   }, [slug])
@@ -240,7 +244,13 @@ export default function InfluencerProfile() {
             )}
           </div>
         </div>
-        <div className="profile-socials">
+        <div style={{display:'flex', flexDirection:'column', alignItems:'flex-end', gap:'10px'}}>
+          {isOwner && (
+            <a href="/dashboard" style={{background:'#b5654a', color:'white', padding:'9px 20px', borderRadius:'100px', fontSize:'12px', fontWeight:700, textDecoration:'none', fontFamily:"'DM Sans',sans-serif"}}>
+              + Add a Stay
+            </a>
+          )}
+          <div className="profile-socials">
           {influencer.instagram_url && (
             <a href={influencer.instagram_url} target="_blank" rel="noopener noreferrer" className="social-btn">📸 Instagram</a>
           )}

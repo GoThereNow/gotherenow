@@ -142,7 +142,7 @@ export default function InfluencerProfile() {
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'DM Sans', sans-serif; background: #f7f5f2; }
 
-        .profile-hero { padding: 72px 56px 24px; border-bottom: 1px solid rgba(26,107,122,0.1); display: flex; align-items: flex-end; gap: 40px; }
+        .profile-hero { padding: 56px 56px 20px; border-bottom: 1px solid rgba(26,107,122,0.1); display: flex; align-items: flex-end; gap: 40px; }
         .avatar { width: 96px; height: 96px; border-radius: 50%; border: 3px solid #1a6b7a; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 36px; background: rgba(26,107,122,0.08); }
         .avatar img { width: 100%; height: 100%; object-fit: cover; }
         .profile-info { flex: 1; }

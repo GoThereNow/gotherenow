@@ -526,6 +526,44 @@ export default function Dashboard() {
       )}
 
       {/* DELETE CONFIRM */}
+
+      {editRec && (
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) { setEditRec(null); setForm({ hotel_name: '', city: '', country: '', latitude: '', longitude: '', influencer_quote: '', personal_rating: '5', photo_url: '' }) } }}>
+          <div className="modal">
+            <div className="modal-header">
+              <div className="modal-eyebrow">Edit recommendation</div>
+              <h2 className="modal-title">Edit stay</h2>
+              <button className="modal-close" onClick={() => { setEditRec(null); setForm({ hotel_name: '', city: '', country: '', latitude: '', longitude: '', influencer_quote: '', personal_rating: '5', photo_url: '' }) }}>✕</button>
+            </div>
+            <form onSubmit={handleEditSave} className="modal-body">
+              <div>
+                <label className="field-label">Hotel name *</label>
+                <input type="text" required value={form.hotel_name} onChange={e => setForm({...form, hotel_name: e.target.value})} className="field-input" />
+              </div>
+              <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px'}}>
+                <div><label className="field-label">City</label><input type="text" value={form.city} onChange={e => setForm({...form, city: e.target.value})} className="field-input" /></div>
+                <div><label className="field-label">Country *</label><input type="text" required value={form.country} onChange={e => setForm({...form, country: e.target.value})} className="field-input" /></div>
+              </div>
+              <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px'}}>
+                <div><label className="field-label">Latitude</label><input type="text" value={form.latitude} onChange={e => setForm({...form, latitude: e.target.value})} placeholder="e.g. 35.0116" className="field-input" /></div>
+                <div><label className="field-label">Longitude</label><input type="text" value={form.longitude} onChange={e => setForm({...form, longitude: e.target.value})} placeholder="e.g. 135.768" className="field-input" /></div>
+              </div>
+              <div>
+                <label className="field-label">Your personal quote</label>
+                <textarea value={form.influencer_quote} onChange={e => setForm({...form, influencer_quote: e.target.value})} className="field-input" />
+              </div>
+              <div>
+                <label className="field-label">Photo URL (optional)</label>
+                <input type="url" value={form.photo_url} onChange={e => setForm({...form, photo_url: e.target.value})} className="field-input" />
+              </div>
+              <button type="submit" disabled={saving} style={{background:'#b5654a', color:'white', padding:'13px', width:'100%', border:'none', cursor:'pointer', borderRadius:'100px', fontFamily:"'Playfair Display',serif", fontSize:'14px', fontWeight:700}}>
+                {saving ? 'Saving...' : 'Save changes'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
       {deleteId && (
         <div className="confirm-overlay" onClick={(e) => { if (e.target === e.currentTarget) setDeleteId(null) }}>
           <div className="confirm-box">

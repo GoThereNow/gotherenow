@@ -19,11 +19,15 @@ export default function Dashboard() {
   const [deleteId, setDeleteId] = useState(null)
   const [copied, setCopied] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [mapLoaded, setMapLoaded] = useState(false)
   const [editRec, setEditRec] = useState(null)
   const [suggestions, setSuggestions] = useState([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [searching, setSearching] = useState(false)
   const searchTimeout = useRef(null)
+  const mapContainer = useRef(null)
+  const map = useRef(null)
+  const markersRef = useRef([])
 
   const [form, setForm] = useState({
     hotel_name: '', city: '', country: '',
@@ -53,6 +57,53 @@ export default function Dashboard() {
     }
     load()
   }, [])
+
+  // Init map
+  useEffect(() => {
+    if (loading) return
+    if (map.current) return
+    setTimeout(() => {
+      if (!mapContainer.current) return
+      import('mapbox-gl').then(mod => {
+        const mapboxgl = mod.default || mod
+        mapboxgl.accessToken = 'pk.eyJ1IjoiZ290aGVyZW5vdyIsImEiOiJjbWxmYXJpYm0wMzByM2lwcGpzNjl4Ymx5In0.lipvyNXWoQmIDCah_0Ss_w'
+        map.current = new mapboxgl.Map({
+          container: mapContainer.current,
+          style: 'mapbox://styles/mapbox/light-v11',
+          center: [15, 20],
+          zoom: 0.65,
+          projection: 'mercator',
+          renderWorldCopies: false,
+          attributionControl: false,
+          cooperativeGestures: true,
+        })
+        map.current.setMinZoom(0.65)
+        map.current.setMaxBounds([[-200, -85], [200, 85]])
+        map.current.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right')
+        map.current.on('load', () => {
+          map.current.resize()
+          setMapLoaded(true)
+        })
+      })
+    }, 200)
+  }, [loading])
+
+  // Add markers when map loads
+  useEffect(() => {
+    if (!mapLoaded || recommendations.length === 0) return
+    import('mapbox-gl').then(mod => {
+      const mapboxgl = mod.default || mod
+      markersRef.current.forEach(m => m.remove())
+      markersRef.current = []
+      recommendations.forEach(rec => {
+        if (!rec.latitude || !rec.longitude) return
+        const el = document.createElement('div')
+        el.style.cssText = 'width:24px;height:24px;background:#1a6b7a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);'
+        const marker = new mapboxgl.Marker(el).setLngLat([rec.longitude, rec.latitude]).addTo(map.current)
+        markersRef.current.push(marker)
+      })
+    })
+  }, [mapLoaded, recommendations])
 
   const handleHotelNameChange = (value) => {
     setForm(prev => ({ ...prev, hotel_name: value }))
@@ -194,6 +245,7 @@ export default function Dashboard() {
     <div style={{ background: '#f7f5f2', minHeight: '100vh', fontFamily: 'DM Sans, sans-serif' }}>
       <Head>
         <title>Dashboard — GoThereNow</title>
+        <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;0,700;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
       </Head>
 
@@ -306,6 +358,7 @@ export default function Dashboard() {
         .confirm-cancel { flex: 1; padding: 13px; background: white; border: 1px solid rgba(26,107,122,0.2); color: #1a6b7a; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; border-radius: 8px; }
         .confirm-delete { flex: 1; padding: 13px; background: rgba(220,50,50,0.08); border: 1px solid rgba(220,50,50,0.2); color: rgb(180,40,40); font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; border-radius: 8px; }
 
+        .dash-map-container { border-radius: 16px; overflow: hidden; border: 1px solid rgba(26,107,122,0.15); aspect-ratio: 2/1.4; box-shadow: 0 4px 20px rgba(26,107,122,0.1); margin-bottom: 24px; }
         @media (max-width: 600px) {
           .dash-topbar { flex-direction: column; }
           .stats-row { grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -365,6 +418,15 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
+
+          {/* MAP */}
+          {recommendations.length > 0 && (
+            <div style={{marginBottom:'8px'}}>
+              <span className="section-label">your</span>
+              <div className="section-title" style={{marginBottom:'12px'}}>Map</div>
+              <div className="dash-map-container" ref={mapContainer} />
+            </div>
+          )}
 
           {/* STAYS LIST */}
           <span className="section-label">your</span>

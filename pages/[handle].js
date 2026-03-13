@@ -161,7 +161,7 @@ export default function InfluencerProfile() {
         .tab-btn.active { color: #1a6b7a; border-bottom-color: #1a6b7a; }
 
         .content { padding: 48px 56px; }
-        .map-container { border-radius: 16px; overflow: hidden; border: 1px solid rgba(26,107,122,0.15); width: 100%; aspect-ratio: 2/1.4; margin-bottom: 48px; box-shadow: 0 4px 20px rgba(26,107,122,0.1); }
+        .map-container { border-radius: 16px; overflow: hidden; border: 1px solid rgba(26,107,122,0.15); width: 100%; aspect-ratio: 2/1.4; box-shadow: 0 4px 20px rgba(26,107,122,0.1); }
 
         .section-eyebrow { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #b5654a; font-style: italic; font-weight: 600; margin-bottom: 6px; }
         .section-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: #1a6b7a; margin-bottom: 24px; text-transform: uppercase; letter-spacing: 1px; }
@@ -266,19 +266,26 @@ export default function InfluencerProfile() {
       <div className="content">
 
         {/* MAP — always in DOM so map doesn't get destroyed */}
-        <div style={{ display: activeTab === 'map' ? 'block' : 'none' }}>
-          <div className="map-container" ref={mapContainer} />
-          {recommendations.length > 0 && (
-            <div>
-              <div className="section-eyebrow">recent stays</div>
-              <h2 className="section-title">{profile?.full_name?.split(' ')[0]}'s <em>recommendations</em></h2>
-              <div className="hotels-grid">
-                {recommendations.slice(0, 4).map((rec, i) => (
-                  <HotelCard key={rec.id} rec={rec} index={i} onBook={() => openBookingModal(rec)} />
-                ))}
-              </div>
+        <div style={{ display: activeTab === 'map' ? 'flex' : 'none', gap: '32px', alignItems: 'flex-start' }}>
+          <div style={{ width: '55%', flexShrink: 0 }}>
+            <div className="map-container" ref={mapContainer} />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="section-eyebrow">recent stays</div>
+            <h2 className="section-title" style={{ fontSize: '20px', marginBottom: '16px' }}>{profile?.full_name?.split(' ')[0]}'s <em>stays</em></h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {recommendations.slice(0, 5).map((rec, i) => (
+                <div key={rec.id} onClick={() => openBookingModal(rec)} style={{ background: 'white', borderRadius: '12px', padding: '14px 16px', cursor: 'pointer', border: '1px solid rgba(26,107,122,0.1)', boxShadow: '0 2px 8px rgba(26,107,122,0.06)', transition: 'all 0.2s' }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(26,107,122,0.3)'}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(26,107,122,0.1)'}
+                >
+                  <div style={{ fontSize: '9px', letterSpacing: '2px', textTransform: 'uppercase', color: '#b5654a', marginBottom: '4px' }}>📍 {[rec.city, rec.country].filter(Boolean).join(', ')}</div>
+                  <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '15px', fontWeight: 600, color: '#1a6b7a', marginBottom: '6px' }}>{rec.hotel_name}</div>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#b5654a' }}>Book Now →</div>
+                </div>
+              ))}
             </div>
-          )}
+          </div>
         </div>
 
         {/* LIST */}

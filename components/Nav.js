@@ -13,8 +13,8 @@ export default function Nav() {
           box-shadow: 0 2px 24px rgba(0,0,0,0.2);
         }
         .gtn-logo {
-          font-family: 'DM Sans', sans-serif;
-          font-size: 20px; font-weight: 700;
+          font-family: 'Playfair Display', serif;
+          font-size: 22px; font-weight: 700;
           color: white; text-decoration: none; letter-spacing: -0.5px;
         }
         .gtn-logo em { font-style: normal; font-weight: 700; color: rgba(255,255,255,0.55); }

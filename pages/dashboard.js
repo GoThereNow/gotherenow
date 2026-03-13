@@ -289,7 +289,7 @@ export default function Dashboard() {
         .empty-state { text-align: center; padding: 60px 0; border: 1px dashed rgba(26,107,122,0.2); border-radius: 16px; }
         .empty-icon { font-size: 40px; margin-bottom: 14px; }
         .empty-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 300; color: #1a6b7a; margin-bottom: 6px; }
-        .empty-sub { font-size: 13px; color: rgba(26,107,122,0.4); margin-bottom: 24px; }
+        .empty-sub { font-size: 13px; color: rgba(26,107,122,0.4); }
 
         /* STAY ROW */
         .stay-row { display: flex; align-items: center; gap: 16px; padding: 16px 18px; background: white; border: 1px solid rgba(26,107,122,0.1); margin-bottom: 8px; transition: all 0.2s; border-radius: 14px; box-shadow: 0 2px 8px rgba(26,107,122,0.05); }
@@ -358,7 +358,7 @@ export default function Dashboard() {
         .confirm-cancel { flex: 1; padding: 13px; background: white; border: 1px solid rgba(26,107,122,0.2); color: #1a6b7a; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; border-radius: 8px; }
         .confirm-delete { flex: 1; padding: 13px; background: rgba(220,50,50,0.08); border: 1px solid rgba(220,50,50,0.2); color: rgb(180,40,40); font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; border-radius: 8px; }
 
-        .dash-map-container { border-radius: 16px; overflow: hidden; border: 1px solid rgba(26,107,122,0.15); aspect-ratio: 2/1.4; box-shadow: 0 4px 20px rgba(26,107,122,0.1); margin-bottom: 24px; }
+        .dash-map-container { border-radius: 16px; overflow: hidden; border: 1px solid rgba(26,107,122,0.15); aspect-ratio: 2/1.4; box-shadow: 0 4px 20px rgba(26,107,122,0.1); }
         @media (max-width: 600px) {
           .dash-topbar { flex-direction: column; }
           .stats-row { grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -419,18 +419,9 @@ export default function Dashboard() {
             ))}
           </div>
 
-          {/* MAP */}
-          {recommendations.length > 0 && (
-            <div style={{marginBottom:'8px'}}>
-              <span className="section-label">your</span>
-              <div className="section-title" style={{marginBottom:'12px'}}>Map</div>
-              <div className="dash-map-container" ref={mapContainer} />
-            </div>
-          )}
-
-          {/* STAYS LIST */}
+          {/* MAP + STAYS SIDE BY SIDE */}
           <span className="section-label">your</span>
-          <div className="section-title">Stays</div>
+          <div className="section-title" style={{marginBottom:'16px'}}>Stays</div>
 
           {recommendations.length === 0 ? (
             <div className="empty-state">
@@ -440,27 +431,34 @@ export default function Dashboard() {
               <div style={{display:"flex", justifyContent:"center"}}><button className="add-btn" onClick={() => setShowAddModal(true)}>+ Add your first stay</button></div>
             </div>
           ) : (
-            <div>
-              {recommendations.map((rec) => (
-                <div className="stay-row" key={rec.id}>
-                  <div className="stay-thumb">
-                    {rec.photo_url
-                      ? <img src={rec.photo_url} alt={rec.hotel_name} />
-                      : '🏨'}
+            <div style={{display:'flex', gap:'24px', alignItems:'flex-start'}}>
+              {/* MAP LEFT */}
+              <div style={{width:'52%', flexShrink:0}}>
+                <div className="dash-map-container" ref={mapContainer} />
+              </div>
+              {/* STAYS LIST RIGHT */}
+              <div style={{flex:1, minWidth:0, display:'flex', flexDirection:'column', gap:'10px', maxHeight:'400px', overflowY:'auto'}}>
+                {recommendations.map((rec) => (
+                  <div className="stay-row" key={rec.id}>
+                    <div className="stay-thumb">
+                      {rec.photo_url
+                        ? <img src={rec.photo_url} alt={rec.hotel_name} />
+                        : '🏨'}
+                    </div>
+                    <div className="stay-info">
+                      <div className="stay-name">{rec.hotel_name}</div>
+                      <div className="stay-loc">{[rec.city, rec.country].filter(Boolean).join(', ')}</div>
+                    </div>
+                    <div className="stay-actions">
+                      {rec.booking_links?.length > 0
+                        ? <span className="live-badge">Live</span>
+                        : <span className="pending-badge">Pending links</span>}
+                      <button className="edit-btn" onClick={() => openEdit(rec)}>Edit</button>
+                      <button className="remove-btn" onClick={() => setDeleteId(rec.id)}>Remove</button>
+                    </div>
                   </div>
-                  <div className="stay-info">
-                    <div className="stay-name">{rec.hotel_name}</div>
-                    <div className="stay-loc">{[rec.city, rec.country].filter(Boolean).join(', ')}</div>
-                  </div>
-                  <div className="stay-actions">
-                    {rec.booking_links?.length > 0
-                      ? <span className="live-badge">Live</span>
-                      : <span className="pending-badge">Pending links</span>}
-                    <button className="edit-btn" onClick={() => openEdit(rec)}>Edit</button>
-                    <button className="remove-btn" onClick={() => setDeleteId(rec.id)}>Remove</button>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           )}
 

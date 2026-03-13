@@ -86,7 +86,7 @@ export default function InfluencerProfile() {
             el.addEventListener('click', () => {
               setSelectedHotel(rec)
               setShowModal(true)
-              map.current.flyTo({ center: [rec.longitude, rec.latitude], zoom: 10, duration: 800 })
+              map.current.flyTo({ center: [rec.longitude, rec.latitude], zoom: map.current.getZoom(), duration: 500 })
             })
             new mapboxgl.Marker(el)
               .setLngLat([rec.longitude, rec.latitude])

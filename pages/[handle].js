@@ -366,5 +366,3 @@ function HotelCard({ rec, index, onBook }) {
 export async function getServerSideProps() {
   return { props: {} }
 }
-
-=

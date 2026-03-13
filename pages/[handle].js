@@ -62,6 +62,7 @@ export default function InfluencerProfile() {
           center: [0, 20],
           zoom: 1.2,
         projection: 'mercator',
+        renderWorldCopies: false,
           attributionControl: false,
         })
 
@@ -365,3 +366,5 @@ function HotelCard({ rec, index, onBook }) {
 export async function getServerSideProps() {
   return { props: {} }
 }
+
+=

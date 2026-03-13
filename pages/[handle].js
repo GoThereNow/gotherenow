@@ -301,9 +301,8 @@ export default function InfluencerProfile() {
               </div>
             )}
           </div>
-        )}
-
         </div>
+
         {activeTab === 'list' && (
           <div>
             <div className="section-eyebrow">All stays</div>

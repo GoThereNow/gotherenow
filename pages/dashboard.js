@@ -18,6 +18,7 @@ export default function Dashboard() {
   const [saving, setSaving] = useState(false)
   const [deleteId, setDeleteId] = useState(null)
   const [copied, setCopied] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [suggestions, setSuggestions] = useState([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [searching, setSearching] = useState(false)
@@ -60,7 +61,7 @@ export default function Dashboard() {
     searchTimeout.current = setTimeout(async () => {
       try {
         const query = encodeURIComponent(value)
-        const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${query}.json?access_token=${MAPBOX_TOKEN}&types=poi&limit=6&language=en`
+        const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query + ' hotel')}.json?access_token=${MAPBOX_TOKEN}&types=poi&limit=8&language=en`
         const res = await fetch(url)
         const data = await res.json()
         if (data.features) { setSuggestions(data.features); setShowSuggestions(true) }
@@ -83,6 +84,22 @@ export default function Dashboard() {
     if (!city) { const parts = feature.place_name.split(','); if (parts.length > 1) city = parts[1].trim() }
     setForm(prev => ({ ...prev, hotel_name: name, city, country, latitude: lat.toFixed(6), longitude: lng.toFixed(6) }))
     setSuggestions([]); setShowSuggestions(false)
+  }
+
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    setUploading(true)
+    const ext = file.name.split('.').pop()
+    const filename = `hotel-${Date.now()}.${ext}`
+    const { data, error } = await supabase.storage
+      .from('hotel-photos')
+      .upload(filename, file, { contentType: file.type, upsert: true })
+    if (error) { alert('Upload failed: ' + error.message); setUploading(false); return }
+    const { data: urlData } = supabase.storage.from('hotel-photos').getPublicUrl(filename)
+    setForm(f => ({ ...f, photo_url: urlData.publicUrl }))
+    setUploading(false)
   }
 
   const handleAddRecommendation = async (e) => {
@@ -445,8 +462,15 @@ export default function Dashboard() {
               </div>
 
               <div>
-                <label className="field-label">Photo URL (optional)</label>
-                <input type="url" value={form.photo_url} onChange={e => setForm({ ...form, photo_url: e.target.value })} placeholder="Paste a photo link from Google, hotel website, etc." className="field-input" />
+                <label className="field-label">Photo (optional)</label>
+                <input type="url" value={form.photo_url} onChange={e => setForm({ ...form, photo_url: e.target.value })} placeholder="Paste a photo URL..." className="field-input" style={{marginBottom:'6px'}} />
+                <label style={{display:'flex',alignItems:'center',gap:'8px',cursor:'pointer',fontSize:'12px',color:'#1a6b7a',fontWeight:600}}>
+                  <input type="file" accept="image/*" onChange={handlePhotoUpload} style={{display:'none'}} />
+                  <span style={{padding:'7px 14px',background:'white',border:'1px solid rgba(26,107,122,0.2)',borderRadius:'6px',fontSize:'12px',color:'#1a6b7a',fontWeight:600}}>
+                    {uploading ? '⏳ Uploading...' : '📁 Or upload from device'}
+                  </span>
+                  {form.photo_url && <span style={{fontSize:'11px',color:'rgba(26,107,122,0.5)'}}>✓ Photo set</span>}
+                </label>
               </div>
 
               <div className="tip-box">

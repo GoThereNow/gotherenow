@@ -54,7 +54,7 @@ export default function InfluencerProfile() {
       if (!mapContainer.current) return
       import('mapbox-gl').then(mod => {
         const mapboxgl = mod.default || mod
-        mapboxgl.accessToken = 'pk.eyJ1IjoiZ290aGVyZW5vdyIsImEiOiJjbWxmYXJpYm0wMzByM2lwcGpzNjl4Wmx5In0.lipvyNXWoQmIDCah_0Ss_w'
+        mapboxgl.accessToken = 'pk.eyJ1IjoiZ290aGVyZW5vdyIsImEiOiJjbWxmYXJpYm0wMzByM2lwcGpzNjl4Ymx5In0.lipvyNXWoQmIDCah_0Ss_w'
 
         map.current = new mapboxgl.Map({
           container: mapContainer.current,

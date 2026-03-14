@@ -321,10 +321,27 @@ export default function InfluencerProfile() {
       {/* BOOKING MODAL */}
       {showModal && selectedHotel && (
         <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setShowModal(false) }}>
-          <div className="modal">
-            <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
-            <div className="modal-loc">📍 {[selectedHotel.city, selectedHotel.country].filter(Boolean).join(', ')}</div>
-            <h3 className="modal-name">{selectedHotel.hotel_name}</h3>
+          <div className="modal" style={{padding:0, overflow:'hidden'}}>
+            <button className="modal-close" onClick={() => setShowModal(false)} style={{position:'absolute', top:16, right:16, zIndex:10}}>✕</button>
+
+            {/* PHOTO HERO */}
+            {selectedHotel.photo_url ? (
+              <div style={{position:'relative', height:'220px', overflow:'hidden', borderRadius:'20px 20px 0 0'}}>
+                <img src={selectedHotel.photo_url} alt={selectedHotel.hotel_name} style={{width:'100%', height:'100%', objectFit:'cover'}} />
+                <div style={{position:'absolute', inset:0, background:'linear-gradient(to top, rgba(10,40,50,0.85) 0%, transparent 60%)', borderRadius:'20px 20px 0 0'}} />
+                <div style={{position:'absolute', bottom:0, left:0, right:0, padding:'20px 28px'}}>
+                  <div style={{fontSize:'9px', letterSpacing:'2px', textTransform:'uppercase', color:'rgba(255,255,255,0.6)', marginBottom:'4px'}}>📍 {[selectedHotel.city, selectedHotel.country].filter(Boolean).join(', ')}</div>
+                  <h3 style={{fontFamily:"'Playfair Display',serif", fontSize:'24px', fontWeight:700, color:'white', margin:0}}>{selectedHotel.hotel_name}</h3>
+                </div>
+              </div>
+            ) : (
+              <div style={{padding:'28px 28px 0'}}>
+                <div className="modal-loc">📍 {[selectedHotel.city, selectedHotel.country].filter(Boolean).join(', ')}</div>
+                <h3 className="modal-name">{selectedHotel.hotel_name}</h3>
+              </div>
+            )}
+
+            <div style={{padding:'20px 28px 28px'}}>
             {selectedHotel.influencer_quote && (
               <div className="modal-quote">"{selectedHotel.influencer_quote}"</div>
             )}
@@ -345,6 +362,7 @@ export default function InfluencerProfile() {
               )}
             </div>
             <div className="modal-disclaimer">Links may be affiliate links. Prices shown are indicative.</div>
+            </div>
           </div>
         </div>
       )}

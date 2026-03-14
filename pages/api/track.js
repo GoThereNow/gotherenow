@@ -1,8 +1,6 @@
 import { supabase } from '../../lib/supabase'
 
-// ============================================
-// REGIONAL DOMAINS
-// ============================================
+export const config = { api: { bodyParser: true } }
 
 const BOOKING_REGIONAL = {
   US: 'https://www.booking.com', CA: 'https://www.booking.com',
@@ -41,7 +39,6 @@ const EXPEDIA_REGIONAL = {
   DEFAULT: 'https://www.expedia.com',
 }
 
-// Hotels.com uses same affiliate program as Expedia (both owned by Expedia Group)
 const HOTELSCOM_REGIONAL = {
   US: 'https://www.hotels.com', CA: 'https://www.hotels.com',
   GB: 'https://www.hotels.com', AU: 'https://www.hotels.com',
@@ -67,19 +64,8 @@ const COUNTRY_CURRENCY = {
   AT: 'EUR', GR: 'EUR', FI: 'EUR', IE: 'EUR',
 }
 
-// ============================================
-// PLATFORM TYPES
-// Direct = we manage the affiliate account
-// Travelpayouts = routed through Travelpayouts
-// OpenTable = restaurant reservations
-// ============================================
-
 const DIRECT_PLATFORMS = ['Booking.com', 'Expedia', 'Hotels.com', 'Airbnb']
 const RESTAURANT_PLATFORMS = ['OpenTable', 'Resy', 'TheFork']
-
-// ============================================
-// DETECT COUNTRY
-// ============================================
 
 function getCountryCode(req) {
   return (
@@ -88,10 +74,6 @@ function getCountryCode(req) {
     'US'
   ).toUpperCase()
 }
-
-// ============================================
-// BUILD AFFILIATE URL
-// ============================================
 
 function buildDirectUrl({ platform, settings, countryCode, subId, hotelName, city }) {
   const currency = COUNTRY_CURRENCY[countryCode] || 'USD'
@@ -110,7 +92,6 @@ function buildDirectUrl({ platform, settings, countryCode, subId, hotelName, cit
   if (platform === 'Expedia') {
     const regionalBase = EXPEDIA_REGIONAL[countryCode] || EXPEDIA_REGIONAL.DEFAULT
     let url = settings?.base_url || regionalBase
-    // Always use correct regional domain
     if (settings?.base_url) {
       const path = settings.base_url.split(/expedia\.[a-z.]+/)[1] || ''
       url = regionalBase + path
@@ -143,14 +124,10 @@ function buildDirectUrl({ platform, settings, countryCode, subId, hotelName, cit
 }
 
 function buildTravelpayoutsUrl({ settings, countryCode, subId, hotelName, city }) {
-  // Travelpayouts white-label link with sub-ID
-  // Format: https://tp.media/r?marker=MARKER&p=PARTNER_ID&u=DESTINATION_URL&sub_id=SUBID
   const marker = settings?.travelpayouts_marker || ''
   const partnerId = settings?.travelpayouts_partner_id || ''
-  const platform = settings?.platform || ''
 
   if (!marker) {
-    // Fallback to direct Booking.com if Travelpayouts not configured
     return `https://www.booking.com${hotelName ? `?ss=${encodeURIComponent(hotelName)}` : ''}`
   }
 
@@ -159,7 +136,6 @@ function buildTravelpayoutsUrl({ settings, countryCode, subId, hotelName, city }
 }
 
 function buildOpenTableUrl({ settings, subId, restaurantName, city }) {
-  // OpenTable affiliate URL with tracking
   const base = settings?.base_url || 'https://www.opentable.com'
   const rid = settings?.restaurant_id || ''
   const query = restaurantName ? encodeURIComponent(`${restaurantName} ${city || ''}`.trim()) : ''
@@ -169,15 +145,11 @@ function buildOpenTableUrl({ settings, subId, restaurantName, city }) {
   return url
 }
 
-// ============================================
-// MAIN HANDLER
-// ============================================
-
 export default async function handler(req, res) {
   const {
     rec: recommendationId,
     platform: requestedPlatform,
-    type: contentType // 'hotel' or 'restaurant'
+    type: contentType
   } = req.query
 
   if (!recommendationId) return res.redirect(302, '/')
@@ -188,7 +160,6 @@ export default async function handler(req, res) {
     const isRestaurant = contentType === 'restaurant' || RESTAURANT_PLATFORMS.includes(platform)
     const isDirect = DIRECT_PLATFORMS.includes(platform)
 
-    // Fetch recommendation + influencer
     const table = isRestaurant ? 'restaurant_recommendations' : 'recommendations'
     const { data: rec } = await supabase
       .from(table)
@@ -201,14 +172,12 @@ export default async function handler(req, res) {
     const subId = rec.influencers?.sub_id || rec.influencers?.handle || 'unknown'
     const itemName = rec.hotel_name || rec.name
 
-    // Fetch platform settings
     const { data: settings } = await supabase
       .from('platform_settings')
       .select('*')
       .eq('platform', platform)
       .single()
 
-    // Build the right URL based on platform type
     let affiliateUrl
 
     if (isRestaurant) {
@@ -216,11 +185,9 @@ export default async function handler(req, res) {
     } else if (isDirect) {
       affiliateUrl = buildDirectUrl({ platform, settings, countryCode, subId, hotelName: itemName, city: rec.city })
     } else {
-      // Travelpayouts for everything else
       affiliateUrl = buildTravelpayoutsUrl({ settings, countryCode, subId, hotelName: itemName, city: rec.city })
     }
 
-    // Log the click
     await supabase.from('clicks').insert({
       recommendation_id: recommendationId,
       influencer_id: rec.influencers?.id,

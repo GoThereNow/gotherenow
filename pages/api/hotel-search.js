@@ -1,10 +1,15 @@
 const GOOGLE_API_KEY = 'AIzaSyApckzVwdewschovsR-ck65vg0ERR8Ycmc'
 
+async function getPhotoUrl(photoRef) {
+  if (!photoRef) return null
+  // Use the Places API photo URL directly — browsers can load it with the key
+  return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${photoRef}&key=${GOOGLE_API_KEY}`
+}
+
 export default async function handler(req, res) {
   const { action, query, place_id } = req.query
 
   if (action === 'search') {
-    // Search for hotels by name
     const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query + ' hotel')}&type=lodging&key=${GOOGLE_API_KEY}`
     const response = await fetch(url)
     const data = await response.json()
@@ -21,22 +26,12 @@ export default async function handler(req, res) {
     return res.json({ results })
   }
 
-  if (action === 'photo') {
-    // Fetch photo for a place
-    const url = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${place_id}&key=${GOOGLE_API_KEY}`
-    const response = await fetch(url)
-    // Google redirects to the actual image — return the final URL
-    return res.json({ photo_url: response.url })
-  }
-
   if (action === 'details') {
-    // Get full details including photos
     const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place_id}&fields=name,formatted_address,geometry,photos,address_components&key=${GOOGLE_API_KEY}`
     const response = await fetch(url)
     const data = await response.json()
     const result = data.result || {}
 
-    // Extract city and country from address components
     let city = '', country = ''
     const components = result.address_components || []
     for (const c of components) {
@@ -45,11 +40,7 @@ export default async function handler(req, res) {
     }
 
     const photoRef = result.photos?.[0]?.photo_reference
-    let photo_url = null
-    if (photoRef) {
-      const photoResp = await fetch(`https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${photoRef}&key=${GOOGLE_API_KEY}`)
-      photo_url = photoResp.url
-    }
+    const photo_url = await getPhotoUrl(photoRef)
 
     return res.json({
       name: result.name,

@@ -1,5 +1,18 @@
 const GOOGLE_API_KEY = 'AIzaSyApckzVwdewschovsR-ck65vg0ERR8Ycmc'
 
+async function resolvePhotoUrl(photoRef) {
+  if (!photoRef) return null
+  // Fetch the photo URL server-side to follow the redirect and get the final image URL
+  const url = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${photoRef}&key=${GOOGLE_API_KEY}`
+  try {
+    const response = await fetch(url, { redirect: 'follow' })
+    // Return the final redirected URL
+    return response.url
+  } catch (e) {
+    return null
+  }
+}
+
 export default async function handler(req, res) {
   const { action, query, place_id } = req.query
 
@@ -7,9 +20,6 @@ export default async function handler(req, res) {
     const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query + ' hotel')}&type=lodging&key=${GOOGLE_API_KEY}`
     const response = await fetch(url)
     const data = await response.json()
-
-    console.log('Google search status:', data.status)
-    console.log('Results count:', data.results?.length)
 
     const results = (data.results || []).slice(0, 6).map(place => ({
       place_id: place.place_id,
@@ -20,7 +30,7 @@ export default async function handler(req, res) {
       photo_reference: place.photos?.[0]?.photo_reference || null,
     }))
 
-    return res.json({ results, debug_status: data.status })
+    return res.json({ results })
   }
 
   if (action === 'details') {
@@ -28,9 +38,6 @@ export default async function handler(req, res) {
     const response = await fetch(url)
     const data = await response.json()
     const result = data.result || {}
-
-    console.log('Details status:', data.status)
-    console.log('Photo refs:', result.photos?.length)
 
     let city = '', country = ''
     const components = result.address_components || []
@@ -40,11 +47,7 @@ export default async function handler(req, res) {
     }
 
     const photoRef = result.photos?.[0]?.photo_reference
-    const photo_url = photoRef
-      ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${photoRef}&key=${GOOGLE_API_KEY}`
-      : null
-
-    console.log('Photo URL:', photo_url ? 'generated' : 'null')
+    const photo_url = await resolvePhotoUrl(photoRef)
 
     return res.json({
       name: result.name,
@@ -53,12 +56,23 @@ export default async function handler(req, res) {
       lat: result.geometry?.location?.lat,
       lng: result.geometry?.location?.lng,
       photo_url,
-      debug_status: data.status,
-      debug_photo_ref: photoRef || null,
     })
+  }
+
+  // Proxy the photo to avoid CORS issues
+  if (action === 'photo') {
+    const { ref } = req.query
+    if (!ref) return res.status(400).json({ error: 'No ref' })
+    const url = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${ref}&key=${GOOGLE_API_KEY}`
+    const response = await fetch(url, { redirect: 'follow' })
+    const buffer = await response.arrayBuffer()
+    const contentType = response.headers.get('content-type') || 'image/jpeg'
+    res.setHeader('Content-Type', contentType)
+    res.setHeader('Cache-Control', 'public, max-age=86400')
+    return res.send(Buffer.from(buffer))
   }
 
   return res.status(400).json({ error: 'Invalid action' })
 }
 
-export const config = { api: { bodyParser: true } }
+export const config = { api: { bodyParser: false } }

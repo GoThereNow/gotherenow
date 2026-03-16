@@ -358,7 +358,7 @@ export default function Dashboard() {
         .confirm-cancel { flex: 1; padding: 13px; background: white; border: 1px solid rgba(26,107,122,0.2); color: #1a6b7a; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; border-radius: 8px; }
         .confirm-delete { flex: 1; padding: 13px; background: rgba(220,50,50,0.08); border: 1px solid rgba(220,50,50,0.2); color: rgb(180,40,40); font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; border-radius: 8px; }
 
-        .dash-map-container { border-radius: 16px; overflow: hidden; border: 1px solid rgba(26,107,122,0.15); aspect-ratio: 2/1.4; box-shadow: 0 4px 20px rgba(26,107,122,0.1); position: relative; z-index: 0; }
+        .dash-map-container { border-radius: 16px; overflow: hidden; border: 1px solid rgba(26,107,122,0.15); aspect-ratio: 2/1.4; box-shadow: 0 4px 20px rgba(26,107,122,0.1); position: relative; z-index: 0; isolation: isolate; }
         @media (max-width: 600px) {
           .dash-topbar { flex-direction: column; }
           .stats-row { grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -424,7 +424,7 @@ export default function Dashboard() {
             <div style={{marginBottom:'24px'}}>
               <span className="section-label">your</span>
               <div className="section-title" style={{marginBottom:'12px'}}>Map</div>
-              <div className="dash-map-container" ref={mapContainer} />
+              <div style={{position:"relative", zIndex:0, isolation:"isolate"}}><div className="dash-map-container" ref={mapContainer} /></div>
             </div>
           )}
 

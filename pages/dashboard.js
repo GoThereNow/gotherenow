@@ -114,34 +114,34 @@ export default function Dashboard() {
   const handleHotelNameChange = (value) => {
     setForm(prev => ({ ...prev, hotel_name: value }))
     if (searchTimeout.current) clearTimeout(searchTimeout.current)
-    if (value.length < 5) { setSuggestions([]); setShowSuggestions(false); return }
+    if (value.length < 3) { setSuggestions([]); setShowSuggestions(false); return }
     setSearching(true)
     searchTimeout.current = setTimeout(async () => {
       try {
-        const query = encodeURIComponent(value)
-        const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query + ' hotel')}.json?access_token=${MAPBOX_TOKEN}&types=poi&limit=8&language=en`
-        const res = await fetch(url)
+        const res = await fetch(`/api/hotel-search?action=search&query=${encodeURIComponent(value)}`)
         const data = await res.json()
-        if (data.features) { setSuggestions(data.features); setShowSuggestions(true) }
+        if (data.results && data.results.length > 0) { setSuggestions(data.results); setShowSuggestions(true) }
       } catch (err) { console.error('Autocomplete error:', err) }
       setSearching(false)
     }, 600)
   }
 
-  const handleSelectSuggestion = (feature) => {
-    const name = feature.text || feature.place_name.split(',')[0]
-    const lng = feature.center[0]
-    const lat = feature.center[1]
-    let city = '', country = ''
-    if (feature.context) {
-      feature.context.forEach(ctx => {
-        if ((ctx.id.startsWith('place') || ctx.id.startsWith('district') || ctx.id.startsWith('locality')) && !city) city = ctx.text
-        if (ctx.id.startsWith('country')) country = ctx.text
-      })
-    }
-    if (!city) { const parts = feature.place_name.split(','); if (parts.length > 1) city = parts[1].trim() }
-    setForm(prev => ({ ...prev, hotel_name: name, city, country, latitude: lat.toFixed(6), longitude: lng.toFixed(6) }))
+  const handleSelectSuggestion = async (place) => {
     setSuggestions([]); setShowSuggestions(false)
+    setForm(prev => ({ ...prev, hotel_name: place.name }))
+    try {
+      const res = await fetch(`/api/hotel-search?action=details&place_id=${place.place_id}`)
+      const data = await res.json()
+      setForm(prev => ({
+        ...prev,
+        hotel_name: data.name || place.name,
+        city: data.city || '',
+        country: data.country || '',
+        latitude: data.lat ? String(data.lat) : '',
+        longitude: data.lng ? String(data.lng) : '',
+        photo_url: data.photo_url || prev.photo_url,
+      }))
+    } catch (err) { console.error('Details error:', err) }
   }
 
 

@@ -105,7 +105,7 @@ export default function Dashboard() {
             <div style="font-size:14px;font-weight:700;color:#1a6b7a;margin-bottom:8px;">${rec.hotel_name}</div>
           </div>`)
         const marker = new mapboxgl.Marker(el).setLngLat([rec.longitude, rec.latitude]).setPopup(popup).addTo(map.current)
-        el.addEventListener('click', () => popup.toggle())
+        el.addEventListener('click', () => { if (popup.isOpen()) popup.remove(); else popup.addTo(map.current) })
         markersRef.current.push(marker)
       })
     })
@@ -505,8 +505,8 @@ export default function Dashboard() {
                   {showSuggestions && suggestions.length > 0 && (
                     <div className="autocomplete-drop">
                       {suggestions.map((feature, i) => {
-                        const name = feature.text || feature.place_name.split(',')[0]
-                        const subtitle = feature.place_name.split(',').slice(1).join(',').trim()
+                        const name = feature.name || ''
+                        const subtitle = feature.address || ''
                         return (
                           <div key={i} className="autocomplete-item" onMouseDown={() => handleSelectSuggestion(feature)}>
                             <div className="autocomplete-name">{name}</div>

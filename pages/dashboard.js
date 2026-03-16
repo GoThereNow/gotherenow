@@ -99,7 +99,13 @@ export default function Dashboard() {
         if (!rec.latitude || !rec.longitude) return
         const el = document.createElement('div')
         el.style.cssText = 'width:24px;height:24px;background:#1a6b7a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);'
-        const marker = new mapboxgl.Marker(el).setLngLat([rec.longitude, rec.latitude]).addTo(map.current)
+        const popup = new mapboxgl.Popup({ offset: 20, closeButton: false, maxWidth: '200px' })
+          .setHTML(`<div style="font-family:'DM Sans',sans-serif;padding:8px 4px;">
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#b5654a;margin-bottom:4px;">${rec.city || ''}, ${rec.country || ''}</div>
+            <div style="font-size:14px;font-weight:700;color:#1a6b7a;margin-bottom:8px;">${rec.hotel_name}</div>
+          </div>`)
+        const marker = new mapboxgl.Marker(el).setLngLat([rec.longitude, rec.latitude]).setPopup(popup).addTo(map.current)
+        el.addEventListener('click', () => popup.toggle())
         markersRef.current.push(marker)
       })
     })

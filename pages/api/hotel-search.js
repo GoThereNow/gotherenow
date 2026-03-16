@@ -1,11 +1,5 @@
 const GOOGLE_API_KEY = 'AIzaSyApckzVwdewschovsR-ck65vg0ERR8Ycmc'
 
-async function getPhotoUrl(photoRef) {
-  if (!photoRef) return null
-  // Use the Places API photo URL directly — browsers can load it with the key
-  return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${photoRef}&key=${GOOGLE_API_KEY}`
-}
-
 export default async function handler(req, res) {
   const { action, query, place_id } = req.query
 
@@ -13,6 +7,9 @@ export default async function handler(req, res) {
     const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query + ' hotel')}&type=lodging&key=${GOOGLE_API_KEY}`
     const response = await fetch(url)
     const data = await response.json()
+
+    console.log('Google search status:', data.status)
+    console.log('Results count:', data.results?.length)
 
     const results = (data.results || []).slice(0, 6).map(place => ({
       place_id: place.place_id,
@@ -23,7 +20,7 @@ export default async function handler(req, res) {
       photo_reference: place.photos?.[0]?.photo_reference || null,
     }))
 
-    return res.json({ results })
+    return res.json({ results, debug_status: data.status })
   }
 
   if (action === 'details') {
@@ -31,6 +28,9 @@ export default async function handler(req, res) {
     const response = await fetch(url)
     const data = await response.json()
     const result = data.result || {}
+
+    console.log('Details status:', data.status)
+    console.log('Photo refs:', result.photos?.length)
 
     let city = '', country = ''
     const components = result.address_components || []
@@ -40,7 +40,11 @@ export default async function handler(req, res) {
     }
 
     const photoRef = result.photos?.[0]?.photo_reference
-    const photo_url = await getPhotoUrl(photoRef)
+    const photo_url = photoRef
+      ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${photoRef}&key=${GOOGLE_API_KEY}`
+      : null
+
+    console.log('Photo URL:', photo_url ? 'generated' : 'null')
 
     return res.json({
       name: result.name,
@@ -49,6 +53,8 @@ export default async function handler(req, res) {
       lat: result.geometry?.location?.lat,
       lng: result.geometry?.location?.lng,
       photo_url,
+      debug_status: data.status,
+      debug_photo_ref: photoRef || null,
     })
   }
 

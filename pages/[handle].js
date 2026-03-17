@@ -23,6 +23,14 @@ export default function InfluencerProfile() {
   const [selectedHotel, setSelectedHotel] = useState(null)
   const [activeTab, setActiveTab] = useState('map')
   const [isOwner, setIsOwner] = useState(false)
+  const [currentUser, setCurrentUser] = useState(null)
+  const [likes, setLikes] = useState({}) // rec_id -> count
+  const [userLikes, setUserLikes] = useState({}) // rec_id -> bool
+  const [comments, setComments] = useState({}) // rec_id -> []
+  const [isFollowing, setIsFollowing] = useState(false)
+  const [commentText, setCommentText] = useState('')
+  const [commentingOn, setCommentingOn] = useState(null)
+  const [showComments, setShowComments] = useState({})
 
   // Fetch data
   useEffect(() => {
@@ -42,9 +50,52 @@ export default function InfluencerProfile() {
         .order('created_at', { ascending: false })
       setRecommendations(recs || [])
       setLoading(false)
-      // Check if viewer is the owner
+
+      // Auth
       const { data: { session } } = await supabase.auth.getSession()
-      if (session && inf && session.user.id === inf.user_id) setIsOwner(true)
+      const user = session?.user || null
+      setCurrentUser(user)
+      if (user && inf && user.id === inf.user_id) setIsOwner(true)
+
+      // Likes
+      if (recs && recs.length > 0) {
+        const recIds = recs.map(r => r.id)
+        const { data: likesData } = await supabase
+          .from('likes').select('recommendation_id, user_id')
+          .in('recommendation_id', recIds)
+        const likeCounts = {}
+        const userLikeMap = {}
+        recIds.forEach(id => { likeCounts[id] = 0; userLikeMap[id] = false })
+        likesData?.forEach(l => {
+          likeCounts[l.recommendation_id] = (likeCounts[l.recommendation_id] || 0) + 1
+          if (user && l.user_id === user.id) userLikeMap[l.recommendation_id] = true
+        })
+        setLikes(likeCounts)
+        setUserLikes(userLikeMap)
+
+        // Comments
+        const { data: commentsData } = await supabase
+          .from('comments').select('*, profiles(full_name)')
+          .in('recommendation_id', recIds)
+          .order('created_at', { ascending: true })
+        const commentMap = {}
+        recIds.forEach(id => { commentMap[id] = [] })
+        commentsData?.forEach(c => {
+          if (!commentMap[c.recommendation_id]) commentMap[c.recommendation_id] = []
+          commentMap[c.recommendation_id].push(c)
+        })
+        setComments(commentMap)
+      }
+
+      // Follow status
+      if (user && inf) {
+        const { data: followData } = await supabase
+          .from('follows').select('id')
+          .eq('follower_id', user.id)
+          .eq('influencer_id', inf.id)
+          .single()
+        setIsFollowing(!!followData)
+      }
     }
     fetchData()
   }, [slug])
@@ -111,6 +162,43 @@ export default function InfluencerProfile() {
   }, [activeTab])
 
   const openBookingModal = (hotel) => { setSelectedHotel(hotel); setShowModal(true) }
+
+  const toggleLike = async (recId) => {
+    if (!currentUser) { router.push('/login'); return }
+    const already = userLikes[recId]
+    setUserLikes(prev => ({ ...prev, [recId]: !already }))
+    setLikes(prev => ({ ...prev, [recId]: (prev[recId] || 0) + (already ? -1 : 1) }))
+    if (already) {
+      await supabase.from('likes').delete().eq('user_id', currentUser.id).eq('recommendation_id', recId)
+    } else {
+      await supabase.from('likes').insert({ user_id: currentUser.id, recommendation_id: recId })
+    }
+  }
+
+  const submitComment = async (recId) => {
+    if (!currentUser) { router.push('/login'); return }
+    if (!commentText.trim()) return
+    const { data } = await supabase.from('comments').insert({
+      user_id: currentUser.id,
+      recommendation_id: recId,
+      text: commentText.trim()
+    }).select('*, profiles(full_name)').single()
+    if (data) {
+      setComments(prev => ({ ...prev, [recId]: [...(prev[recId] || []), data] }))
+      setCommentText('')
+    }
+  }
+
+  const toggleFollow = async () => {
+    if (!currentUser) { router.push('/login'); return }
+    if (isFollowing) {
+      await supabase.from('follows').delete().eq('follower_id', currentUser.id).eq('influencer_id', influencer.id)
+      setIsFollowing(false)
+    } else {
+      await supabase.from('follows').insert({ follower_id: currentUser.id, influencer_id: influencer.id })
+      setIsFollowing(true)
+    }
+  }
 
   if (loading) return (
     <div style={{ display:'flex', alignItems:'center', justifyContent:'center', minHeight:'100vh', background:'#f7f5f2' }}>
@@ -206,6 +294,20 @@ export default function InfluencerProfile() {
         .footer-logo em { font-weight: 300; color: #b5654a; }
         .footer-text { font-size: 12px; color: rgba(26,107,122,0.35); }
 
+        .card-actions { display: flex; align-items: center; gap: 16px; padding: 10px 16px 4px; }
+        .like-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 13px; color: rgba(26,107,122,0.6); font-family: 'DM Sans', sans-serif; font-weight: 600; transition: all 0.2s; padding: 0; }
+        .like-btn:hover { color: #e05c7a; }
+        .like-btn.liked { color: #e05c7a; }
+        .comment-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 13px; color: rgba(26,107,122,0.6); font-family: 'DM Sans', sans-serif; font-weight: 600; transition: all 0.2s; padding: 0; }
+        .comment-btn:hover { color: #1a6b7a; }
+        .comments-section { padding: 8px 16px 16px; border-top: 1px solid rgba(26,107,122,0.06); }
+        .comment-item { display: flex; gap: 8px; margin-bottom: 8px; }
+        .comment-author { font-size: 12px; font-weight: 700; color: #1a6b7a; }
+        .comment-text { font-size: 12px; color: rgba(26,107,122,0.7); }
+        .comment-input-row { display: flex; gap: 8px; margin-top: 8px; }
+        .comment-input { flex: 1; padding: 8px 12px; border: 1px solid rgba(26,107,122,0.15); border-radius: 100px; font-size: 12px; font-family: 'DM Sans', sans-serif; outline: none; color: #1a6b7a; background: white; }
+        .comment-input::placeholder { color: rgba(26,107,122,0.3); }
+        .comment-submit { background: #1a6b7a; color: white; border: none; border-radius: 100px; padding: 8px 16px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: 'DM Sans', sans-serif; }
         @media (max-width: 768px) {
           .profile-hero { padding: 88px 24px 40px; flex-direction: column; align-items: flex-start; gap: 20px; }
           .profile-socials { align-self: auto; }
@@ -249,6 +351,11 @@ export default function InfluencerProfile() {
             <a href="/dashboard" style={{background:'#b5654a', color:'white', padding:'9px 20px', borderRadius:'100px', fontSize:'12px', fontWeight:700, textDecoration:'none', fontFamily:"'DM Sans',sans-serif"}}>
               + Add a Stay
             </a>
+          )}
+          {!isOwner && (
+            <button onClick={toggleFollow} style={{background: isFollowing ? 'white' : '#1a6b7a', color: isFollowing ? '#1a6b7a' : 'white', padding:'9px 20px', borderRadius:'100px', fontSize:'12px', fontWeight:700, border: isFollowing ? '1px solid rgba(26,107,122,0.3)' : 'none', cursor:'pointer', fontFamily:"'DM Sans',sans-serif"}}>
+              {isFollowing ? '✓ Following' : '+ Follow'}
+            </button>
           )}
           <div className="profile-socials">
             {influencer.instagram_url && (
@@ -309,7 +416,13 @@ export default function InfluencerProfile() {
             ) : (
               <div className="hotels-grid">
                 {recommendations.map((rec, i) => (
-                  <HotelCard key={rec.id} rec={rec} index={i} onBook={() => openBookingModal(rec)} />
+                  <HotelCard key={rec.id} rec={rec} index={i} onBook={() => openBookingModal(rec)}
+                    liked={userLikes[rec.id]} likeCount={likes[rec.id] || 0} onLike={() => toggleLike(rec.id)}
+                    comments={comments[rec.id]} onComment={() => submitComment(rec.id)}
+                    commentText={commentingOn === rec.id ? commentText : ''}
+                    setCommentText={text => { setCommentingOn(rec.id); setCommentText(text) }}
+                    showComments={showComments[rec.id]} setShowComments={v => setShowComments(prev => ({...prev, [rec.id]: v}))}
+                  />
                 ))}
               </div>
             )}
@@ -376,25 +489,62 @@ export default function InfluencerProfile() {
   )
 }
 
-function HotelCard({ rec, index, onBook }) {
+function HotelCard({ rec, index, onBook, liked, likeCount, onLike, comments, onComment, commentText, setCommentText, showComments, setShowComments }) {
   return (
-    <div className="hotel-card" onClick={onBook}>
-      {index === 0 && <div className="hotel-card-latest">Latest</div>}
-      {rec.photo_url ? (
-        <>
-          <img src={rec.photo_url} alt={rec.hotel_name} className="hotel-card-bg" />
-          <div className="hotel-card-gradient" />
-          <div className="hotel-card-info">
-            <div className="hotel-card-loc">📍 {[rec.city, rec.country].filter(Boolean).join(', ')}</div>
-            <div className="hotel-card-name">{rec.hotel_name}</div>
+    <div style={{background:'white', borderRadius:'16px', overflow:'hidden', boxShadow:'0 4px 20px rgba(26,107,122,0.1)', border:'1px solid rgba(26,107,122,0.08)'}}>
+      {/* PHOTO / CARD */}
+      <div className="hotel-card" onClick={onBook} style={{borderRadius:'16px 16px 0 0', marginBottom:0}}>
+        {index === 0 && <div className="hotel-card-latest">Latest</div>}
+        {rec.photo_url ? (
+          <>
+            <img src={rec.photo_url} alt={rec.hotel_name} className="hotel-card-bg" />
+            <div className="hotel-card-gradient" />
+            <div className="hotel-card-info">
+              <div className="hotel-card-loc">📍 {[rec.city, rec.country].filter(Boolean).join(', ')}</div>
+              <div className="hotel-card-name">{rec.hotel_name}</div>
+              <button className="hotel-card-book" onClick={e => { e.stopPropagation(); onBook() }}>Book Now →</button>
+            </div>
+          </>
+        ) : (
+          <div className="hotel-card-nophoto">
+            <div className="hotel-card-loc-dark">📍 {[rec.city, rec.country].filter(Boolean).join(', ')}</div>
+            <div className="hotel-card-name-dark">{rec.hotel_name}</div>
             <button className="hotel-card-book" onClick={e => { e.stopPropagation(); onBook() }}>Book Now →</button>
           </div>
-        </>
-      ) : (
-        <div className="hotel-card-nophoto">
-          <div className="hotel-card-loc-dark">📍 {[rec.city, rec.country].filter(Boolean).join(', ')}</div>
-          <div className="hotel-card-name-dark">{rec.hotel_name}</div>
-          <button className="hotel-card-book" onClick={e => { e.stopPropagation(); onBook() }}>Book Now →</button>
+        )}
+      </div>
+
+      {/* ACTIONS */}
+      <div className="card-actions">
+        <button className={`like-btn${liked ? ' liked' : ''}`} onClick={e => { e.stopPropagation(); onLike() }}>
+          {liked ? '❤️' : '🤍'} {likeCount > 0 ? likeCount : ''}
+        </button>
+        <button className="comment-btn" onClick={e => { e.stopPropagation(); setShowComments(!showComments) }}>
+          💬 {comments?.length > 0 ? comments.length : ''}
+        </button>
+      </div>
+
+      {/* COMMENTS */}
+      {showComments && (
+        <div className="comments-section">
+          {comments?.map((cm, i) => (
+            <div key={i} className="comment-item">
+              <div>
+                <span className="comment-author">{cm.profiles?.full_name || 'User'} </span>
+                <span className="comment-text">{cm.text}</span>
+              </div>
+            </div>
+          ))}
+          <div className="comment-input-row">
+            <input
+              className="comment-input"
+              placeholder="Add a comment..."
+              value={commentText}
+              onChange={e => setCommentText(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') onComment() }}
+            />
+            <button className="comment-submit" onClick={onComment}>Post</button>
+          </div>
         </div>
       )}
     </div>

@@ -23,6 +23,7 @@ export default function ProfilePage() {
   const mapContainer = useRef(null)
   const map = useRef(null)
   const markersRef = useRef([])
+  const nearbyMarkersRef = useRef([])
   const searchTimeout = useRef(null)
 
   const [influencer, setInfluencer] = useState(null)
@@ -158,15 +159,60 @@ export default function ProfilePage() {
     recommendations.forEach(rec => {
       if (!rec.latitude || !rec.longitude) return
       const el = document.createElement('div')
-      el.style.cssText = 'width:28px;height:28px;background:#1a6b7a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);'
+      el.style.cssText = 'width:28px;height:28px;background:#1a6b7a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;'
       el.addEventListener('click', () => {
         setSelectedHotel(rec)
         setShowModal(true)
-        map.current.flyTo({ center: [rec.longitude, rec.latitude], zoom: map.current.getZoom(), duration: 500 })
+        map.current.flyTo({ center: [rec.longitude, rec.latitude], zoom: 13, duration: 800 })
+        fetchNearbyHotels(mapboxgl, rec.latitude, rec.longitude)
       })
       new mapboxgl.Marker(el).setLngLat([rec.longitude, rec.latitude]).addTo(map.current)
       markersRef.current.push({ remove: () => el.remove() })
     })
+  }
+
+  async function fetchNearbyHotels(mapboxgl, lat, lng) {
+    // Clear existing nearby markers
+    nearbyMarkersRef.current.forEach(m => m.remove())
+    nearbyMarkersRef.current = []
+
+    try {
+      const res = await fetch(`/api/hotel-search?action=nearby&lat=${lat}&lng=${lng}`)
+      const data = await res.json()
+      if (!data.results) return
+
+      data.results.forEach(hotel => {
+        if (!hotel.lat || !hotel.lng) return
+        // Skip if it's already a creator hotel
+        const isCreatorHotel = recommendations.some(r =>
+          Math.abs(r.latitude - hotel.lat) < 0.001 && Math.abs(r.longitude - hotel.lng) < 0.001
+        )
+        if (isCreatorHotel) return
+
+        const el = document.createElement('div')
+        el.style.cssText = 'width:22px;height:22px;background:white;border:2px solid #1a6b7a;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;font-size:9px;color:#1a6b7a;font-weight:700;'
+        el.textContent = '🏨'
+
+        // Popup with hotel name and book button
+        const popup = new mapboxgl.Popup({ offset: 20, closeButton: false, maxWidth: '220px' })
+          .setHTML(`<div style="font-family:'DM Sans',sans-serif;padding:10px;">
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#b5654a;margin-bottom:4px;">${hotel.address?.split(',').slice(-2).join(',').trim() || ''}</div>
+            <div style="font-size:13px;font-weight:700;color:#1a6b7a;margin-bottom:8px;">${hotel.name}</div>
+            <a href="https://www.expedia.com/Hotel-Search?destination=${encodeURIComponent(hotel.name + ', ' + (hotel.address || ''))}&affcid=xkGKaCc"
+              target="_blank" style="display:block;background:#b5654a;color:white;padding:7px 12px;border-radius:6px;text-align:center;font-size:11px;font-weight:700;text-decoration:none;">
+              Book on Expedia →
+            </a>
+          </div>`)
+
+        const marker = new mapboxgl.Marker(el)
+          .setLngLat([hotel.lng, hotel.lat])
+          .setPopup(popup)
+          .addTo(map.current)
+
+        el.addEventListener('click', () => popup.toggle())
+        nearbyMarkersRef.current.push(marker)
+      })
+    } catch (e) { console.error('Nearby hotels error:', e) }
   }
 
   useEffect(() => {

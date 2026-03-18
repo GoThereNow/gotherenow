@@ -16,9 +16,19 @@ export default function Login() {
     e.preventDefault()
     setLoading(true)
     setError('')
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) { setError(error.message); setLoading(false); return }
-    router.push('/dashboard')
+    // Fetch their handle and redirect to their profile
+    const { data: inf } = await supabase
+      .from('influencers')
+      .select('handle')
+      .eq('user_id', data.user.id)
+      .single()
+    if (inf?.handle) {
+      router.push(`/${inf.handle}`)
+    } else {
+      router.push('/dashboard')
+    }
   }
 
   return (

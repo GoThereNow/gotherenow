@@ -72,6 +72,21 @@ export default async function handler(req, res) {
     return res.send(Buffer.from(buffer))
   }
 
+  if (action === 'nearby') {
+    const { lat, lng } = req.query
+    const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=2000&type=lodging&key=${GOOGLE_API_KEY}`
+    const response = await fetch(url)
+    const data = await response.json()
+    const results = (data.results || []).slice(0, 10).map(place => ({
+      place_id: place.place_id,
+      name: place.name,
+      address: place.vicinity,
+      lat: place.geometry?.location?.lat,
+      lng: place.geometry?.location?.lng,
+    }))
+    return res.json({ results })
+  }
+
   return res.status(400).json({ error: 'Invalid action' })
 }
 

@@ -7,7 +7,7 @@ import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabase'
 import Nav from '../components/Nav'
 
-const MAPBOX_TOKEN = 'pk.eyJ1IjoiZ290aGVyZW5vdyIsImEiOiJjbWxmYXJpYm0wMzByM2lwcGpzNjl4Wmx5In0.lipvyNXWoQmIDCah_0Ss_w'
+const MAPBOX_TOKEN = 'pk.eyJ1IjoiZ290aGVyZW5vdyIsImEiOiJjbWxmYXJpYm0wMzByM2lwcGpzNjl4Ymx5In0.lipvyNXWoQmIDCah_0Ss_w'
 
 export default function ProfilePage() {
   const router = useRouter()

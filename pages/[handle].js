@@ -636,7 +636,13 @@ export default function ProfilePage() {
                   <div><div className="modal-link-name">{link.platform}</div>{link.note && <div className="modal-link-note">{link.note}</div>}</div>
                   <span>→</span>
                 </a>
-              )) : <div style={{textAlign:'center', padding:'16px', color:'rgba(26,107,122,0.4)', fontSize:'13px'}}>Booking links coming soon.</div>}
+              )) : (
+                <a href={buildExpediaUrl(selectedHotel.hotel_name, selectedHotel.city, selectedHotel.country)}
+                  target="_blank" rel="noopener noreferrer" className="modal-link">
+                  <div><div className="modal-link-name">Search on Expedia</div><div className="modal-link-note">Find the best price</div></div>
+                  <span>→</span>
+                </a>
+              )}
               <div className="modal-disclaimer">Links may be affiliate links.</div>
             </div>
           </div>

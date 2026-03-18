@@ -8,6 +8,12 @@ import { supabase } from '../lib/supabase'
 import Nav from '../components/Nav'
 
 const MAPBOX_TOKEN = 'pk.eyJ1IjoiZ290aGVyZW5vdyIsImEiOiJjbWxmYXJpYm0wMzByM2lwcGpzNjl4Ymx5In0.lipvyNXWoQmIDCah_0Ss_w'
+const EXPEDIA_AFFILIATE = 'xkGKaCc'
+
+function buildExpediaUrl(hotelName, city, country) {
+  const destination = [hotelName, city, country].filter(Boolean).join(', ')
+  return `https://www.expedia.com/Hotel-Search?destination=${encodeURIComponent(destination)}&affcid=${EXPEDIA_AFFILIATE}`
+}
 
 export default function ProfilePage() {
   const router = useRouter()

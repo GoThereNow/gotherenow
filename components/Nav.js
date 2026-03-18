@@ -42,7 +42,7 @@ export default function Nav() {
       <nav className="gtn-nav">
         <Link href="/" className="gtn-logo">Go<em>There</em>Now</Link>
         <div className="gtn-nav-right">
-          <Link href="/#stays" className="gtn-nav-link">Discover</Link>
+          <Link href="/explore" className="gtn-nav-link">Explore</Link>
           <Link href="/signup?role=influencer" className="gtn-nav-link">For creators</Link>
           <Link href="/login" className="gtn-nav-btn">Sign in</Link>
         </div>

@@ -1,4 +1,9 @@
 export const dynamic = 'force-dynamic'
+const EXPEDIA_AFFILIATE = 'xkGKaCc'
+function buildExpediaUrl(hotelName, city, country) {
+  const destination = [hotelName, city, country].filter(Boolean).join(', ')
+  return `https://www.expedia.com/Hotel-Search?destination=${encodeURIComponent(destination)}&affcid=${EXPEDIA_AFFILIATE}`
+}
 
 import { useEffect, useState } from 'react'
 import Head from 'next/head'
@@ -220,7 +225,7 @@ export default function Explore() {
                       <button className={`like-btn${userLikes[stay.id] ? ' liked' : ''}`} onClick={() => toggleLike(stay.id)}>
                         {userLikes[stay.id] ? '❤️' : '🤍'} {likes[stay.id] > 0 ? likes[stay.id] : ''}
                       </button>
-                      <Link href={`/${stay.influencers?.handle}`} className="book-btn">Book Now →</Link>
+                      <a href={buildExpediaUrl(stay.hotel_name, stay.city, stay.country)} target="_blank" rel="noopener noreferrer" className="book-btn">Book Now →</a>
                     </div>
                   </div>
                 </div>

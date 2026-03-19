@@ -12,7 +12,7 @@ const EXPEDIA_AFFILIATE = 'xkGKaCc'
 
 function buildExpediaUrl(hotelName, city, country) {
   const destination = [hotelName, city, country].filter(Boolean).join(', ')
-  return `https://www.expedia.com/Hotel-Search?destination=${encodeURIComponent(destination)}&affcid=${EXPEDIA_AFFILIATE}`
+  return `https://www.expedia.com/Hotel-Search?destination=${encodeURIComponent(hotelName)}&q=${encodeURIComponent(destination)}&affcid=${EXPEDIA_AFFILIATE}`
 }
 
 export default function ProfilePage() {
@@ -198,7 +198,7 @@ export default function ProfilePage() {
           .setHTML(`<div style="font-family:'DM Sans',sans-serif;padding:10px;">
             <div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#b5654a;margin-bottom:4px;">${hotel.address?.split(',').slice(-2).join(',').trim() || ''}</div>
             <div style="font-size:13px;font-weight:700;color:#1a6b7a;margin-bottom:8px;">${hotel.name}</div>
-            <a href="https://www.expedia.com/Hotel-Search?destination=${encodeURIComponent(hotel.name + ', ' + (hotel.address || ''))}&affcid=xkGKaCc"
+            <a href="https://www.expedia.com/Hotel-Search?destination=${encodeURIComponent(hotel.name)}&regionId=&startDate=&endDate=&rooms=1&_xpid=11905%7C1&affcid=xkGKaCc&q=${encodeURIComponent(hotel.name + ' ' + (hotel.address?.split(',')[0] || ''))}"
               target="_blank" style="display:block;background:#b5654a;color:white;padding:7px 12px;border-radius:6px;text-align:center;font-size:11px;font-weight:700;text-decoration:none;">
               Book on Expedia →
             </a>

@@ -125,7 +125,7 @@ export default function Feed() {
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #f7f5f2; font-family: 'DM Sans', sans-serif; }
 
-        .feed-layout { max-width: 600px; margin: 0 auto; padding: 100px 24px 60px; }
+        .feed-layout { max-width: 600px; margin: 0 auto; padding: 100px 20px 60px; }
         .feed-header { margin-bottom: 32px; }
         .feed-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #b5654a; font-weight: 700; margin-bottom: 6px; }
         .feed-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: #1a6b7a; }
@@ -153,7 +153,7 @@ export default function Feed() {
         .feed-card-body { padding: 12px 16px 6px; }
         .feed-quote { font-size: 13px; color: rgba(26,107,122,0.65); line-height: 1.7; margin-bottom: 10px; padding-left: 12px; border-left: 2px solid rgba(26,107,122,0.15); }
 
-        .feed-actions { display: flex; align-items: center; gap: 16px; padding: 8px 16px 10px; border-top: 1px solid rgba(26,107,122,0.06); }
+        .feed-actions { display: flex; align-items: center; gap: 12px; padding: 8px 14px 10px; border-top: 1px solid rgba(26,107,122,0.06); }
         .feed-like-btn { background: none; border: none; cursor: pointer; font-size: 20px; padding: 0; line-height: 1; transition: transform 0.15s; }
         .feed-like-btn:active { transform: scale(1.3); }
         .feed-like-count { font-size: 13px; font-weight: 600; color: rgba(26,107,122,0.6); margin-right: 4px; }
@@ -336,4 +336,3 @@ export default function Feed() {
 export async function getServerSideProps() {
   return { props: {} }
 }
-

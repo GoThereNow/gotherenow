@@ -1,1 +1,151 @@
+import Nav from '../components/Nav'
+import Head from 'next/head'
+import Link from 'next/link'
+
+export default function About() {
+  return (
+    <div style={{ background: '#f7f5f2', minHeight: '100vh', fontFamily: 'DM Sans, sans-serif' }}>
+      <Head>
+        <title>About — GoThereNow</title>
+        <meta name="description" content="GoThereNow is a creator-driven hotel recommendation platform. Discover hotels recommended by people you follow and book in one click." />
+        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@300;400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+      </Head>
+
+      <style>{`
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #f7f5f2; font-family: 'DM Sans', sans-serif; }
+
+        .hero { background: #1a6b7a; padding: 120px 56px 80px; }
+        .hero-eyebrow { font-size: 10px; letter-spacing: 4px; text-transform: uppercase; color: rgba(255,255,255,0.5); font-weight: 600; margin-bottom: 16px; }
+        .hero-title { font-family: 'Playfair Display', serif; font-size: clamp(36px, 5vw, 68px); font-weight: 700; color: white; line-height: 1.05; max-width: 700px; margin-bottom: 24px; }
+        .hero-sub { font-size: 18px; color: rgba(255,255,255,0.65); max-width: 560px; line-height: 1.7; }
+
+        .section { padding: 80px 56px; max-width: 1100px; margin: 0 auto; }
+        .section-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #b5654a; font-weight: 700; margin-bottom: 10px; }
+        .section-title { font-family: 'Playfair Display', serif; font-size: clamp(28px, 3vw, 44px); font-weight: 700; color: #1a6b7a; margin-bottom: 20px; }
+        .body-text { font-size: 16px; color: rgba(26,107,122,0.7); line-height: 1.9; margin-bottom: 20px; max-width: 680px; }
+
+        .mission-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; padding: 80px 56px; background: white; }
+        .mission-text { }
+        .mission-visual { background: #1a6b7a; border-radius: 24px; padding: 48px; text-align: center; }
+        .mission-quote { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 300; color: white; line-height: 1.4; margin-bottom: 16px; }
+        .mission-attr { font-size: 12px; color: rgba(255,255,255,0.4); letter-spacing: 2px; text-transform: uppercase; }
+
+        .values-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin-top: 48px; }
+        .value-card { background: white; border-radius: 20px; padding: 32px; border: 1px solid rgba(26,107,122,0.08); }
+        .value-icon { font-size: 32px; margin-bottom: 16px; }
+        .value-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #1a6b7a; margin-bottom: 10px; }
+        .value-text { font-size: 14px; color: rgba(26,107,122,0.6); line-height: 1.7; }
+
+        .team-section { padding: 80px 56px; background: white; }
+        .team-inner { max-width: 1100px; margin: 0 auto; }
+
+        .cta-strip { background: #1a6b7a; padding: 80px 56px; text-align: center; }
+        .cta-title { font-family: 'Playfair Display', serif; font-size: clamp(28px, 3vw, 44px); font-weight: 700; color: white; margin-bottom: 12px; }
+        .cta-sub { font-size: 16px; color: rgba(255,255,255,0.6); margin-bottom: 32px; }
+        .cta-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+        .btn-white { background: white; color: #1a6b7a; padding: 14px 32px; border-radius: 100px; font-size: 14px; font-weight: 700; text-decoration: none; }
+        .btn-outline { background: transparent; color: white; padding: 14px 32px; border-radius: 100px; font-size: 14px; font-weight: 700; text-decoration: none; border: 2px solid rgba(255,255,255,0.35); }
+
+        .footer { padding: 32px 56px; border-top: 1px solid rgba(26,107,122,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .footer-logo { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: #1a6b7a; text-decoration: none; }
+        .footer-links { display: flex; gap: 20px; }
+        .footer-link { font-size: 13px; color: rgba(26,107,122,0.45); text-decoration: none; }
+        .footer-link:hover { color: #1a6b7a; }
+
+        @media (max-width: 768px) {
+          .hero { padding: 100px 24px 60px; }
+          .section { padding: 56px 24px; }
+          .mission-grid { grid-template-columns: 1fr; gap: 40px; padding: 56px 24px; }
+          .values-grid { grid-template-columns: 1fr; gap: 16px; }
+          .team-section { padding: 56px 24px; }
+          .cta-strip { padding: 60px 24px; }
+          .footer { flex-direction: column; gap: 16px; text-align: center; padding: 24px; }
+          .footer-links { flex-wrap: wrap; justify-content: center; }
+        }
+      `}</style>
+
+      <Nav />
+
+      {/* HERO */}
+      <div className="hero">
+        <div className="hero-eyebrow">our story</div>
+        <h1 className="hero-title">Travel recommendations you can actually trust.</h1>
+        <p className="hero-sub">GoThereNow was built on a simple idea: the best hotel recommendations come from people whose taste you already follow — not from anonymous reviews.</p>
+      </div>
+
+      {/* STORY */}
+      <div className="section">
+        <div className="section-eyebrow">the problem we solve</div>
+        <h2 className="section-title">Booking hotels is broken.</h2>
+        <p className="body-text">You scroll through TikTok, see a creator staying at an incredible hotel, and think — I want to go there. But then what? You screenshot it, try to find the hotel name in the comments, Google it, end up on a review site with 4,000 anonymous opinions, lose confidence, and book somewhere generic instead.</p>
+        <p className="body-text">The recommendation was right there. The trust was already there. The only thing missing was a way to book it directly.</p>
+        <p className="body-text">That's why we built GoThereNow.</p>
+      </div>
+
+      {/* MISSION */}
+      <div className="mission-grid">
+        <div className="mission-text">
+          <div className="section-eyebrow">our mission</div>
+          <h2 className="section-title">Make every great hotel recommendation bookable.</h2>
+          <p className="body-text">We give every creator a personal hotel map — a live, bookable profile of every place they've stayed. Followers discover it, explore it, and book directly. No searching, no second-guessing.</p>
+          <p className="body-text">And when a follower books, the creator earns. Travel content finally has a business model that makes sense.</p>
+        </div>
+        <div className="mission-visual">
+          <div className="mission-quote">"The best hotel recommendation is from someone whose taste you already trust."</div>
+          <div className="mission-attr">— GoThereNow</div>
+        </div>
+      </div>
+
+      {/* VALUES */}
+      <div className="section">
+        <div className="section-eyebrow">what we believe</div>
+        <h2 className="section-title">Our values</h2>
+        <div className="values-grid">
+          <div className="value-card">
+            <div className="value-icon">🤝</div>
+            <div className="value-title">Authentic recommendations only</div>
+            <div className="value-text">Every hotel on GoThereNow was personally stayed at by the creator who recommended it. No paid placements, no fake reviews.</div>
+          </div>
+          <div className="value-card">
+            <div className="value-icon">💰</div>
+            <div className="value-title">Creators deserve to earn</div>
+            <div className="value-text">If your content inspires someone to travel, you should benefit from that. We built the commission model so creators earn passively, forever.</div>
+          </div>
+          <div className="value-card">
+            <div className="value-icon">✈️</div>
+            <div className="value-title">Travel is personal</div>
+            <div className="value-text">Where you stay shapes the whole trip. We want to help people stay somewhere they love, guided by someone they trust.</div>
+          </div>
+        </div>
+      </div>
+
+      {/* CTA */}
+      <div className="cta-strip">
+        <h2 className="cta-title">Join GoThereNow today.</h2>
+        <p className="cta-sub">Whether you travel or create — there is a place for you here.</p>
+        <div className="cta-actions">
+          <Link href="/signup" className="btn-white">Create your profile →</Link>
+          <Link href="/explore" className="btn-outline">Explore stays</Link>
+        </div>
+      </div>
+
+      <footer className="footer">
+        <Link href="/" className="footer-logo">GoThereNow</Link>
+        <div className="footer-links">
+          <Link href="/explore" className="footer-link">Explore</Link>
+          <Link href="/for-creators" className="footer-link">For creators</Link>
+          <Link href="/terms" className="footer-link">Terms</Link>
+          <Link href="/privacy" className="footer-link">Privacy</Link>
+          <a href="mailto:support@gotherenow.app" className="footer-link">Contact</a>
+        </div>
+      </footer>
+
+    </div>
+  )
+}
+
+export async function getServerSideProps() {
+  return { props: {} }
+}
 

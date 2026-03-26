@@ -147,14 +147,22 @@ export default function Explore() {
 
         .empty { text-align: center; padding: 80px 0; color: rgba(26,107,122,0.3); font-size: 14px; }
 
-        @media (max-width: 1024px) { .stays-grid, .creators-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 1024px) { .stays-grid { grid-template-columns: repeat(3, 1fr); } .creators-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 768px) {
-          .page-hero { padding: 80px 24px 32px; }
-          .tabs { padding: 0 24px; }
-          .content { padding: 24px; }
-          .stays-grid, .creators-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+          .page-hero { padding: 80px 20px 24px; }
+          .page-title { font-size: 28px; }
+          .search-bar { max-width: 100%; }
+          .tabs { padding: 0 20px; }
+          .content { padding: 20px; }
+          .stays-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+          .creators-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+          .stay-card-name { font-size: 13px; }
+          .creator-card { padding: 16px; }
         }
-        @media (max-width: 480px) { .stays-grid, .creators-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 480px) {
+          .stays-grid { grid-template-columns: repeat(2, 1fr); }
+          .creators-grid { grid-template-columns: 1fr; }
+        }
       `}</style>
 
       <Nav />

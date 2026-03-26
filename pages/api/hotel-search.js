@@ -1,4 +1,4 @@
-const GOOGLE_API_KEY = 'AIzaSyApckzVwdewschovsR-ck65vg0ERR8Ycmc'
+const GOOGLE_API_KEY = process.env.GOOGLE_PLACES_API_KEY
 
 async function resolvePhotoUrl(photoRef) {
   if (!photoRef) return null

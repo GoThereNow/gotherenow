@@ -5,8 +5,10 @@ import { supabase } from '../lib/supabase'
 export default function Nav() {
   const [user, setUser] = useState(null)
   const [handle, setHandle] = useState(null)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
         setUser(session.user)

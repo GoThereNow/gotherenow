@@ -10,46 +10,51 @@ export default async function handler(req, res) {
   const { email, source = 'homepage' } = req.body
   if (!email || !email.includes('@')) return res.status(400).json({ error: 'Invalid email' })
 
-  const results = { supabase: false, mailchimp: false }
+  const results = { supabase: false, mailchimp: false, mailchimp_error: null }
 
   // 1. Save to Supabase
   try {
     const { error } = await supabase.from('waitlist').insert({ email, source })
     if (!error) results.supabase = true
+    else results.supabase_error = error.message
   } catch (e) {
-    console.error('Supabase error:', e)
+    results.supabase_error = e.message
   }
 
   // 2. Add to Mailchimp
   try {
-    const response = await fetch(
-      `https://${MAILCHIMP_DC}.api.mailchimp.com/3.0/lists/${MAILCHIMP_AUDIENCE_ID}/members`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Basic ${Buffer.from(`anystring:${MAILCHIMP_API_KEY}`).toString('base64')}`,
-        },
-        body: JSON.stringify({
-          email_address: email,
-          status: 'subscribed',
-          tags: [source],
-        }),
-      }
-    )
+    const url = `https://${MAILCHIMP_DC}.api.mailchimp.com/3.0/lists/${MAILCHIMP_AUDIENCE_ID}/members`
+    console.log('Mailchimp URL:', url)
+    console.log('Mailchimp DC:', MAILCHIMP_DC)
+    console.log('Audience ID:', MAILCHIMP_AUDIENCE_ID)
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${Buffer.from(`anystring:${MAILCHIMP_API_KEY}`).toString('base64')}`,
+      },
+      body: JSON.stringify({
+        email_address: email,
+        status: 'subscribed',
+        tags: [source],
+      }),
+    })
     const data = await response.json()
+    console.log('Mailchimp response:', JSON.stringify(data))
+
     if (data.id || data.status === 'subscribed') results.mailchimp = true
-    // If already subscribed, that's fine too
     if (data.title === 'Member Exists') results.mailchimp = true
+    if (!results.mailchimp) results.mailchimp_error = data.detail || data.title || 'Unknown error'
   } catch (e) {
-    console.error('Mailchimp error:', e)
+    results.mailchimp_error = e.message
   }
 
-  if (results.supabase || results.mailchimp) {
-    return res.status(200).json({ success: true, message: "You're on the list!" })
-  }
-
-  return res.status(500).json({ error: 'Failed to save email' })
+  return res.status(200).json({ 
+    success: true, 
+    message: "You're on the list!",
+    debug: results 
+  })
 }
 
 export const config = { api: { bodyParser: true } }

@@ -502,12 +502,18 @@ export default function ProfilePage() {
         .footer-text { font-size: 12px; color: rgba(26,107,122,0.35); }
 
         @media (max-width: 768px) {
-          .profile-hero { padding: 80px 24px 16px; flex-direction: column; align-items: flex-start; gap: 16px; }
-          .profile-actions { align-self: flex-start; flex-direction: row; }
-          .tabs { padding: 0 24px; }
-          .content { padding: 24px; }
+          .profile-hero { padding: 80px 20px 16px; flex-direction: column; align-items: flex-start; gap: 14px; }
+          .profile-actions { align-self: flex-start; flex-direction: row; flex-wrap: wrap; }
+          .tabs { padding: 0 20px; }
+          .tab-btn { padding: 14px 16px; font-size: 10px; }
+          .content { padding: 20px; }
+          .hotels-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+          .profile-stats { gap: 16px; }
+          .map-container { aspect-ratio: 4/3; }
+        }
+        @media (max-width: 480px) {
           .hotels-grid { grid-template-columns: 1fr; }
-          .profile-stats { gap: 20px; }
+          .profile-name { font-size: 22px; }
         }
       `}</style>
 
@@ -556,8 +562,8 @@ export default function ProfilePage() {
 
       <div className="content">
         {/* MAP TAB */}
-        <div style={{ display: activeTab === 'map' ? 'flex' : 'none', gap: '32px', alignItems: 'flex-start' }}>
-          <div style={{ width: '55%', flexShrink: 0 }}>
+        <div style={{ display: activeTab === 'map' ? 'flex' : 'none', gap: '24px', alignItems: 'flex-start', flexDirection: 'column' }}>
+          <div style={{ width: '100%', flexShrink: 0 }}>
             <div className="map-container" ref={mapContainer} />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>

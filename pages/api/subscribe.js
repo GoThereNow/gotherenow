@@ -1,8 +1,8 @@
 import { supabase } from '../../lib/supabase'
 
-const MAILCHIMP_API_KEY = 'eae2cd5cc08cff064997d2f634ffea8d-us11'
-const MAILCHIMP_AUDIENCE_ID = '1d56f8962a'
-const MAILCHIMP_DC = 'us11' // datacenter from API key suffix
+const MAILCHIMP_API_KEY = process.env.MAILCHIMP_API_KEY
+const MAILCHIMP_AUDIENCE_ID = process.env.MAILCHIMP_AUDIENCE_ID
+const MAILCHIMP_DC = MAILCHIMP_API_KEY?.split('-')[1] || 'us11'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
@@ -53,4 +53,3 @@ export default async function handler(req, res) {
 }
 
 export const config = { api: { bodyParser: true } }
-

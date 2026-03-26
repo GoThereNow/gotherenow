@@ -72,7 +72,8 @@ export default function Login() {
         @media (max-width: 768px) {
           .split { grid-template-columns: 1fr; }
           .photo-side { display: none; }
-          .form-side { padding: 40px 24px; min-height: 100vh; }
+          .form-side { padding: 40px 20px; min-height: 100vh; height: auto; overflow-y: auto; }
+          .form-title { font-size: 28px; }
         }
       `}</style>
 

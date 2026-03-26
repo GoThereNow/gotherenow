@@ -330,9 +330,10 @@ export default function Home() {
         <Link href="/" className="footer-logo">GoThereNow</Link>
         <div className="footer-links">
           <Link href="/explore" className="footer-link">Explore</Link>
-          <Link href="/feed" className="footer-link">Feed</Link>
-          <Link href="/signup" className="footer-link">Join</Link>
-          <Link href="/login" className="footer-link">Sign in</Link>
+          <Link href="/for-creators" className="footer-link">For creators</Link>
+          <Link href="/about" className="footer-link">About</Link>
+          <Link href="/terms" className="footer-link">Terms</Link>
+          <Link href="/privacy" className="footer-link">Privacy</Link>
         </div>
         <div className="footer-copy">© 2026 GoThereNow</div>
       </footer>

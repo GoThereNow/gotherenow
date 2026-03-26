@@ -107,6 +107,7 @@ export default function Login() {
               <button type="submit" disabled={loading} className="btn">
                 {loading ? 'Signing in...' : 'Sign in →'}
               </button>
+              <div style={{textAlign:'right', marginTop:'8px'}}><Link href="/forgot-password" style={{fontSize:'12px', color:'rgba(255,255,255,0.4)', textDecoration:'none'}}>Forgot password?</Link></div>
             </form>
             <div className="divider"><span>or</span></div>
             <p className="switch">Don't have an account?{' '}<Link href="/signup" className="switch-link">Sign up free</Link></p>

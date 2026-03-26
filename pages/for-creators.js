@@ -171,7 +171,7 @@ export default function ForCreators() {
             { icon: '📸', title: 'Auto photo fill', text: 'We pull hotel photos automatically from Google Places so your profile always looks stunning.' },
             { icon: '🏨', title: 'Nearby hotels', text: 'Even if followers want something different, nearby hotels are shown — and you still earn commission.' },
             { icon: '❤️', title: 'Social features', text: 'Followers can like, comment, and follow you — building your audience directly on GoThereNow.' },
-            { icon: '📊', title: 'Analytics', text: 'See how many clicks and bookings your hotels generate. Know what's working.' },
+            { icon: '📊', title: 'Analytics', text: 'See how many clicks and bookings your hotels generate. Know what&#39;s working.' },
             { icon: '💸', title: 'Monthly payouts', text: 'Commission is tracked automatically and paid out monthly. No invoicing, no chasing.' },
           ].map((f, i) => (
             <div key={i} className="feature">
@@ -240,4 +240,3 @@ export default function ForCreators() {
 export async function getServerSideProps() {
   return { props: {} }
 }
-

@@ -296,7 +296,7 @@ useEffect(() => {
       <div className="cta">
         <h2 className="cta-title">Share where you've been.<br />Earn when they book.</h2>
         <p className="cta-sub">Add your hotels. Share your page. Earn commission every time a follower books.</p>
-        <form action="https://app.us11.list-manage.com/subscribe/post?u=9164551af33718a20f0b5d2cd&amp;id=1d56f8962a&amp;f_id=00b293e0f0" method="post" target="_blank" className="cta-form">
+        <form action="https://app.us11.list-manage.com/subscribe/post?u=9164551af33718a20f0b5d2cd&id=1d56f8962a&f_id=00b293e0f0" method="post" target="_blank" className="cta-form">
           <input className="cta-input" placeholder="your@email.com" type="email" name="EMAIL" required />
           <div style={{position:'absolute', left:'-5000px'}} aria-hidden="true">
             <input type="text" name="b_9164551af33718a20f0b5d2cd_1d56f8962a" tabIndex="-1" defaultValue="" />

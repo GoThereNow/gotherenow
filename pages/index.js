@@ -17,25 +17,8 @@ export default function Home() {
   const [creators, setCreators] = useState([])
   const [loading, setLoading] = useState(true)
   const [email, setEmail] = useState('')
-  const [subscribed, setSubscribed] = useState(false)
-  const [subscribing, setSubscribing] = useState(false)
 
-  const handleSubscribe = async (e) => {
-    e.preventDefault()
-    if (!email || !email.includes('@')) return
-    setSubscribing(true)
-    try {
-      const res = await fetch('/api/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, source: 'homepage' })
-      })
-      if (res.ok) setSubscribed(true)
-    } catch (e) {}
-    setSubscribing(false)
-  }
-
-  useEffect(() => {
+useEffect(() => {
     async function fetchData() {
       const { data: recs } = await supabase
         .from('recommendations')
@@ -313,16 +296,13 @@ export default function Home() {
       <div className="cta">
         <h2 className="cta-title">Share where you've been.<br />Earn when they book.</h2>
         <p className="cta-sub">Add your hotels. Share your page. Earn commission every time a follower books.</p>
-        {subscribed ? (
-          <div style={{color:'white', fontSize:'16px', fontWeight:600}}>✓ You're on the list! We'll be in touch.</div>
-        ) : (
-          <form onSubmit={handleSubscribe} className="cta-form">
-            <input className="cta-input" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} type="email" required />
-            <button type="submit" className="cta-btn" disabled={subscribing}>
-              {subscribing ? 'Saving...' : 'Get started →'}
-            </button>
-          </form>
-        )}
+        <form action="https://app.us11.list-manage.com/subscribe/post?u=9164551af33718a20f0b5d2cd&amp;id=1d56f8962a&amp;f_id=00b293e0f0" method="post" target="_blank" className="cta-form">
+          <input className="cta-input" placeholder="your@email.com" type="email" name="EMAIL" required />
+          <div style={{position:'absolute', left:'-5000px'}} aria-hidden="true">
+            <input type="text" name="b_9164551af33718a20f0b5d2cd_1d56f8962a" tabIndex="-1" defaultValue="" />
+          </div>
+          <button type="submit" className="cta-btn">Get started →</button>
+        </form>
       </div>
 
       {/* FOOTER */}

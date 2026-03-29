@@ -9,17 +9,7 @@ export default function ForCreators() {
   const [email, setEmail] = useState('')
   const [subscribed, setSubscribed] = useState(false)
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    try {
-      await fetch('/api/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, source: 'for-creators' })
-      })
-      setSubscribed(true)
-    } catch (e) {}
-  }
+  const handleSubmit = null
 
   return (
     <div style={{ background: '#f7f5f2', minHeight: '100vh', fontFamily: 'DM Sans, sans-serif' }}>
@@ -210,14 +200,13 @@ export default function ForCreators() {
       <div className="cta">
         <h2 className="cta-title">Ready to turn your travels into income?</h2>
         <p className="cta-sub">Join GoThereNow free. No credit card required.</p>
-        {subscribed ? (
-          <div style={{color:'white', fontSize:'16px', fontWeight:600}}>✓ You're on the list! We'll be in touch.</div>
-        ) : (
-          <form onSubmit={handleSubmit} className="cta-form">
-            <input className="cta-input" type="email" required placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} />
-            <button type="submit" className="cta-btn">Get started →</button>
-          </form>
-        )}
+        <form action="https://app.us11.list-manage.com/subscribe/post?u=9164551af33718a20f0b5d2cd&amp;id=1d56f8962a&amp;f_id=00b293e0f0" method="post" target="_blank" className="cta-form">
+          <input className="cta-input" placeholder="your@email.com" type="email" name="EMAIL" required />
+          <div style={{position:'absolute', left:'-5000px'}} aria-hidden="true">
+            <input type="text" name="b_9164551af33718a20f0b5d2cd_1d56f8962a" tabIndex="-1" defaultValue="" />
+          </div>
+          <button type="submit" className="cta-btn">Get started →</button>
+        </form>
         <div style={{marginTop:'20px'}}>
           <Link href="/signup" style={{color:'rgba(255,255,255,0.5)', fontSize:'13px', textDecoration:'none'}}>Or create your account now →</Link>
         </div>

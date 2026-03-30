@@ -512,6 +512,8 @@ export default function ProfilePage() {
           .hotels-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
           .profile-stats { gap: 16px; }
           .map-container { aspect-ratio: 4/3; }
+          .map-split { flex-direction: column !important; }
+          .map-split > div:first-child { width: 100% !important; }
         }
         @media (max-width: 480px) {
           .hotels-grid { grid-template-columns: 1fr; }
@@ -583,11 +585,11 @@ export default function ProfilePage() {
 
       <div className="content">
         {/* MAP TAB */}
-        <div style={{ display: activeTab === 'map' ? 'flex' : 'none', gap: '24px', alignItems: 'flex-start', flexDirection: 'column' }}>
-          <div style={{ width: '100%', flexShrink: 0 }}>
+        <div style={{ display: activeTab === 'map' ? 'flex' : 'none', gap: '24px', alignItems: 'flex-start' }}>
+          <div style={{ width: '50%', flexShrink: 0 }}>
             <div className="map-container" ref={mapContainer} />
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ flex: 1, minWidth: 0, maxHeight: '500px', overflowY: 'auto' }}>
             <div className="section-eyebrow">recent stays</div>
             <h2 className="section-title" style={{fontSize:'18px', marginBottom:'14px'}}>{profile?.full_name?.split(' ')[0]}'s stays</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>

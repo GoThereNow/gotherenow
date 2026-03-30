@@ -216,6 +216,7 @@ export default function Explore() {
                     {!stay.photo_url && (
                       <>
                         <div className="stay-card-name-dark">{stay.hotel_name}</div>
+                        {stay.star_rating > 0 && <div style={{fontSize:'12px', color:'#b5654a', marginBottom:'4px', letterSpacing:'1px'}}>{'★'.repeat(stay.star_rating)}</div>}
                         <div className="stay-card-loc-body">📍 {[stay.city, stay.country].filter(Boolean).join(', ')}</div>
                       </>
                     )}

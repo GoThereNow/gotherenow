@@ -434,7 +434,7 @@ export default function ProfilePage() {
         .section-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: #1a6b7a; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
 
         .hotels-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-        .hotel-card-wrap { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(26,107,122,0.08); border: 1px solid rgba(26,107,122,0.08); }
+        .hotel-card-wrap { background: white; border-radius: 16px; overflow: visible; box-shadow: 0 4px 20px rgba(26,107,122,0.08); border: 1px solid rgba(26,107,122,0.08); position: relative; }
         .hotel-card { position: relative; overflow: hidden; cursor: pointer; aspect-ratio: 4/3; }
         .hotel-card-bg { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
         .hotel-card:hover .hotel-card-bg { transform: scale(1.06); }
@@ -447,7 +447,7 @@ export default function ProfilePage() {
         .hotel-card-name-dark { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; color: #1a6b7a; margin-bottom: 8px; }
         .hotel-card-book { background: #b5654a; color: white; padding: 6px 14px; font-size: 11px; font-weight: 700; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; border-radius: 6px; }
         .hotel-card-latest { position: absolute; top: 12px; left: 12px; background: white; color: #1a6b7a; font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 4px 10px; border-radius: 4px; z-index: 2; }
-        .owner-actions { position: absolute; top: 12px; right: 12px; display: flex; gap: 6px; z-index: 2; opacity: 1 !important; }
+        .owner-actions { position: absolute; top: 12px; right: 12px; display: flex; gap: 6px; z-index: 10; }
         .owner-btn { background: white; color: #1a6b7a; border: none; border-radius: 6px; padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer; font-family: 'DM Sans', sans-serif; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
 
         .card-actions { display: flex; align-items: center; gap: 16px; padding: 10px 14px 6px; }
@@ -631,13 +631,13 @@ export default function ProfilePage() {
               <div className="hotels-grid">
                 {recommendations.map((rec, i) => (
                   <div key={rec.id} className="hotel-card-wrap">
+                    {i === 0 && <div className="hotel-card-latest">Latest</div>}
+                    {isOwner && (
+                      <div className="owner-actions">
+                        <button className="owner-btn" onClick={e => { e.stopPropagation(); openEdit(rec) }}>Edit</button>
+                      </div>
+                    )}
                     <div className="hotel-card" onClick={() => { setSelectedHotel(rec); setShowModal(true) }}>
-                      {i === 0 && <div className="hotel-card-latest">Latest</div>}
-                      {isOwner && (
-                        <div className="owner-actions">
-                          <button className="owner-btn" onClick={e => { e.stopPropagation(); openEdit(rec) }}>Edit</button>
-                        </div>
-                      )}
                       {rec.photo_url ? (
                         <>
                           <img src={rec.photo_url} alt={rec.hotel_name} className="hotel-card-bg" />

@@ -180,9 +180,10 @@ export default function Feed() {
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #f7f5f2; font-family: 'DM Sans', sans-serif; }
 
+        .feed-map-container { border-radius: 16px; overflow: hidden; border: 1px solid rgba(26,107,122,0.15); aspect-ratio: 2/1.4; box-shadow: 0 4px 20px rgba(26,107,122,0.1); }
         .hover-popup { z-index: 999 !important; }
         .hover-popup .mapboxgl-popup-content { z-index: 999 !important; padding: 0; border-radius: 10px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
-        .feed-layout { max-width: 100%; margin: 0; padding: 0 0 60px; }
+        .feed-layout { max-width: 100%; margin: 0; padding: 0; }
         .feed-header { margin-bottom: 32px; }
         .feed-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #b5654a; font-weight: 700; margin-bottom: 6px; }
         .feed-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: #1a6b7a; }
@@ -251,14 +252,13 @@ export default function Feed() {
 
       <Nav />
 
-      <div style={{maxWidth:'1400px', margin:'0 auto', padding:'100px 40px 40px', display:'flex', gap:'32px', alignItems:'flex-start'}}>
-        <div style={{width:'420px', flexShrink:0, position:'sticky', top:'80px'}}>
-          <div style={{borderRadius:'16px', overflow:'hidden', border:'1px solid rgba(26,107,122,0.15)', height:'calc(100vh - 120px)', boxShadow:'0 4px 20px rgba(26,107,122,0.1)'}}>
-            <div ref={mapContainer} style={{width:'100%', height:'100%'}} />
+      <div style={{padding:'100px 56px 60px'}}>
+        <div style={{display:'flex', gap:'24px', alignItems:'flex-start'}}>
+          <div style={{width:'50%', flexShrink:0}}>
+            <div className="feed-map-container" ref={mapContainer} />
           </div>
-        </div>
-        <div style={{flex:1, minWidth:0}}>
-      <div className="feed-layout" style={{paddingTop:'0', maxWidth:'100%'}}>
+          <div style={{flex:1, minWidth:0}}>
+      <div className="feed-layout">
         <div className="feed-header">
           <div className="feed-eyebrow">your feed</div>
           <h1 className="feed-title">Stays from people you follow</h1>
@@ -362,6 +362,7 @@ export default function Feed() {
           </div>
         )}
       </div>
+          </div>
         </div>
       </div>
 

@@ -190,7 +190,8 @@ export default function AdminDashboard() {
       <div style={{ background: '#FAF7F2', borderBottom: '1px solid rgba(28,20,16,0.08)', padding: '16px 24px' }}>
         <div style={{ maxWidth: '1152px', margin: '0 auto', display: 'flex', gap: '32px', flexWrap: 'wrap' }}>
           {[
-            { num: influencers.length, label: 'Creators', icon: '✈️' },
+            { num: influencers.filter(function(i) { return i.creator_application_submitted && !i.approved }).length, label: 'Pending Applications', icon: '📋' },
+              { num: influencers.filter(function(i) { return i.approved }).length, label: 'Approved Creators', icon: '✦' },
             { num: recommendations.length, label: 'Hotels', icon: '🏨' },
             { num: monthlyClicks.length, label: 'Clicks This Month', icon: '👆' },
             { num: monthlyClicks.filter(function(c) { return c.is_direct }).length, label: 'Direct Clicks', icon: '💰' },
@@ -441,7 +442,3 @@ export default function AdminDashboard() {
     </>
   )
 }
-export async function getServerSideProps() {
-  return { props: {} }
-}
-

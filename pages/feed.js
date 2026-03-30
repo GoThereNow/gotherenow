@@ -180,6 +180,8 @@ export default function Feed() {
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #f7f5f2; font-family: 'DM Sans', sans-serif; }
 
+        .section-eyebrow { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #b5654a; font-weight: 700; margin-bottom: 6px; }
+        .section-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: #1a6b7a; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
         .feed-map-container { border-radius: 16px; overflow: hidden; border: 1px solid rgba(26,107,122,0.15); aspect-ratio: 2/1.4; box-shadow: 0 4px 20px rgba(26,107,122,0.1); }
         @media (max-width: 768px) { .feed-content { padding: 80px 20px 40px; } .feed-map-container { aspect-ratio: 4/3; } }
         .hover-popup { z-index: 999 !important; }
@@ -283,6 +285,8 @@ export default function Feed() {
             <Link href="/explore" className="explore-btn">Discover more creators →</Link>
           </div>
         ) : (
+          <div className="section-eyebrow">from people you follow</div>
+          <h2 className="section-title" style={{fontSize:'18px', marginBottom:'14px'}}>Recent stays</h2>
           <div className="feed-grid">
           {stays.map(stay => (
             <div key={stay.id} onClick={() => { setSelectedHotel(stay); setShowModal(true) }}

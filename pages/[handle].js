@@ -162,7 +162,12 @@ export default function ProfilePage() {
       if (!rec.latitude || !rec.longitude) return
       const el = document.createElement('div')
       el.style.cssText = 'width:28px;height:28px;background:#1a6b7a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;'
+      const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 15 })
+        .setHTML('<div style="font-family:DM Sans,sans-serif;padding:4px 2px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#b5654a;margin-bottom:2px">' + [rec.city, rec.country].filter(Boolean).join(', ') + '</div><div style="font-size:13px;font-weight:700;color:#1a6b7a">' + rec.hotel_name + '</div></div>')
+      el.addEventListener('mouseenter', () => popup.setLngLat([rec.longitude, rec.latitude]).addTo(map.current))
+      el.addEventListener('mouseleave', () => popup.remove())
       el.addEventListener('click', () => {
+        popup.remove()
         setSelectedHotel(rec)
         setShowModal(true)
         map.current.flyTo({ center: [rec.longitude, rec.latitude], zoom: 13, duration: 800 })

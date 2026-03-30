@@ -220,6 +220,7 @@ export default function Explore() {
                         <div className="stay-card-loc-body">📍 {[stay.city, stay.country].filter(Boolean).join(', ')}</div>
                       </>
                     )}
+                    {stay.photo_url && stay.star_rating > 0 && <div style={{fontSize:'12px', color:'#b5654a', marginBottom:'6px', letterSpacing:'1px'}}>{'★'.repeat(stay.star_rating)}</div>}
                     <div className="stay-card-creator">
                       <div className="creator-avatar-sm">
                         {stay.influencers?.profiles?.avatar_url

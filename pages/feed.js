@@ -188,8 +188,8 @@ export default function Feed() {
         .feed-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #b5654a; font-weight: 700; margin-bottom: 6px; }
         .feed-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: #1a6b7a; }
 
-        .feed-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-        .feed-card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 20px rgba(26,107,122,0.08); border: 1px solid rgba(26,107,122,0.06); }
+        .feed-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+        .feed-card { background: white; border-radius: 16px; overflow: visible; box-shadow: 0 4px 20px rgba(26,107,122,0.08); border: 1px solid rgba(26,107,122,0.08); position: relative; }
 
         .feed-card-header { display: flex; align-items: center; gap: 12px; padding: 14px 16px; }
         .feed-avatar { width: 38px; height: 38px; border-radius: 50%; background: rgba(26,107,122,0.08); border: 2px solid #1a6b7a; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
@@ -230,8 +230,8 @@ export default function Feed() {
         .feed-comment-input::placeholder { color: rgba(26,107,122,0.3); }
         .feed-comment-submit { background: #1a6b7a; color: white; border: none; border-radius: 100px; padding: 9px 18px; font-size: 12px; font-weight: 700; cursor: pointer; }
 
-        @media (max-width: 900px) { .feed-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 600px) { .feed-grid { grid-template-columns: repeat(2, 1fr); } .feed-layout { padding: 80px 16px 40px; } }
+        @media (max-width: 768px) { .feed-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; } }
+        @media (max-width: 480px) { .feed-grid { grid-template-columns: 1fr; } }
         .empty-state { text-align: center; padding: 80px 0; }
         .empty-icon { font-size: 48px; margin-bottom: 16px; }
         .empty-title { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: #1a6b7a; margin-bottom: 8px; }

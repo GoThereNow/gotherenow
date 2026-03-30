@@ -608,7 +608,8 @@ export default function ProfilePage() {
                 >
                   {rec.photo_url && <img src={rec.photo_url} alt={rec.hotel_name} style={{width:'100%', height:'80px', objectFit:'cover', borderRadius:'8px', marginBottom:'8px'}} />}
                   <div style={{ fontSize:'9px', letterSpacing:'2px', textTransform:'uppercase', color:'#b5654a', marginBottom:'3px' }}>📍 {[rec.city, rec.country].filter(Boolean).join(', ')}</div>
-                  <div style={{ fontFamily:'Playfair Display, serif', fontSize:'14px', fontWeight:600, color:'#1a6b7a', marginBottom:'6px' }}>{rec.hotel_name}</div>
+                  <div style={{ fontFamily:'Playfair Display, serif', fontSize:'14px', fontWeight:600, color:'#1a6b7a', marginBottom:'4px' }}>{rec.hotel_name}</div>
+                  {rec.star_rating > 0 && <div style={{fontSize:'11px', color:'#b5654a', marginBottom:'4px'}}>{'★'.repeat(rec.star_rating)}{'☆'.repeat(5-rec.star_rating)}</div>}
                   <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
                     <button onClick={e => { e.stopPropagation(); toggleLike(rec.id) }} style={{background:'none', border:'none', cursor:'pointer', fontSize:'12px', color: userLikes[rec.id] ? '#e05c7a' : 'rgba(26,107,122,0.5)', fontWeight:600, padding:0}}>
                       {userLikes[rec.id] ? '❤️' : '🤍'} {likes[rec.id] || ''}
@@ -648,6 +649,7 @@ export default function ProfilePage() {
                           <div className="hotel-card-info">
                             <div className="hotel-card-loc">📍 {[rec.city, rec.country].filter(Boolean).join(', ')}</div>
                             <div className="hotel-card-name">{rec.hotel_name}</div>
+                            {rec.star_rating > 0 && <div style={{fontSize:'11px', color:'rgba(255,255,255,0.8)', marginBottom:'6px', letterSpacing:'1px'}}>{'★'.repeat(rec.star_rating)}</div>}
                             <button className="hotel-card-book" onClick={e => { e.stopPropagation(); setSelectedHotel(rec); setShowModal(true) }}>Book Now →</button>
                           </div>
                         </>

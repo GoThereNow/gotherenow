@@ -492,6 +492,9 @@ export default function ProfilePage() {
         .autocomplete-item:hover { background: rgba(26,107,122,0.04); }
         .autocomplete-name { font-size: 13px; color: #1a6b7a; font-weight: 600; margin-bottom: 2px; }
         .autocomplete-sub { font-size: 11px; color: rgba(26,107,122,0.45); }
+        .rating-row { display: flex; gap: 6px; }
+        .rating-btn { flex: 1; padding: 8px 0; font-size: 13px; font-weight: 700; cursor: pointer; border: 1px solid rgba(26,107,122,0.15); background: white; color: rgba(26,107,122,0.4); font-family: 'DM Sans', sans-serif; border-radius: 8px; transition: all 0.2s; }
+        .rating-btn.active { background: #1a6b7a; color: white; border-color: #1a6b7a; }
         .save-btn { background: #b5654a; color: white; padding: 13px; width: 100%; border: none; cursor: pointer; border-radius: 100px; font-family: 'Playfair Display', serif; font-size: 14px; font-weight: 700; margin-top: 4px; }
         .save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
@@ -775,6 +778,17 @@ export default function ProfilePage() {
                   </span>
                   {form.photo_url && <span style={{fontSize:'11px', color:'rgba(26,107,122,0.5)'}}>✓ Photo set</span>}
                 </label>
+              </div>
+              <div>
+                <label className="field-label">Your rating</label>
+                <div className="rating-row">
+                  {[1,2,3,4,5].map(n => (
+                    <button key={n} type="button" className={`rating-btn${form.personal_rating === String(n) ? ' active' : ''}`}
+                      onClick={() => setForm({...form, personal_rating: String(n)})}>
+                      {'★'.repeat(n)}
+                    </button>
+                  ))}
+                </div>
               </div>
               <button type="submit" disabled={saving} className="save-btn">{saving ? 'Saving...' : editRec ? 'Save changes' : 'Add Stay'}</button>
             </form>

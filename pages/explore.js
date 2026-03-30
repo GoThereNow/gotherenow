@@ -41,7 +41,19 @@ export default function Explore() {
         .select('*, profiles(full_name, avatar_url, bio)')
         .eq('approved', true)
         .order('created_at', { ascending: false })
-      setCreators(infs || [])
+
+      if (infs && infs.length > 0) {
+        // Fetch real follower counts
+        const { data: followCounts } = await supabase
+          .from('follows')
+          .select('influencer_id')
+          .in('influencer_id', infs.map(i => i.id))
+        const counts = {}
+        followCounts?.forEach(f => { counts[f.influencer_id] = (counts[f.influencer_id] || 0) + 1 })
+        setCreators(infs.map(inf => ({ ...inf, real_follower_count: counts[inf.id] || 0 })))
+      } else {
+        setCreators([])
+      }
 
       // Fetch likes
       if (recs?.length > 0) {
@@ -258,7 +270,7 @@ export default function Explore() {
                   <div className="creator-handle">@{creator.handle}</div>
                   {creator.profiles?.bio && <div className="creator-bio">{creator.profiles.bio}</div>}
                   <div className="creator-stats">
-                    <div className="creator-stat"><strong>{creator.follower_count || 0}</strong>Followers</div>
+                    <div className="creator-stat"><strong>{creator.real_follower_count || 0}</strong>Followers</div>
                   </div>
                 </Link>
               ))}

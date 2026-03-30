@@ -285,6 +285,7 @@ export default function Feed() {
             <Link href="/explore" className="explore-btn">Discover more creators →</Link>
           </div>
         ) : (
+          <div>
           <div className="section-eyebrow">from people you follow</div>
           <h2 className="section-title" style={{fontSize:'18px', marginBottom:'14px'}}>Recent stays</h2>
           <div className="feed-grid">

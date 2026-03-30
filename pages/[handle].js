@@ -164,9 +164,13 @@ export default function ProfilePage() {
       el.style.cssText = 'width:28px;height:28px;background:#1a6b7a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;'
       const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 15 })
         .setHTML(
-          '<div style="font-family:DM Sans,sans-serif;width:200px;border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.15);">' +
-          (rec.photo_url ? '<div style="width:100%;height:110px;background:url(' + rec.photo_url + ') center/cover;position:relative;"><div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(10,40,50,0.7) 0%,transparent 60%);"></div><div style="position:absolute;bottom:8px;left:10px;right:10px;"><div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,0.7);margin-bottom:2px">' + [rec.city, rec.country].filter(Boolean).join(', ') + '</div><div style="font-size:13px;font-weight:700;color:white">' + rec.hotel_name + '</div>' + (rec.star_rating ? '<div style="font-size:11px;color:#b5654a;margin-top:2px">' + '★'.repeat(rec.star_rating) + '</div>' : '') + '</div></div>' : '<div style="padding:10px 12px;"><div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#b5654a;margin-bottom:2px">' + [rec.city, rec.country].filter(Boolean).join(', ') + '</div><div style="font-size:13px;font-weight:700;color:#1a6b7a;margin-bottom:4px">' + rec.hotel_name + '</div>' + (rec.star_rating ? '<div style="font-size:11px;color:#b5654a">' + '★'.repeat(rec.star_rating) + '</div>' : '') + '</div>') +
-          '</div>'
+          '<div style="font-family:DM Sans,sans-serif;width:220px;border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.15);display:flex;">' +
+          (rec.photo_url ? '<div style="width:80px;flex-shrink:0;background:url(' + rec.photo_url + ') center/cover;"></div>' : '') +
+          '<div style="padding:10px 12px;background:white;flex:1;">' +
+          '<div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#b5654a;margin-bottom:3px">' + [rec.city, rec.country].filter(Boolean).join(', ') + '</div>' +
+          '<div style="font-size:13px;font-weight:700;color:#1a6b7a;margin-bottom:4px;line-height:1.3">' + rec.hotel_name + '</div>' +
+          (rec.star_rating ? '<div style="font-size:12px;color:#b5654a">' + '★'.repeat(rec.star_rating) + '</div>' : '') +
+          '</div></div>'
         )
       el.addEventListener('mouseenter', () => popup.setLngLat([rec.longitude, rec.latitude]).addTo(map.current))
       el.addEventListener('mouseleave', () => popup.remove())

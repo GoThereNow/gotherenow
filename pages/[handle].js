@@ -31,6 +31,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [currentUser, setCurrentUser] = useState(null)
   const [isOwner, setIsOwner] = useState(false)
+  const [followerCount, setFollowerCount] = useState(0)
   const [isApprovedCreator, setIsApprovedCreator] = useState(false)
   const [activeTab, setActiveTab] = useState('map')
 
@@ -113,6 +114,13 @@ export default function ProfilePage() {
         })
         setComments(commentMap)
       }
+
+      // Real follower count
+      const { count } = await supabase
+        .from('follows')
+        .select('id', { count: 'exact', head: true })
+        .eq('influencer_id', inf.id)
+      setFollowerCount(count || 0)
 
       if (user && inf) {
         const { data: followData } = await supabase
@@ -265,9 +273,11 @@ export default function ProfilePage() {
     if (isFollowing) {
       await supabase.from('follows').delete().eq('follower_id', currentUser.id).eq('influencer_id', influencer.id)
       setIsFollowing(false)
+      setFollowerCount(prev => Math.max(0, prev - 1))
     } else {
       await supabase.from('follows').insert({ follower_id: currentUser.id, influencer_id: influencer.id })
       setIsFollowing(true)
+      setFollowerCount(prev => prev + 1)
     }
   }
 
@@ -550,7 +560,7 @@ export default function ProfilePage() {
           <div className="profile-stats">
             <div><div className="stat-num">{recommendations.length}</div><div className="stat-label">Stays</div></div>
             <div><div className="stat-num">{new Set(recommendations.map(r => r.country)).size}</div><div className="stat-label">Countries</div></div>
-            {influencer.follower_count > 0 && <div><div className="stat-num">{(influencer.follower_count/1000).toFixed(0)}k</div><div className="stat-label">Followers</div></div>}
+            <div><div className="stat-num">{followerCount}</div><div className="stat-label">Followers</div></div>
           </div>
         </div>
         <div className="profile-actions">

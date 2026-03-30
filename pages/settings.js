@@ -67,10 +67,10 @@ export default function Settings() {
     const ext = file.name.split('.').pop()
     const filename = `avatar-${currentUser.id}.${ext}`
     const { error } = await supabase.storage
-      .from('hotel-photos')
+      .from('avatars')
       .upload(filename, file, { contentType: file.type, upsert: true })
     if (error) { alert('Upload failed: ' + error.message); setUploading(false); return }
-    const { data: urlData } = supabase.storage.from('hotel-photos').getPublicUrl(filename)
+    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(filename)
     setForm(f => ({ ...f, avatar_url: urlData.publicUrl }))
     setUploading(false)
   }
@@ -263,4 +263,3 @@ export default function Settings() {
 export async function getServerSideProps() {
   return { props: {} }
 }
-

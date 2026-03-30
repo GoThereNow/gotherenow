@@ -446,10 +446,9 @@ export default function ProfilePage() {
         .hotel-card-name { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; color: white; margin-bottom: 8px; }
         .hotel-card-name-dark { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; color: #1a6b7a; margin-bottom: 8px; }
         .hotel-card-book { background: #b5654a; color: white; padding: 6px 14px; font-size: 11px; font-weight: 700; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; border-radius: 6px; }
-        .hotel-card-latest { position: absolute; top: 12px; left: 12px; background: white; color: #1a6b7a; font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 4px 10px; border-radius: 4px; }
-        .owner-actions { position: absolute; top: 12px; right: 12px; display: flex; gap: 6px; }
-        .owner-btn { background: white; color: #1a6b7a; border: none; border-radius: 6px; padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer; font-family: 'DM Sans', sans-serif; }
-        .owner-btn.del { color: rgba(200,50,50,0.8); }
+        .hotel-card-latest { position: absolute; top: 12px; left: 12px; background: white; color: #1a6b7a; font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 4px 10px; border-radius: 4px; z-index: 2; }
+        .owner-actions { position: absolute; top: 12px; right: 12px; display: flex; gap: 6px; z-index: 2; opacity: 1 !important; }
+        .owner-btn { background: white; color: #1a6b7a; border: none; border-radius: 6px; padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer; font-family: 'DM Sans', sans-serif; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
 
         .card-actions { display: flex; align-items: center; gap: 16px; padding: 10px 14px 6px; }
         .like-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 13px; color: rgba(26,107,122,0.6); font-family: 'DM Sans', sans-serif; font-weight: 600; padding: 0; }
@@ -637,7 +636,6 @@ export default function ProfilePage() {
                       {isOwner && (
                         <div className="owner-actions">
                           <button className="owner-btn" onClick={e => { e.stopPropagation(); openEdit(rec) }}>Edit</button>
-                          <button className="owner-btn del" onClick={e => { e.stopPropagation(); setDeleteId(rec.id) }}>✕</button>
                         </div>
                       )}
                       {rec.photo_url ? (

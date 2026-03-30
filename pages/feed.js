@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
@@ -27,6 +27,8 @@ export default function Feed() {
   const [selectedHotel, setSelectedHotel] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [hasFollows, setHasFollows] = useState(false)
+  const mapContainer = useRef(null)
+  const map = useRef(null)
 
   useEffect(() => {
     async function fetchFeed() {
@@ -91,6 +93,58 @@ export default function Feed() {
     fetchFeed()
   }, [])
 
+  // Init map after loading
+  useEffect(() => {
+    if (loading || !stays.length) return
+    if (map.current) return
+    setTimeout(() => {
+      if (!mapContainer.current) return
+      import('mapbox-gl').then(mod => {
+        const mapboxgl = mod.default || mod
+        mapboxgl.accessToken = 'pk.eyJ1IjoiZ290aGVyZW5vdyIsImEiOiJjbWxmYXJpYm0wMzByM2lwcGpzNjl4Ymx5In0.lipvyNXWoQmIDCah_0Ss_w'
+        map.current = new mapboxgl.Map({
+          container: mapContainer.current,
+          style: 'mapbox://styles/mapbox/light-v11',
+          center: [15, 20], zoom: 0.65,
+          projection: 'mercator',
+          renderWorldCopies: false,
+          attributionControl: false,
+          cooperativeGestures: true,
+        })
+        map.current.setMinZoom(0.65)
+        map.current.setMaxBounds([[-200, -85], [200, 85]])
+        map.current.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right')
+        map.current.on('load', () => {
+          map.current.resize()
+          stays.forEach(stay => {
+            if (!stay.latitude || !stay.longitude) return
+            const el = document.createElement('div')
+            el.style.cssText = 'width:24px;height:24px;background:#1a6b7a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);'
+            const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 15, className: 'hover-popup' })
+              .setLngLat([stay.longitude, stay.latitude])
+              .setHTML(
+                '<div style="font-family:DM Sans,sans-serif;width:200px;display:flex;border-radius:10px;overflow:hidden;">' +
+                (stay.photo_url ? '<div style="width:70px;flex-shrink:0;background:url(' + stay.photo_url + ') center/cover;"></div>' : '') +
+                '<div style="padding:8px 10px;background:white;flex:1;">' +
+                '<div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#b5654a;margin-bottom:2px">' + ([stay.city, stay.country].filter(Boolean).join(', ')) + '</div>' +
+                '<div style="font-size:12px;font-weight:700;color:#1a6b7a;line-height:1.3">' + stay.hotel_name + '</div>' +
+                (stay.star_rating ? '<div style="font-size:11px;color:#b5654a;margin-top:2px">' + '★'.repeat(stay.star_rating) + '</div>' : '') +
+                '</div></div>'
+              )
+            el.addEventListener('mouseenter', () => popup.addTo(map.current))
+            el.addEventListener('mouseleave', () => popup.remove())
+            el.addEventListener('click', () => {
+              popup.remove()
+              setSelectedHotel(stay)
+              setShowModal(true)
+            })
+            new mapboxgl.Marker(el).setLngLat([stay.longitude, stay.latitude]).addTo(map.current)
+          })
+        })
+      })
+    }, 200)
+  }, [loading, stays])
+
   const toggleLike = async (recId) => {
     const already = userLikes[recId]
     setUserLikes(prev => ({ ...prev, [recId]: !already }))
@@ -118,6 +172,7 @@ export default function Feed() {
     <div style={{ background: '#f7f5f2', minHeight: '100vh', fontFamily: 'DM Sans, sans-serif' }}>
       <Head>
         <title>Your Feed — GoThereNow</title>
+        <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
       </Head>
 
@@ -125,6 +180,8 @@ export default function Feed() {
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #f7f5f2; font-family: 'DM Sans', sans-serif; }
 
+        .hover-popup { z-index: 999 !important; }
+        .hover-popup .mapboxgl-popup-content { z-index: 999 !important; padding: 0; border-radius: 10px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
         .feed-layout { max-width: 1100px; margin: 0 auto; padding: 100px 40px 60px; }
         .feed-header { margin-bottom: 32px; }
         .feed-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #b5654a; font-weight: 700; margin-bottom: 6px; }
@@ -194,7 +251,12 @@ export default function Feed() {
 
       <Nav />
 
-      <div className="feed-layout">
+      <div style={{maxWidth:'1100px', margin:'0 auto', padding:'100px 40px 0'}}>
+        <div style={{borderRadius:'16px', overflow:'hidden', border:'1px solid rgba(26,107,122,0.15)', height:'340px', marginBottom:'32px', boxShadow:'0 4px 20px rgba(26,107,122,0.1)'}}>
+          <div ref={mapContainer} style={{width:'100%', height:'100%'}} />
+        </div>
+      </div>
+      <div className="feed-layout" style={{paddingTop:'0'}}>
         <div className="feed-header">
           <div className="feed-eyebrow">your feed</div>
           <h1 className="feed-title">Stays from people you follow</h1>

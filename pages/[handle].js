@@ -169,8 +169,8 @@ export default function ProfilePage() {
     recommendations.forEach(rec => {
       if (!rec.latitude || !rec.longitude) return
       const el = document.createElement('div')
-      el.style.cssText = 'width:28px;height:28px;background:#1a6b7a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;'
-      const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 15 })
+      el.style.cssText = 'width:28px;height:28px;background:#1a6b7a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;position:relative;'
+      const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 15, className: 'hover-popup' })
         .setHTML(
           '<div style="font-family:DM Sans,sans-serif;width:220px;border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.15);display:flex;">' +
           (rec.photo_url ? '<div style="width:80px;flex-shrink:0;background:url(' + rec.photo_url + ') center/cover;"></div>' : '') +
@@ -446,6 +446,9 @@ export default function ProfilePage() {
         .tab-btn.active { color: #1a6b7a; border-bottom-color: #1a6b7a; }
 
         .content { padding: 32px 56px; }
+        .hover-popup { z-index: 999 !important; }
+        .hover-popup .mapboxgl-popup-content { z-index: 999 !important; padding: 0; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+        .hover-popup .mapboxgl-popup-tip { z-index: 999 !important; }
         .map-container { border-radius: 16px; overflow: hidden; border: 1px solid rgba(26,107,122,0.15); aspect-ratio: 2/1.4; box-shadow: 0 4px 20px rgba(26,107,122,0.1); }
 
         .section-eyebrow { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #b5654a; font-weight: 700; margin-bottom: 6px; }

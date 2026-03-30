@@ -597,7 +597,7 @@ export default function ProfilePage() {
           <div style={{ flex: 1, minWidth: 0, maxHeight: '500px', overflowY: 'auto' }}>
             <div className="section-eyebrow">recent stays</div>
             <h2 className="section-title" style={{fontSize:'18px', marginBottom:'14px'}}>{profile?.full_name?.split(' ')[0]}'s stays</h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
               {recommendations.slice(0, 5).map((rec) => (
                 <div key={rec.id} onClick={() => { setSelectedHotel(rec); setShowModal(true) }}
                   style={{ background:'white', borderRadius:'12px', padding:'12px 14px', cursor:'pointer', border:'1px solid rgba(26,107,122,0.1)', boxShadow:'0 2px 8px rgba(26,107,122,0.06)', transition:'all 0.2s' }}

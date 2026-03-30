@@ -649,7 +649,7 @@ export default function ProfilePage() {
                           <div className="hotel-card-info">
                             <div className="hotel-card-loc">📍 {[rec.city, rec.country].filter(Boolean).join(', ')}</div>
                             <div className="hotel-card-name">{rec.hotel_name}</div>
-                            {rec.star_rating > 0 && <div style={{fontSize:'11px', color:'rgba(255,255,255,0.8)', marginBottom:'6px', letterSpacing:'1px'}}>{'★'.repeat(rec.star_rating)}</div>}
+                            {rec.star_rating > 0 && <div style={{fontSize:'13px', color:'#FFD700', marginBottom:'6px', letterSpacing:'2px', textShadow:'0 1px 3px rgba(0,0,0,0.3)'}}>{'★'.repeat(rec.star_rating)}</div>}
                             <button className="hotel-card-book" onClick={e => { e.stopPropagation(); setSelectedHotel(rec); setShowModal(true) }}>Book Now →</button>
                           </div>
                         </>

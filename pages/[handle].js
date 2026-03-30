@@ -710,6 +710,11 @@ export default function ProfilePage() {
               </div>
             )}
             <div className="modal-body-pad">
+              {selectedHotel.star_rating > 0 && (
+                <div style={{fontSize:'18px', color:'#b5654a', marginBottom:'12px', letterSpacing:'2px'}}>
+                  {'★'.repeat(selectedHotel.star_rating)}{'☆'.repeat(5 - selectedHotel.star_rating)}
+                </div>
+              )}
               {selectedHotel.influencer_quote && <div className="modal-quote">"{selectedHotel.influencer_quote}"</div>}
               <div className="modal-book-label">Book on</div>
               {selectedHotel.booking_links?.length > 0 ? selectedHotel.booking_links.map(link => (

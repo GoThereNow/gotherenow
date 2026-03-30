@@ -31,6 +31,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [currentUser, setCurrentUser] = useState(null)
   const [isOwner, setIsOwner] = useState(false)
+  const [isApprovedCreator, setIsApprovedCreator] = useState(false)
   const [activeTab, setActiveTab] = useState('map')
 
   // Social
@@ -84,6 +85,7 @@ export default function ProfilePage() {
       const user = session?.user || null
       setCurrentUser(user)
       if (user && user.id === inf.user_id) setIsOwner(true)
+      setIsApprovedCreator(inf.approved === true)
 
       if (recs && recs.length > 0) {
         const recIds = recs.map(r => r.id)
@@ -536,13 +538,32 @@ export default function ProfilePage() {
         </div>
         <div className="profile-actions">
           {isOwner ? (
-            <button onClick={() => { resetForm(); setShowAddModal(true) }} style={{background:'#b5654a', color:'white', padding:'9px 20px', borderRadius:'100px', fontSize:'12px', fontWeight:700, border:'none', cursor:'pointer', fontFamily:"'DM Sans',sans-serif"}}>
-              + Add a Stay
-            </button>
+            <div style={{display:'flex', flexDirection:'column', alignItems:'flex-end', gap:'8px'}}>
+              <button onClick={() => { resetForm(); setShowAddModal(true) }} style={{background:'#b5654a', color:'white', padding:'9px 20px', borderRadius:'100px', fontSize:'12px', fontWeight:700, border:'none', cursor:'pointer', fontFamily:"'DM Sans',sans-serif"}}>
+                + Add a Stay
+              </button>
+              {!isApprovedCreator && (
+                <a href="/apply-creator" style={{fontSize:'11px', color:'rgba(26,107,122,0.5)', textDecoration:'none', borderBottom:'1px solid rgba(26,107,122,0.2)'}}>
+                  Apply for Creator Program →
+                </a>
+              )}
+              {isApprovedCreator && (
+                <span style={{fontSize:'11px', fontWeight:700, color:'#b5654a', background:'rgba(181,101,74,0.1)', padding:'4px 10px', borderRadius:'100px'}}>
+                  ✦ Creator
+                </span>
+              )}
+            </div>
           ) : (
-            <button onClick={toggleFollow} style={{background: isFollowing ? 'white' : '#1a6b7a', color: isFollowing ? '#1a6b7a' : 'white', padding:'9px 20px', borderRadius:'100px', fontSize:'12px', fontWeight:700, border: isFollowing ? '1px solid rgba(26,107,122,0.3)' : 'none', cursor:'pointer', fontFamily:"'DM Sans',sans-serif"}}>
-              {isFollowing ? '✓ Following' : '+ Follow'}
-            </button>
+            <div style={{display:'flex', flexDirection:'column', alignItems:'flex-end', gap:'8px'}}>
+              <button onClick={toggleFollow} style={{background: isFollowing ? 'white' : '#1a6b7a', color: isFollowing ? '#1a6b7a' : 'white', padding:'9px 20px', borderRadius:'100px', fontSize:'12px', fontWeight:700, border: isFollowing ? '1px solid rgba(26,107,122,0.3)' : 'none', cursor:'pointer', fontFamily:"'DM Sans',sans-serif"}}>
+                {isFollowing ? '✓ Following' : '+ Follow'}
+              </button>
+              {isApprovedCreator && (
+                <span style={{fontSize:'11px', fontWeight:700, color:'#b5654a', background:'rgba(181,101,74,0.1)', padding:'4px 10px', borderRadius:'100px'}}>
+                  ✦ Creator
+                </span>
+              )}
+            </div>
           )}
           <div style={{display:'flex', gap:'8px'}}>
             {influencer.instagram_url && <a href={influencer.instagram_url} target="_blank" rel="noopener noreferrer" className="social-btn">📸</a>}
@@ -598,7 +619,7 @@ export default function ProfilePage() {
             <h2 className="section-title">{recommendations.length} {recommendations.length === 1 ? 'stay' : 'stays'}</h2>
             {recommendations.length === 0 ? (
               <div style={{ textAlign:'center', padding:'60px 0', color:'rgba(26,107,122,0.3)', fontSize:'14px' }}>
-                {isOwner ? <><div style={{fontSize:'40px',marginBottom:'12px'}}>🗺️</div><div style={{marginBottom:'16px'}}>No stays yet — add your first hotel!</div><button onClick={() => { resetForm(); setShowAddModal(true) }} style={{background:'#b5654a', color:'white', padding:'10px 24px', borderRadius:'100px', border:'none', cursor:'pointer', fontWeight:700, fontSize:'13px'}}>+ Add a Stay</button></> : 'No stays yet.'}
+                {isOwner ? <><div style={{fontSize:'40px',marginBottom:'12px'}}>🗺️</div><div style={{marginBottom:'16px'}}>No stays yet — add your first hotel!</div><button onClick={() => { resetForm(); setShowAddModal(true) }} style={{background:'#b5654a', color:'white', padding:'10px 24px', borderRadius:'100px', border:'none', cursor:'pointer', fontWeight:700, fontSize:'13px'}}>+ Add a Stay</button></> : <div style={{textAlign:'center', padding:'60px 0', color:'rgba(26,107,122,0.3)', fontSize:'14px'}}>No stays yet.</div>}
               </div>
             ) : (
               <div className="hotels-grid">

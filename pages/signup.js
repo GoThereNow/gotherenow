@@ -134,7 +134,7 @@ export default function Signup() {
             ) : (
               <>
                 <h1 className="form-title">Join GoThereNow.</h1>
-                <p className="form-sub">Share hotels. Earn commission. Free forever.</p>
+                <p className="form-sub">Discover and share hotels you love. Free forever.</p>
                 {error && <div className="error">{error}</div>}
                 <form onSubmit={handleSignup} className="form">
                   <div className="field">

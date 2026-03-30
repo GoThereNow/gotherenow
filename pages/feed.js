@@ -181,8 +181,10 @@ export default function Feed() {
         body { background: #f7f5f2; font-family: 'DM Sans', sans-serif; }
 
         .feed-map-container { border-radius: 16px; overflow: hidden; border: 1px solid rgba(26,107,122,0.15); aspect-ratio: 2/1.4; box-shadow: 0 4px 20px rgba(26,107,122,0.1); }
+        @media (max-width: 768px) { .feed-content { padding: 80px 20px 40px; } .feed-map-container { aspect-ratio: 4/3; } }
         .hover-popup { z-index: 999 !important; }
         .hover-popup .mapboxgl-popup-content { z-index: 999 !important; padding: 0; border-radius: 10px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+        .feed-content { padding: 100px 56px 60px; }
         .feed-layout { max-width: 100%; margin: 0; padding: 0; }
         .feed-header { margin-bottom: 32px; }
         .feed-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #b5654a; font-weight: 700; margin-bottom: 6px; }
@@ -252,12 +254,12 @@ export default function Feed() {
 
       <Nav />
 
-      <div style={{padding:'100px 56px 60px'}}>
+      <div className="feed-content">
         <div style={{display:'flex', gap:'24px', alignItems:'flex-start'}}>
           <div style={{width:'50%', flexShrink:0}}>
             <div className="feed-map-container" ref={mapContainer} />
           </div>
-          <div style={{flex:1, minWidth:0}}>
+          <div style={{flex:1, minWidth:0, maxHeight:'500px', overflowY:'auto'}}>
       <div className="feed-layout">
         <div className="feed-header">
           <div className="feed-eyebrow">your feed</div>
@@ -283,80 +285,22 @@ export default function Feed() {
         ) : (
           <div className="feed-grid">
           {stays.map(stay => (
-            <div key={stay.id} className="feed-card">
-              {/* HEADER */}
-              <div className="feed-card-header">
-                <div className="feed-avatar">
-                  {stay.influencers?.profiles?.avatar_url
-                    ? <img src={stay.influencers.profiles.avatar_url} alt="" />
-                    : '✈️'}
-                </div>
-                <div>
-                  <Link href={`/${stay.influencers?.handle}`} className="feed-creator-name">
-                    {stay.influencers?.profiles?.full_name || stay.influencers?.handle}
-                  </Link>
-                  <div className="feed-creator-handle">@{stay.influencers?.handle}</div>
-                </div>
-                <div className="feed-time">{new Date(stay.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
-              </div>
-
-              {/* PHOTO */}
-              {stay.photo_url ? (
-                <div className="feed-photo" onClick={() => { setSelectedHotel(stay); setShowModal(true) }}>
-                  <img src={stay.photo_url} alt={stay.hotel_name} />
-                  <div className="feed-photo-gradient" />
-                  <div className="feed-photo-info">
-                    <div className="feed-photo-loc">📍 {[stay.city, stay.country].filter(Boolean).join(', ')}</div>
-                    <div className="feed-photo-name">{stay.hotel_name}</div>
-                  </div>
-                </div>
-              ) : (
-                <div className="feed-nophoto" onClick={() => { setSelectedHotel(stay); setShowModal(true) }} style={{cursor:'pointer'}}>
-                  <div className="feed-nophoto-loc">📍 {[stay.city, stay.country].filter(Boolean).join(', ')}</div>
-                  <div className="feed-nophoto-name">{stay.hotel_name}</div>
-                </div>
-              )}
-
-              {/* QUOTE */}
-              {stay.influencer_quote && (
-                <div className="feed-card-body">
-                  <div className="feed-quote">"{stay.influencer_quote}"</div>
-                </div>
-              )}
-
-              {/* ACTIONS */}
-              <div className="feed-actions">
-                <button className="feed-like-btn" onClick={() => toggleLike(stay.id)}>
-                  {userLikes[stay.id] ? '❤️' : '🤍'}
+            <div key={stay.id} onClick={() => { setSelectedHotel(stay); setShowModal(true) }}
+              style={{ background:'white', borderRadius:'12px', padding:'12px 14px', cursor:'pointer', border:'1px solid rgba(26,107,122,0.1)', boxShadow:'0 2px 8px rgba(26,107,122,0.06)', transition:'all 0.2s' }}
+              onMouseEnter={e => e.currentTarget.style.borderColor='rgba(26,107,122,0.3)'}
+              onMouseLeave={e => e.currentTarget.style.borderColor='rgba(26,107,122,0.1)'}
+            >
+              {stay.photo_url && <img src={stay.photo_url} alt={stay.hotel_name} style={{width:'100%', height:'80px', objectFit:'cover', borderRadius:'8px', marginBottom:'8px'}} />}
+              <div style={{fontSize:'9px', letterSpacing:'2px', textTransform:'uppercase', color:'#b5654a', marginBottom:'3px'}}>📍 {[stay.city, stay.country].filter(Boolean).join(', ')}</div>
+              <div style={{fontFamily:'Playfair Display, serif', fontSize:'14px', fontWeight:600, color:'#1a6b7a', marginBottom:'4px'}}>{stay.hotel_name}</div>
+              {stay.star_rating > 0 && <div style={{fontSize:'11px', color:'#b5654a', marginBottom:'4px'}}>{'★'.repeat(stay.star_rating)}</div>}
+              <div style={{fontSize:'11px', color:'rgba(26,107,122,0.5)', marginBottom:'6px'}}>by {stay.influencers?.profiles?.full_name || stay.influencers?.handle}</div>
+              <div style={{display:'flex', alignItems:'center', gap:'12px'}}>
+                <button onClick={e => { e.stopPropagation(); toggleLike(stay.id) }} style={{background:'none', border:'none', cursor:'pointer', fontSize:'12px', color: userLikes[stay.id] ? '#e05c7a' : 'rgba(26,107,122,0.5)', fontWeight:600, padding:0}}>
+                  {userLikes[stay.id] ? '❤️' : '🤍'} {likes[stay.id] || ''}
                 </button>
-                <span className="feed-like-count">{likes[stay.id] > 0 ? likes[stay.id] : ''}</span>
-                <button className="feed-comment-btn" onClick={() => setShowComments(prev => ({...prev, [stay.id]: !prev[stay.id]}))}>
-                  💬
-                </button>
-                <span className="feed-comment-count">{comments[stay.id]?.length > 0 ? comments[stay.id].length : ''}</span>
-                <a href={buildExpediaUrl(stay.hotel_name, stay.city, stay.country)} target="_blank" rel="noopener noreferrer" className="feed-book-btn">
-                  Book Now →
-                </a>
+                <span style={{fontSize:'11px', fontWeight:700, color:'#b5654a', cursor:'pointer'}} onClick={e => { e.stopPropagation(); setSelectedHotel(stay); setShowModal(true) }}>Book Now →</span>
               </div>
-
-              {/* COMMENTS */}
-              {showComments[stay.id] && (
-                <div className="feed-comments">
-                  {comments[stay.id]?.map((cm, i) => (
-                    <div key={i} className="feed-comment-item">
-                      <span className="feed-comment-author">{cm.profiles?.full_name || 'User'} </span>
-                      <span className="feed-comment-text">{cm.text}</span>
-                    </div>
-                  ))}
-                  <div className="feed-comment-input-row">
-                    <input className="feed-comment-input" placeholder="Add a comment..."
-                      value={commentingOn === stay.id ? commentText : ''}
-                      onChange={e => { setCommentingOn(stay.id); setCommentText(e.target.value) }}
-                      onKeyDown={e => { if (e.key === 'Enter') submitComment(stay.id) }} />
-                    <button className="feed-comment-submit" onClick={() => submitComment(stay.id)}>Post</button>
-                  </div>
-                </div>
-              )}
             </div>
           ))}
           </div>

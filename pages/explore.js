@@ -121,7 +121,7 @@ export default function Explore() {
         .tab-btn.active { color: #1a6b7a; border-bottom-color: #1a6b7a; }
         .content { padding: 40px 56px; }
 
-        .stays-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        .stays-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
         .stay-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(26,107,122,0.08); border: 1px solid rgba(26,107,122,0.06); transition: transform 0.2s; cursor: pointer; }
         .stay-card:hover { transform: translateY(-3px); box-shadow: 0 8px 32px rgba(26,107,122,0.15); }
         .stay-card-photo { position: relative; aspect-ratio: 4/3; overflow: hidden; }
@@ -145,7 +145,7 @@ export default function Explore() {
         .like-btn.liked { color: #e05c7a; }
         .book-btn { margin-left: auto; font-size: 11px; font-weight: 700; color: #b5654a; background: none; border: none; cursor: pointer; padding: 0; }
 
-        .creators-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        .creators-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
         .creator-card { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(26,107,122,0.08); border: 1px solid rgba(26,107,122,0.06); text-decoration: none; display: block; transition: transform 0.2s; }
         .creator-card:hover { transform: translateY(-3px); }
         .creator-avatar { width: 56px; height: 56px; border-radius: 50%; background: rgba(26,107,122,0.08); border: 2px solid #1a6b7a; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 12px; }
@@ -159,7 +159,7 @@ export default function Explore() {
 
         .empty { text-align: center; padding: 80px 0; color: rgba(26,107,122,0.3); font-size: 14px; }
 
-        @media (max-width: 1024px) { .stays-grid { grid-template-columns: repeat(3, 1fr); } .creators-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 1024px) { .stays-grid { grid-template-columns: repeat(2, 1fr); } .creators-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 768px) {
           .page-hero { padding: 80px 20px 24px; }
           .page-title { font-size: 28px; }

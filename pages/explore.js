@@ -173,7 +173,7 @@ export default function Explore() {
         }
         @media (max-width: 480px) {
           .stays-grid { grid-template-columns: repeat(2, 1fr); }
-          .creators-grid { grid-template-columns: 1fr; }
+          .creators-grid { grid-template-columns: repeat(2, 1fr); }
         }
       `}</style>
 

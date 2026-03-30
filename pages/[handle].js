@@ -169,7 +169,7 @@ export default function ProfilePage() {
     recommendations.forEach(rec => {
       if (!rec.latitude || !rec.longitude) return
       const el = document.createElement('div')
-      el.style.cssText = 'width:28px;height:28px;background:#1a6b7a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;position:relative;'
+      el.style.cssText = 'width:28px;height:28px;background:#1a6b7a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;'
       const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 15, className: 'hover-popup' })
         .setHTML(
           '<div style="font-family:DM Sans,sans-serif;width:220px;border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.15);display:flex;">' +

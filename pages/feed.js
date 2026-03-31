@@ -35,6 +35,9 @@ export default function Feed() {
   const [searchQuery, setSearchQuery] = useState('')
   const [showCountryDD, setShowCountryDD] = useState(false)
   const [showCreatorDD, setShowCreatorDD] = useState(false)
+  const [myStays, setMyStays] = useState([])
+  const [showMyStaysDD, setShowMyStaysDD] = useState(false)
+  const myMarkersRef = useRef([])
 
   useEffect(() => {
     async function fetchFeed() {
@@ -92,6 +95,14 @@ export default function Feed() {
         setLikes(likeCounts)
         setUserLikes(userLikeMap)
       }
+      // Fetch current user's own stays
+      const { data: myRecs } = await supabase
+        .from('recommendations')
+        .select('*')
+        .eq('influencer_id', session.user.id)
+        .order('created_at', { ascending: false })
+      setMyStays(myRecs || [])
+
       setLoading(false)
     }
     fetchFeed()
@@ -153,6 +164,32 @@ export default function Feed() {
     })
   }
 
+  const addMyStaysMarkers = (mapboxgl, staysToShow) => {
+    myMarkersRef.current.forEach(m => m.remove())
+    myMarkersRef.current = []
+    staysToShow.forEach(stay => {
+      if (!stay.latitude || !stay.longitude) return
+      const el = document.createElement('div')
+      el.style.cssText = 'width:24px;height:24px;background:#b5654a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:3;'
+      const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 15, className: 'hover-popup' })
+        .setLngLat([stay.longitude, stay.latitude])
+        .setHTML(
+          '<div style="font-family:DM Sans,sans-serif;width:200px;display:flex;border-radius:10px;overflow:hidden;">' +
+          (stay.photo_url ? '<div style="width:70px;flex-shrink:0;background:url(' + stay.photo_url + ') center/cover;"></div>' : '') +
+          '<div style="padding:8px 10px;background:white;flex:1;">' +
+          '<div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#b5654a;margin-bottom:2px">⭐ My stay · ' + ([stay.city, stay.country].filter(Boolean).join(', ')) + '</div>' +
+          '<div style="font-size:12px;font-weight:700;color:#1a6b7a;line-height:1.3">' + stay.hotel_name + '</div>' +
+          (stay.star_rating ? '<div style="font-size:11px;color:#b5654a;margin-top:2px">' + '★'.repeat(stay.star_rating) + '</div>' : '') +
+          '</div></div>'
+        )
+      el.addEventListener('mouseenter', () => popup.addTo(map.current))
+      el.addEventListener('mouseleave', () => popup.remove())
+      el.addEventListener('click', () => { popup.remove(); setSelectedHotel(stay); setShowModal(true) })
+      const marker = new mapboxgl.Marker(el).setLngLat([stay.longitude, stay.latitude]).addTo(map.current)
+      myMarkersRef.current.push(marker)
+    })
+  }
+
   // Init map
   useEffect(() => {
     if (loading || !stays.length || map.current) return
@@ -177,6 +214,7 @@ export default function Feed() {
           map.current.resize()
           map.current._mapboxgl = mapboxgl
           addMarkersToMap(mapboxgl, stays)
+          addMyStaysMarkers(mapboxgl, myStays)
         })
       })
     }, 200)
@@ -187,6 +225,12 @@ export default function Feed() {
     if (!map.current?._mapboxgl || !map.current.loaded()) return
     addMarkersToMap(map.current._mapboxgl, filtered)
   }, [filtered])
+
+  // Update myStays markers
+  useEffect(() => {
+    if (!map.current?._mapboxgl || !map.current.loaded()) return
+    addMyStaysMarkers(map.current._mapboxgl, myStays)
+  }, [myStays])
 
   const toggleLike = async (recId) => {
     const already = userLikes[recId]
@@ -199,7 +243,7 @@ export default function Feed() {
     }
   }
 
-  const closeDropdowns = () => { setShowCountryDD(false); setShowCreatorDD(false) }
+  const closeDropdowns = () => { setShowCountryDD(false); setShowCreatorDD(false); setShowMyStaysDD(false) }
 
   return (
     <div style={{ background: '#f7f5f2', minHeight: '100vh', fontFamily: 'DM Sans, sans-serif' }} onClick={closeDropdowns}>
@@ -317,6 +361,33 @@ export default function Feed() {
             </div>
           )}
 
+          {/* My Stays */}
+          {myStays.length > 0 && (
+            <div style={{position:'relative'}} onClick={e => e.stopPropagation()}>
+              <button className={`filter-btn`}
+                style={{background:'#b5654a', color:'white', borderColor:'#b5654a'}}
+                onClick={() => { setShowMyStaysDD(p => !p); setShowCountryDD(false); setShowCreatorDD(false) }}>
+                ⭐ My stays ({myStays.length}) ▾
+              </button>
+              {showMyStaysDD && (
+                <div className="dropdown">
+                  {myStays.map(stay => (
+                    <div key={stay.id} className="dropdown-item" onClick={() => {
+                      setSelectedHotel(stay)
+                      setShowModal(true)
+                      setShowMyStaysDD(false)
+                    }}>
+                      <div>
+                        <div style={{fontWeight:600, fontSize:'13px', color:'#1a6b7a'}}>{stay.hotel_name}</div>
+                        <div style={{fontSize:'10px', color:'rgba(26,107,122,0.5)', marginTop:'1px'}}>📍 {[stay.city, stay.country].filter(Boolean).join(', ')}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Creators */}
           {creators.length > 0 && (
             <div style={{position:'relative'}} onClick={e => e.stopPropagation()}>
@@ -368,6 +439,10 @@ export default function Feed() {
           <div className="feed-side-by-side" style={{display:'flex', gap:'24px', alignItems:'flex-start'}}>
             <div className="feed-map-side" style={{width:'50%', flexShrink:0}}>
               <div className="feed-map-container" ref={mapContainer} />
+              <div style={{display:'flex', gap:'16px', marginTop:'10px', fontSize:'11px', color:'rgba(26,107,122,0.6)'}}>
+                <span style={{display:'flex', alignItems:'center', gap:'5px'}}><span style={{width:'10px', height:'10px', borderRadius:'50%', background:'#1a6b7a', display:'inline-block'}}></span>Following</span>
+                <span style={{display:'flex', alignItems:'center', gap:'5px'}}><span style={{width:'10px', height:'10px', borderRadius:'50%', background:'#b5654a', display:'inline-block'}}></span>My stays</span>
+              </div>
             </div>
             <div style={{flex:1, minWidth:0, maxHeight:'500px', overflowY:'auto'}}>
               <div className="section-eyebrow">from people you follow</div>

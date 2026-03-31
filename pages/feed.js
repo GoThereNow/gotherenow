@@ -95,13 +95,20 @@ export default function Feed() {
         setLikes(likeCounts)
         setUserLikes(userLikeMap)
       }
-      // Fetch current user's own stays
-      const { data: myRecs } = await supabase
-        .from('recommendations')
-        .select('*')
-        .eq('influencer_id', session.user.id)
-        .order('created_at', { ascending: false })
-      setMyStays(myRecs || [])
+      // Fetch current user's own stays via influencer record
+      const { data: myInf } = await supabase
+        .from('influencers')
+        .select('id')
+        .eq('user_id', session.user.id)
+        .single()
+      if (myInf) {
+        const { data: myRecs } = await supabase
+          .from('recommendations')
+          .select('*')
+          .eq('influencer_id', myInf.id)
+          .order('created_at', { ascending: false })
+        setMyStays(myRecs || [])
+      }
 
       setLoading(false)
     }
@@ -346,9 +353,7 @@ export default function Feed() {
               </button>
               {showCountryDD && (
                 <div className="dropdown">
-                  {selectedCountries.length > 0 && (
-                    <button className="dropdown-clear" onClick={() => setSelectedCountries([])}>Clear all</button>
-                  )}
+                  <button className="dropdown-clear" onClick={() => setSelectedCountries([])}>Clear all</button>
                   {countries.map(country => (
                     <label key={country} className="dropdown-item">
                       <input type="checkbox" checked={selectedCountries.includes(country)}
@@ -397,9 +402,7 @@ export default function Feed() {
               </button>
               {showCreatorDD && (
                 <div className="dropdown">
-                  {selectedCreators.length > 0 && (
-                    <button className="dropdown-clear" onClick={() => setSelectedCreators([])}>Clear all</button>
-                  )}
+                  <button className="dropdown-clear" onClick={() => setSelectedCreators([])}>Clear all</button>
                   {creators.map(creator => (
                     <label key={creator.id} className="dropdown-item">
                       <input type="checkbox" checked={selectedCreators.includes(creator.id)}

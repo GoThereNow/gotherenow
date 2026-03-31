@@ -29,6 +29,7 @@ export default function Feed() {
   const [hasFollows, setHasFollows] = useState(false)
   const [filterCountry, setFilterCountry] = useState('all')
   const [countries, setCountries] = useState([])
+  const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
     async function fetchFeed() {
@@ -74,14 +75,24 @@ export default function Feed() {
     fetchFeed()
   }, [])
 
-  // Filter
+  // Filter + search
   useEffect(() => {
-    if (filterCountry === 'all') {
-      setFiltered(stays)
-    } else {
-      setFiltered(stays.filter(s => s.country === filterCountry))
+    let result = stays
+    if (filterCountry !== 'all') {
+      result = result.filter(s => s.country === filterCountry)
     }
-  }, [filterCountry, stays])
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase()
+      result = result.filter(s =>
+        s.hotel_name?.toLowerCase().includes(q) ||
+        s.city?.toLowerCase().includes(q) ||
+        s.country?.toLowerCase().includes(q) ||
+        s.influencers?.handle?.toLowerCase().includes(q) ||
+        s.influencers?.profiles?.full_name?.toLowerCase().includes(q)
+      )
+    }
+    setFiltered(result)
+  }, [filterCountry, searchQuery, stays])
 
   // Init map
   useEffect(() => {
@@ -231,12 +242,24 @@ export default function Feed() {
         <div className="tabs-left">
           <button className="tab-btn active">Stays</button>
         </div>
-        {countries.length > 0 && (
-          <select className="filter-select" value={filterCountry} onChange={e => setFilterCountry(e.target.value)}>
-            <option value="all">All countries</option>
-            {countries.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-        )}
+        <div style={{display:'flex', gap:'10px', alignItems:'center', padding:'8px 0'}}>
+          <div style={{position:'relative'}}>
+            <input
+              type="text"
+              placeholder="Search hotels, cities..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              style={{fontSize:'12px', fontFamily:'DM Sans, sans-serif', color:'#1a6b7a', background:'white', border:'1px solid rgba(26,107,122,0.2)', padding:'7px 14px 7px 30px', borderRadius:'100px', outline:'none', width:'200px'}}
+            />
+            <span style={{position:'absolute', left:'10px', top:'50%', transform:'translateY(-50%)', fontSize:'12px', color:'rgba(26,107,122,0.4)'}}>🔍</span>
+          </div>
+          {countries.length > 0 && (
+            <select className="filter-select" value={filterCountry} onChange={e => setFilterCountry(e.target.value)}>
+              <option value="all">All countries</option>
+              {countries.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          )}
+        </div>
       </div>
 
       {/* CONTENT */}

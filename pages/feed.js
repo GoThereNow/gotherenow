@@ -38,6 +38,7 @@ export default function Feed() {
   const [myStays, setMyStays] = useState([])
   const [showMyStaysDD, setShowMyStaysDD] = useState(false)
   const [showMyStaysPins, setShowMyStaysPins] = useState(true)
+  const [selectedMyStays, setSelectedMyStays] = useState([])
   const myMarkersRef = useRef([])
 
   useEffect(() => {
@@ -138,6 +139,9 @@ export default function Feed() {
     setFiltered(result)
   }, [selectedCountries, selectedCreators, searchQuery, stays])
 
+  const toggleMyStay = (id) => {
+    setSelectedMyStays(prev => prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id])
+  }
   const toggleCountry = (country) => {
     setSelectedCountries(prev => prev.includes(country) ? prev.filter(c => c !== country) : [...prev, country])
   }
@@ -237,13 +241,16 @@ export default function Feed() {
   // Update myStays markers
   useEffect(() => {
     if (!map.current?._mapboxgl || !map.current.loaded()) return
-    if (showMyStaysPins) {
-      addMyStaysMarkers(map.current._mapboxgl, myStays)
-    } else {
+    if (!showMyStaysPins) {
       myMarkersRef.current.forEach(m => m.remove())
       myMarkersRef.current = []
+      return
     }
-  }, [myStays, showMyStaysPins])
+    const toShow = selectedMyStays.length > 0
+      ? myStays.filter(s => selectedMyStays.includes(s.id))
+      : myStays
+    addMyStaysMarkers(map.current._mapboxgl, toShow)
+  }, [myStays, showMyStaysPins, selectedMyStays])
 
   const toggleLike = async (recId) => {
     const already = userLikes[recId]
@@ -378,7 +385,7 @@ export default function Feed() {
               <button className={`filter-btn`}
                 style={{background:'#b5654a', color:'white', borderColor:'#b5654a'}}
                 onClick={() => { setShowMyStaysDD(p => !p); setShowCountryDD(false); setShowCreatorDD(false) }}>
-                ⭐ My stays ({myStays.length}) ▾
+                ⭐ My stays {selectedMyStays.length > 0 ? `(${selectedMyStays.length}/${myStays.length})` : `(${myStays.length})`} ▾
               </button>
               {showMyStaysDD && (
                 <div className="dropdown">
@@ -388,17 +395,18 @@ export default function Feed() {
                     <button className="dropdown-clear" style={{flex:1, textAlign:'center', color: !showMyStaysPins ? '#b5654a' : 'rgba(26,107,122,0.35)', fontWeight: !showMyStaysPins ? 700 : 400}}
                       onClick={() => setShowMyStaysPins(false)}>Hide all</button>
                   </div>
+                  {selectedMyStays.length > 0 && (
+                    <button className="dropdown-clear" onClick={() => setSelectedMyStays([])}>Clear selection</button>
+                  )}
                   {myStays.map(stay => (
-                    <div key={stay.id} className="dropdown-item" onClick={() => {
-                      setSelectedHotel(stay)
-                      setShowModal(true)
-                      setShowMyStaysDD(false)
-                    }}>
+                    <label key={stay.id} className="dropdown-item" style={{cursor:'pointer'}}>
+                      <input type="checkbox" checked={selectedMyStays.includes(stay.id)}
+                        onChange={() => toggleMyStay(stay.id)} style={{accentColor:'#b5654a', flexShrink:0}} />
                       <div>
                         <div style={{fontWeight:600, fontSize:'13px', color:'#1a6b7a'}}>{stay.hotel_name}</div>
                         <div style={{fontSize:'10px', color:'rgba(26,107,122,0.5)', marginTop:'1px'}}>📍 {[stay.city, stay.country].filter(Boolean).join(', ')}</div>
                       </div>
-                    </div>
+                    </label>
                   ))}
                 </div>
               )}

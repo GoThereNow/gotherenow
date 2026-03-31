@@ -177,7 +177,7 @@ export default function Feed() {
     staysToShow.forEach(stay => {
       if (!stay.latitude || !stay.longitude) return
       const el = document.createElement('div')
-      el.style.cssText = 'width:24px;height:24px;background:#b5654a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:3;'
+      el.style.cssText = 'width:16px;height:16px;background:#b5654a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:3;'
       const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 15, className: 'hover-popup' })
         .setLngLat([stay.longitude, stay.latitude])
         .setHTML(

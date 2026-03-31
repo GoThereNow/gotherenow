@@ -17,6 +17,7 @@ export default function Feed() {
   const router = useRouter()
   const mapContainer = useRef(null)
   const map = useRef(null)
+  const markersRef = useRef([])
 
   const [currentUser, setCurrentUser] = useState(null)
   const [stays, setStays] = useState([])
@@ -94,13 +95,38 @@ export default function Feed() {
     setFiltered(result)
   }, [filterCountry, searchQuery, stays])
 
+  // Add/update markers helper
+  const addMarkersToMap = (mapboxgl, staysToShow) => {
+    // Clear existing markers
+    markersRef.current.forEach(m => m.remove())
+    markersRef.current = []
+    staysToShow.forEach(stay => {
+      if (!stay.latitude || !stay.longitude) return
+      const el = document.createElement('div')
+      el.style.cssText = 'width:24px;height:24px;background:#1a6b7a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;'
+      const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 15, className: 'hover-popup' })
+        .setLngLat([stay.longitude, stay.latitude])
+        .setHTML(
+          '<div style="font-family:DM Sans,sans-serif;width:200px;display:flex;border-radius:10px;overflow:hidden;">' +
+          (stay.photo_url ? '<div style="width:70px;flex-shrink:0;background:url(' + stay.photo_url + ') center/cover;"></div>' : '') +
+          '<div style="padding:8px 10px;background:white;flex:1;">' +
+          '<div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#b5654a;margin-bottom:2px">' + ([stay.city, stay.country].filter(Boolean).join(', ')) + '</div>' +
+          '<div style="font-size:12px;font-weight:700;color:#1a6b7a;line-height:1.3">' + stay.hotel_name + '</div>' +
+          (stay.star_rating ? '<div style="font-size:11px;color:#b5654a;margin-top:2px">' + '★'.repeat(stay.star_rating) + '</div>' : '') +
+          '</div></div>'
+        )
+      el.addEventListener('mouseenter', () => popup.addTo(map.current))
+      el.addEventListener('mouseleave', () => popup.remove())
+      el.addEventListener('click', () => { popup.remove(); setSelectedHotel(stay); setShowModal(true) })
+      const marker = new mapboxgl.Marker(el).setLngLat([stay.longitude, stay.latitude]).addTo(map.current)
+      markersRef.current.push(marker)
+    })
+  }
+
   // Init map
   useEffect(() => {
-    if (loading || !filtered.length) return
-    if (map.current) {
-      // Update markers on filter change
-      return
-    }
+    if (loading || !stays.length) return
+    if (map.current) return
     setTimeout(() => {
       if (!mapContainer.current) return
       import('mapbox-gl').then(mod => {
@@ -120,30 +146,19 @@ export default function Feed() {
         map.current.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right')
         map.current.on('load', () => {
           map.current.resize()
-          stays.forEach(stay => {
-            if (!stay.latitude || !stay.longitude) return
-            const el = document.createElement('div')
-            el.style.cssText = 'width:24px;height:24px;background:#1a6b7a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;'
-            const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 15, className: 'hover-popup' })
-              .setLngLat([stay.longitude, stay.latitude])
-              .setHTML(
-                '<div style="font-family:DM Sans,sans-serif;width:200px;display:flex;border-radius:10px;overflow:hidden;">' +
-                (stay.photo_url ? '<div style="width:70px;flex-shrink:0;background:url(' + stay.photo_url + ') center/cover;"></div>' : '') +
-                '<div style="padding:8px 10px;background:white;flex:1;">' +
-                '<div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#b5654a;margin-bottom:2px">' + ([stay.city, stay.country].filter(Boolean).join(', ')) + '</div>' +
-                '<div style="font-size:12px;font-weight:700;color:#1a6b7a;line-height:1.3">' + stay.hotel_name + '</div>' +
-                (stay.star_rating ? '<div style="font-size:11px;color:#b5654a;margin-top:2px">' + '★'.repeat(stay.star_rating) + '</div>' : '') +
-                '</div></div>'
-              )
-            el.addEventListener('mouseenter', () => popup.addTo(map.current))
-            el.addEventListener('mouseleave', () => popup.remove())
-            el.addEventListener('click', () => { popup.remove(); setSelectedHotel(stay); setShowModal(true) })
-            new mapboxgl.Marker(el).setLngLat([stay.longitude, stay.latitude]).addTo(map.current)
-          })
+          map.current._mapboxgl = mapboxgl
+          addMarkersToMap(mapboxgl, stays)
         })
       })
     }, 200)
   }, [loading, stays])
+
+  // Update markers when filter/search changes
+  useEffect(() => {
+    if (!map.current || !map.current._mapboxgl) return
+    if (!map.current.loaded()) return
+    addMarkersToMap(map.current._mapboxgl, filtered)
+  }, [filtered])
 
   const toggleLike = async (recId) => {
     const already = userLikes[recId]
@@ -287,7 +302,10 @@ export default function Feed() {
             </div>
             <div style={{flex:1, minWidth:0, maxHeight:'500px', overflowY:'auto'}}>
               <div className="section-eyebrow">from people you follow</div>
-              <h2 className="section-title">Recent stays</h2>
+              <h2 className="section-title">Recent stays {filtered.length < stays.length && <span style={{fontSize:'12px', fontWeight:400, color:'rgba(26,107,122,0.4)'}}>({filtered.length} results)</span>}</h2>
+              {filtered.length === 0 ? (
+                <div style={{textAlign:'center', padding:'40px 0', color:'rgba(26,107,122,0.4)', fontSize:'14px'}}>No stays match your search.</div>
+              ) : (
               <div className="feed-grid">
                 {filtered.map(stay => (
                   <div key={stay.id} onClick={() => { setSelectedHotel(stay); setShowModal(true) }}

@@ -28,9 +28,13 @@ export default function Feed() {
   const [selectedHotel, setSelectedHotel] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [hasFollows, setHasFollows] = useState(false)
-  const [filterCountry, setFilterCountry] = useState('all')
+  const [selectedCountries, setSelectedCountries] = useState([])
+  const [selectedCreators, setSelectedCreators] = useState([])
   const [countries, setCountries] = useState([])
+  const [creators, setCreators] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false)
+  const [showCreatorDropdown, setShowCreatorDropdown] = useState(false)
 
   useEffect(() => {
     async function fetchFeed() {
@@ -57,6 +61,26 @@ export default function Feed() {
       setFiltered(data)
       const uniqueCountries = [...new Set(data.map(r => r.country).filter(Boolean))].sort()
       setCountries(uniqueCountries)
+      const uniqueCreators = []
+      const seen = new Set()
+      data.forEach(r => {
+        const id = r.influencers?.id
+        if (id && !seen.has(id)) {
+          seen.add(id)
+          uniqueCreators.push({ id, name: r.influencers?.profiles?.full_name || r.influencers?.handle, handle: r.influencers?.handle })
+        }
+      })
+      setCreators(uniqueCreators)
+      const uniqueCreators = []
+      const seen = new Set()
+      data.forEach(r => {
+        const id = r.influencers?.id
+        if (id && !seen.has(id)) {
+          seen.add(id)
+          uniqueCreators.push({ id, name: r.influencers?.profiles?.full_name || r.influencers?.handle, handle: r.influencers?.handle })
+        }
+      })
+      setCreators(uniqueCreators)
 
       if (data.length > 0) {
         const recIds = data.map(r => r.id)
@@ -79,8 +103,11 @@ export default function Feed() {
   // Filter + search
   useEffect(() => {
     let result = stays
-    if (filterCountry !== 'all') {
-      result = result.filter(s => s.country === filterCountry)
+    if (selectedCountries.length > 0) {
+      result = result.filter(s => selectedCountries.includes(s.country))
+    }
+    if (selectedCreators.length > 0) {
+      result = result.filter(s => selectedCreators.includes(s.influencers?.id))
     }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase()
@@ -93,7 +120,10 @@ export default function Feed() {
       )
     }
     setFiltered(result)
-  }, [filterCountry, searchQuery, stays])
+  }, [selectedCountries, selectedCreators, searchQuery, stays])
+
+  const toggleCountry = (c) => setSelectedCountries(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c])
+  const toggleCreator = (id) => setSelectedCreators(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
 
   // Add/update markers helper
   const addMarkersToMap = (mapboxgl, staysToShow) => {
@@ -172,7 +202,7 @@ export default function Feed() {
   }
 
   return (
-    <div style={{ background: '#f7f5f2', minHeight: '100vh', fontFamily: 'DM Sans, sans-serif' }}>
+    <div style={{ background: '#f7f5f2', minHeight: '100vh', fontFamily: 'DM Sans, sans-serif' }} onClick={() => { setShowCountryDropdown(false); setShowCreatorDropdown(false) }}>
       <Head>
         <title>Following — GoThereNow</title>
         <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -257,22 +287,67 @@ export default function Feed() {
         <div className="tabs-left">
           <button className="tab-btn active">Stays</button>
         </div>
-        <div style={{display:'flex', gap:'10px', alignItems:'center', padding:'8px 0'}}>
+        <div style={{display:'flex', gap:'10px', alignItems:'center', padding:'8px 0', position:'relative'}}>
+          {/* Search */}
           <div style={{position:'relative'}}>
-            <input
-              type="text"
-              placeholder="Search hotels, cities..."
-              value={searchQuery}
+            <input type="text" placeholder="Search hotels, cities..." value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              style={{fontSize:'12px', fontFamily:'DM Sans, sans-serif', color:'#1a6b7a', background:'white', border:'1px solid rgba(26,107,122,0.2)', padding:'7px 14px 7px 30px', borderRadius:'100px', outline:'none', width:'200px'}}
-            />
+              style={{fontSize:'12px', fontFamily:'DM Sans, sans-serif', color:'#1a6b7a', background:'white', border:'1px solid rgba(26,107,122,0.2)', padding:'7px 14px 7px 30px', borderRadius:'100px', outline:'none', width:'180px'}} />
             <span style={{position:'absolute', left:'10px', top:'50%', transform:'translateY(-50%)', fontSize:'12px', color:'rgba(26,107,122,0.4)'}}>🔍</span>
           </div>
+
+          {/* Country multi-select */}
           {countries.length > 0 && (
-            <select className="filter-select" value={filterCountry} onChange={e => setFilterCountry(e.target.value)}>
-              <option value="all">All countries</option>
-              {countries.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
+            <div style={{position:'relative'}}>
+              <button onClick={() => { setShowCountryDropdown(p => !p); setShowCreatorDropdown(false) }}
+                className="filter-select" style={{cursor:'pointer', display:'flex', alignItems:'center', gap:'6px'}}>
+                🌍 {selectedCountries.length === 0 ? 'Countries' : `${selectedCountries.length} selected`}
+                <span style={{fontSize:'9px'}}>▾</span>
+              </button>
+              {showCountryDropdown && (
+                <div style={{position:'absolute', top:'calc(100% + 6px)', right:0, background:'white', border:'1px solid rgba(26,107,122,0.15)', borderRadius:'12px', boxShadow:'0 8px 24px rgba(0,0,0,0.1)', zIndex:100, minWidth:'180px', padding:'8px 0'}}>
+                  {selectedCountries.length > 0 && (
+                    <button onClick={() => setSelectedCountries([])} style={{width:'100%', padding:'8px 14px', fontSize:'11px', color:'#b5654a', background:'none', border:'none', cursor:'pointer', textAlign:'left', fontWeight:600}}>Clear all</button>
+                  )}
+                  {countries.map(country => (
+                    <div key={country} onClick={() => toggleCountry(country)}
+                      style={{padding:'8px 14px', fontSize:'13px', color:'#1a6b7a', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', background: selectedCountries.includes(country) ? 'rgba(26,107,122,0.06)' : 'transparent'}}>
+                      <span style={{width:'14px', height:'14px', border:'1px solid rgba(26,107,122,0.3)', borderRadius:'3px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'10px', background: selectedCountries.includes(country) ? '#1a6b7a' : 'white', color:'white', flexShrink:0}}>
+                        {selectedCountries.includes(country) ? '✓' : ''}
+                      </span>
+                      {country}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Creator multi-select */}
+          {creators.length > 0 && (
+            <div style={{position:'relative'}}>
+              <button onClick={() => { setShowCreatorDropdown(p => !p); setShowCountryDropdown(false) }}
+                className="filter-select" style={{cursor:'pointer', display:'flex', alignItems:'center', gap:'6px'}}>
+                ✈️ {selectedCreators.length === 0 ? 'Creators' : `${selectedCreators.length} selected`}
+                <span style={{fontSize:'9px'}}>▾</span>
+              </button>
+              {showCreatorDropdown && (
+                <div style={{position:'absolute', top:'calc(100% + 6px)', right:0, background:'white', border:'1px solid rgba(26,107,122,0.15)', borderRadius:'12px', boxShadow:'0 8px 24px rgba(0,0,0,0.1)', zIndex:100, minWidth:'200px', padding:'8px 0'}}>
+                  {selectedCreators.length > 0 && (
+                    <button onClick={() => setSelectedCreators([])} style={{width:'100%', padding:'8px 14px', fontSize:'11px', color:'#b5654a', background:'none', border:'none', cursor:'pointer', textAlign:'left', fontWeight:600}}>Clear all</button>
+                  )}
+                  {creators.map(cr => (
+                    <div key={cr.id} onClick={() => toggleCreator(cr.id)}
+                      style={{padding:'8px 14px', fontSize:'13px', color:'#1a6b7a', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', background: selectedCreators.includes(cr.id) ? 'rgba(26,107,122,0.06)' : 'transparent'}}>
+                      <span style={{width:'14px', height:'14px', border:'1px solid rgba(26,107,122,0.3)', borderRadius:'3px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'10px', background: selectedCreators.includes(cr.id) ? '#1a6b7a' : 'white', color:'white', flexShrink:0}}>
+                        {selectedCreators.includes(cr.id) ? '✓' : ''}
+                      </span>
+                      {cr.name}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>

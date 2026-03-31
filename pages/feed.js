@@ -20,12 +20,15 @@ export default function Feed() {
 
   const [currentUser, setCurrentUser] = useState(null)
   const [stays, setStays] = useState([])
+  const [filtered, setFiltered] = useState([])
   const [loading, setLoading] = useState(true)
   const [userLikes, setUserLikes] = useState({})
   const [likes, setLikes] = useState({})
   const [selectedHotel, setSelectedHotel] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [hasFollows, setHasFollows] = useState(false)
+  const [filterCountry, setFilterCountry] = useState('all')
+  const [countries, setCountries] = useState([])
 
   useEffect(() => {
     async function fetchFeed() {
@@ -46,10 +49,15 @@ export default function Feed() {
         .in('influencer_id', influencerIds)
         .order('created_at', { ascending: false })
         .limit(40)
-      setStays(recs || [])
 
-      if (recs?.length > 0) {
-        const recIds = recs.map(r => r.id)
+      const data = recs || []
+      setStays(data)
+      setFiltered(data)
+      const uniqueCountries = [...new Set(data.map(r => r.country).filter(Boolean))].sort()
+      setCountries(uniqueCountries)
+
+      if (data.length > 0) {
+        const recIds = data.map(r => r.id)
         const { data: likesData } = await supabase
           .from('likes').select('recommendation_id, user_id').in('recommendation_id', recIds)
         const likeCounts = {}, userLikeMap = {}
@@ -66,10 +74,22 @@ export default function Feed() {
     fetchFeed()
   }, [])
 
+  // Filter
+  useEffect(() => {
+    if (filterCountry === 'all') {
+      setFiltered(stays)
+    } else {
+      setFiltered(stays.filter(s => s.country === filterCountry))
+    }
+  }, [filterCountry, stays])
+
   // Init map
   useEffect(() => {
-    if (loading || !stays.length) return
-    if (map.current) return
+    if (loading || !filtered.length) return
+    if (map.current) {
+      // Update markers on filter change
+      return
+    }
     setTimeout(() => {
       if (!mapContainer.current) return
       import('mapbox-gl').then(mod => {
@@ -136,17 +156,36 @@ export default function Feed() {
       <style>{`
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #f7f5f2; font-family: 'DM Sans', sans-serif; }
+
+        .profile-hero { padding: 80px 56px 16px; border-bottom: 1px solid rgba(26,107,122,0.1); display: flex; align-items: center; gap: 24px; }
+        .profile-info { flex: 1; }
+        .profile-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #b5654a; font-weight: 700; margin-bottom: 4px; display: block; }
+        .profile-name { font-family: 'Playfair Display', serif; font-size: clamp(20px, 3vw, 32px); font-weight: 700; color: #1a6b7a; line-height: 1.05; margin-bottom: 6px; }
+        .profile-bio { font-size: 12px; color: rgba(26,107,122,0.6); line-height: 1.6; max-width: 480px; margin-bottom: 12px; }
+        .profile-stats { display: flex; gap: 32px; }
+        .stat-num { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #1a6b7a; line-height: 1; }
+        .stat-label { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: rgba(26,107,122,0.5); margin-top: 2px; font-weight: 600; }
+
+        .tabs { display: flex; align-items: center; justify-content: space-between; padding: 0 56px; border-bottom: 1px solid rgba(26,107,122,0.12); background: #f7f5f2; }
+        .tabs-left { display: flex; }
+        .tab-btn { padding: 18px 24px; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: rgba(26,107,122,0.35); background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; font-family: 'DM Sans', sans-serif; margin-bottom: -1px; }
+        .tab-btn.active { color: #1a6b7a; border-bottom-color: #1a6b7a; }
+        .filter-select { font-size: 12px; font-family: 'DM Sans', sans-serif; color: #1a6b7a; background: white; border: 1px solid rgba(26,107,122,0.2); padding: 7px 14px; border-radius: 100px; outline: none; cursor: pointer; font-weight: 600; }
+
+        .content { padding: 32px 56px; }
         .feed-map-container { border-radius: 16px; overflow: hidden; border: 1px solid rgba(26,107,122,0.15); aspect-ratio: 2/1.4; box-shadow: 0 4px 20px rgba(26,107,122,0.1); }
         .hover-popup { z-index: 999 !important; }
         .hover-popup .mapboxgl-popup-content { z-index: 999 !important; padding: 0; border-radius: 10px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
         .section-eyebrow { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #b5654a; font-weight: 700; margin-bottom: 6px; }
-        .section-title { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: #1a6b7a; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 1px; }
+        .section-title { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: #1a6b7a; margin-bottom: 14px; }
         .feed-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
         .empty-state { text-align: center; padding: 80px 0; }
         .empty-icon { font-size: 48px; margin-bottom: 16px; }
         .empty-title { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: #1a6b7a; margin-bottom: 8px; }
         .empty-sub { font-size: 14px; color: rgba(26,107,122,0.5); margin-bottom: 24px; line-height: 1.6; }
         .explore-btn { background: #1a6b7a; color: white; padding: 12px 28px; border-radius: 100px; font-size: 14px; font-weight: 700; text-decoration: none; display: inline-block; }
+
         .modal-overlay { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); }
         .modal { background: #f7f5f2; width: 100%; max-width: 440px; position: relative; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); overflow: hidden; }
         .modal-close { position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; background: rgba(26,107,122,0.08); border: none; cursor: pointer; color: #1a6b7a; font-size: 14px; display: flex; align-items: center; justify-content: center; border-radius: 50%; z-index: 10; }
@@ -154,17 +193,54 @@ export default function Feed() {
         .modal-name { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: #1a6b7a; margin-bottom: 14px; }
         .modal-link { display: flex; align-items: center; justify-content: space-between; padding: 13px 16px; border: 1px solid rgba(26,107,122,0.15); text-decoration: none; color: #1a6b7a; border-radius: 10px; background: white; margin-bottom: 8px; }
         .modal-link:hover { background: rgba(26,107,122,0.04); }
+
         @media (max-width: 768px) {
-          .feed-content { padding: 80px 20px 40px !important; }
+          .profile-hero { padding: 80px 20px 16px; flex-direction: column; align-items: flex-start; gap: 14px; }
+          .tabs { padding: 0 20px; }
+          .tab-btn { padding: 14px 16px; font-size: 10px; }
+          .content { padding: 20px; }
+          .profile-stats { gap: 16px; }
           .feed-side-by-side { flex-direction: column !important; }
           .feed-map-side { width: 100% !important; }
           .feed-map-container { aspect-ratio: 4/3; }
+        }
+        @media (max-width: 480px) {
+          .profile-name { font-size: 22px; }
+          .feed-grid { grid-template-columns: 1fr; }
         }
       `}</style>
 
       <Nav />
 
-      <div className="feed-content" style={{padding:'100px 56px 60px'}}>
+      {/* HEADER — exact same as creator page */}
+      <div className="profile-hero">
+        <div style={{width:64, height:64, borderRadius:'50%', background:'rgba(26,107,122,0.08)', border:'2px solid #1a6b7a', display:'flex', alignItems:'center', justifyContent:'center', fontSize:24, flexShrink:0}}>✈️</div>
+        <div className="profile-info">
+          <span className="profile-eyebrow">following</span>
+          <h1 className="profile-name">Your Feed</h1>
+          <p className="profile-bio">Hotels recommended by the creators you follow.</p>
+          <div className="profile-stats">
+            <div><div className="stat-num">{stays.length}</div><div className="stat-label">Stays</div></div>
+            <div><div className="stat-num">{new Set(stays.map(r => r.country)).size}</div><div className="stat-label">Countries</div></div>
+          </div>
+        </div>
+      </div>
+
+      {/* TABS + FILTER */}
+      <div className="tabs">
+        <div className="tabs-left">
+          <button className="tab-btn active">Stays</button>
+        </div>
+        {countries.length > 0 && (
+          <select className="filter-select" value={filterCountry} onChange={e => setFilterCountry(e.target.value)}>
+            <option value="all">All countries</option>
+            {countries.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        )}
+      </div>
+
+      {/* CONTENT */}
+      <div className="content">
         {loading ? (
           <div style={{textAlign:'center', padding:'60px 0', color:'rgba(26,107,122,0.4)'}}>Loading your feed...</div>
         ) : !hasFollows ? (
@@ -174,7 +250,7 @@ export default function Feed() {
             <div className="empty-sub">Follow creators to see their hotel recommendations here.</div>
             <Link href="/explore" className="explore-btn">Explore creators →</Link>
           </div>
-        ) : stays.length === 0 ? (
+        ) : filtered.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">🏨</div>
             <div className="empty-title">Nothing yet</div>
@@ -190,7 +266,7 @@ export default function Feed() {
               <div className="section-eyebrow">from people you follow</div>
               <h2 className="section-title">Recent stays</h2>
               <div className="feed-grid">
-                {stays.map(stay => (
+                {filtered.map(stay => (
                   <div key={stay.id} onClick={() => { setSelectedHotel(stay); setShowModal(true) }}
                     style={{background:'white', borderRadius:'12px', padding:'12px 14px', cursor:'pointer', border:'1px solid rgba(26,107,122,0.1)', boxShadow:'0 2px 8px rgba(26,107,122,0.06)', transition:'all 0.2s'}}
                     onMouseEnter={e => e.currentTarget.style.borderColor='rgba(26,107,122,0.3)'}
@@ -249,7 +325,10 @@ export default function Feed() {
                 </a>
               )) : (
                 <a href={buildExpediaUrl(selectedHotel.hotel_name, selectedHotel.city, selectedHotel.country)} target="_blank" rel="noopener noreferrer" className="modal-link">
-                  <div><div style={{fontSize:'14px', fontWeight:600}}>Search on Expedia</div><div style={{fontSize:'11px', color:'rgba(26,107,122,0.45)', marginTop:'2px'}}>Find the best price</div></div>
+                  <div>
+                    <div style={{fontSize:'14px', fontWeight:600}}>Search on Expedia</div>
+                    <div style={{fontSize:'11px', color:'rgba(26,107,122,0.45)', marginTop:'2px'}}>Find the best price</div>
+                  </div>
                   <span>→</span>
                 </a>
               )}

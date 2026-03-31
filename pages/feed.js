@@ -37,6 +37,7 @@ export default function Feed() {
   const [showCreatorDD, setShowCreatorDD] = useState(false)
   const [myStays, setMyStays] = useState([])
   const [showMyStaysDD, setShowMyStaysDD] = useState(false)
+  const [showMyStaysPins, setShowMyStaysPins] = useState(true)
   const myMarkersRef = useRef([])
 
   useEffect(() => {
@@ -236,8 +237,13 @@ export default function Feed() {
   // Update myStays markers
   useEffect(() => {
     if (!map.current?._mapboxgl || !map.current.loaded()) return
-    addMyStaysMarkers(map.current._mapboxgl, myStays)
-  }, [myStays])
+    if (showMyStaysPins) {
+      addMyStaysMarkers(map.current._mapboxgl, myStays)
+    } else {
+      myMarkersRef.current.forEach(m => m.remove())
+      myMarkersRef.current = []
+    }
+  }, [myStays, showMyStaysPins])
 
   const toggleLike = async (recId) => {
     const already = userLikes[recId]
@@ -376,6 +382,12 @@ export default function Feed() {
               </button>
               {showMyStaysDD && (
                 <div className="dropdown">
+                  <div style={{display:'flex', borderBottom:'1px solid rgba(26,107,122,0.08)', marginBottom:'4px'}}>
+                    <button className="dropdown-clear" style={{flex:1, textAlign:'center', color: showMyStaysPins ? '#1a6b7a' : 'rgba(26,107,122,0.35)', fontWeight: showMyStaysPins ? 700 : 400}}
+                      onClick={() => setShowMyStaysPins(true)}>Show all</button>
+                    <button className="dropdown-clear" style={{flex:1, textAlign:'center', color: !showMyStaysPins ? '#b5654a' : 'rgba(26,107,122,0.35)', fontWeight: !showMyStaysPins ? 700 : 400}}
+                      onClick={() => setShowMyStaysPins(false)}>Hide all</button>
+                  </div>
                   {myStays.map(stay => (
                     <div key={stay.id} className="dropdown-item" onClick={() => {
                       setSelectedHotel(stay)

@@ -28,13 +28,13 @@ export default function Feed() {
   const [selectedHotel, setSelectedHotel] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [hasFollows, setHasFollows] = useState(false)
-  const [selectedCountries, setSelectedCountries] = useState([])
-  const [selectedCreators, setSelectedCreators] = useState([])
   const [countries, setCountries] = useState([])
   const [creators, setCreators] = useState([])
+  const [selectedCountries, setSelectedCountries] = useState([])
+  const [selectedCreators, setSelectedCreators] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
-  const [showCountryDropdown, setShowCountryDropdown] = useState(false)
-  const [showCreatorDropdown, setShowCreatorDropdown] = useState(false)
+  const [showCountryDD, setShowCountryDD] = useState(false)
+  const [showCreatorDD, setShowCreatorDD] = useState(false)
 
   useEffect(() => {
     async function fetchFeed() {
@@ -45,7 +45,11 @@ export default function Feed() {
       const { data: follows } = await supabase
         .from('follows').select('influencer_id').eq('follower_id', session.user.id)
 
-      if (!follows || follows.length === 0) { setHasFollows(false); setLoading(false); return }
+      if (!follows || follows.length === 0) {
+        setHasFollows(false)
+        setLoading(false)
+        return
+      }
       setHasFollows(true)
 
       const influencerIds = follows.map(f => f.influencer_id)
@@ -59,25 +63,17 @@ export default function Feed() {
       const data = recs || []
       setStays(data)
       setFiltered(data)
+
       const uniqueCountries = [...new Set(data.map(r => r.country).filter(Boolean))].sort()
       setCountries(uniqueCountries)
+
       const uniqueCreators = []
       const seen = new Set()
       data.forEach(r => {
         const id = r.influencers?.id
         if (id && !seen.has(id)) {
           seen.add(id)
-          uniqueCreators.push({ id, name: r.influencers?.profiles?.full_name || r.influencers?.handle, handle: r.influencers?.handle })
-        }
-      })
-      setCreators(uniqueCreators)
-      const uniqueCreators = []
-      const seen = new Set()
-      data.forEach(r => {
-        const id = r.influencers?.id
-        if (id && !seen.has(id)) {
-          seen.add(id)
-          uniqueCreators.push({ id, name: r.influencers?.profiles?.full_name || r.influencers?.handle, handle: r.influencers?.handle })
+          uniqueCreators.push({ id, name: r.influencers?.profiles?.full_name || r.influencers?.handle })
         }
       })
       setCreators(uniqueCreators)
@@ -86,7 +82,8 @@ export default function Feed() {
         const recIds = data.map(r => r.id)
         const { data: likesData } = await supabase
           .from('likes').select('recommendation_id, user_id').in('recommendation_id', recIds)
-        const likeCounts = {}, userLikeMap = {}
+        const likeCounts = {}
+        const userLikeMap = {}
         recIds.forEach(id => { likeCounts[id] = 0; userLikeMap[id] = false })
         likesData?.forEach(l => {
           likeCounts[l.recommendation_id] = (likeCounts[l.recommendation_id] || 0) + 1
@@ -100,7 +97,7 @@ export default function Feed() {
     fetchFeed()
   }, [])
 
-  // Filter + search
+  // Filter
   useEffect(() => {
     let result = stays
     if (selectedCountries.length > 0) {
@@ -122,12 +119,15 @@ export default function Feed() {
     setFiltered(result)
   }, [selectedCountries, selectedCreators, searchQuery, stays])
 
-  const toggleCountry = (c) => setSelectedCountries(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c])
-  const toggleCreator = (id) => setSelectedCreators(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+  const toggleCountry = (country) => {
+    setSelectedCountries(prev => prev.includes(country) ? prev.filter(c => c !== country) : [...prev, country])
+  }
+  const toggleCreator = (id) => {
+    setSelectedCreators(prev => prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id])
+  }
 
-  // Add/update markers helper
+  // Add markers helper
   const addMarkersToMap = (mapboxgl, staysToShow) => {
-    // Clear existing markers
     markersRef.current.forEach(m => m.remove())
     markersRef.current = []
     staysToShow.forEach(stay => {
@@ -155,8 +155,7 @@ export default function Feed() {
 
   // Init map
   useEffect(() => {
-    if (loading || !stays.length) return
-    if (map.current) return
+    if (loading || !stays.length || map.current) return
     setTimeout(() => {
       if (!mapContainer.current) return
       import('mapbox-gl').then(mod => {
@@ -183,10 +182,9 @@ export default function Feed() {
     }, 200)
   }, [loading, stays])
 
-  // Update markers when filter/search changes
+  // Update markers on filter change
   useEffect(() => {
-    if (!map.current || !map.current._mapboxgl) return
-    if (!map.current.loaded()) return
+    if (!map.current?._mapboxgl || !map.current.loaded()) return
     addMarkersToMap(map.current._mapboxgl, filtered)
   }, [filtered])
 
@@ -201,8 +199,10 @@ export default function Feed() {
     }
   }
 
+  const closeDropdowns = () => { setShowCountryDD(false); setShowCreatorDD(false) }
+
   return (
-    <div style={{ background: '#f7f5f2', minHeight: '100vh', fontFamily: 'DM Sans, sans-serif' }} onClick={() => { setShowCountryDropdown(false); setShowCreatorDropdown(false) }}>
+    <div style={{ background: '#f7f5f2', minHeight: '100vh', fontFamily: 'DM Sans, sans-serif' }} onClick={closeDropdowns}>
       <Head>
         <title>Following — GoThereNow</title>
         <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -212,22 +212,23 @@ export default function Feed() {
       <style>{`
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #f7f5f2; font-family: 'DM Sans', sans-serif; }
-
         .profile-hero { padding: 80px 56px 16px; border-bottom: 1px solid rgba(26,107,122,0.1); display: flex; align-items: center; gap: 24px; }
         .profile-info { flex: 1; }
         .profile-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #b5654a; font-weight: 700; margin-bottom: 4px; display: block; }
         .profile-name { font-family: 'Playfair Display', serif; font-size: clamp(20px, 3vw, 32px); font-weight: 700; color: #1a6b7a; line-height: 1.05; margin-bottom: 6px; }
-        .profile-bio { font-size: 12px; color: rgba(26,107,122,0.6); line-height: 1.6; max-width: 480px; margin-bottom: 12px; }
+        .profile-bio { font-size: 12px; color: rgba(26,107,122,0.6); line-height: 1.6; margin-bottom: 12px; }
         .profile-stats { display: flex; gap: 32px; }
         .stat-num { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #1a6b7a; line-height: 1; }
         .stat-label { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: rgba(26,107,122,0.5); margin-top: 2px; font-weight: 600; }
-
         .tabs { display: flex; align-items: center; justify-content: space-between; padding: 0 56px; border-bottom: 1px solid rgba(26,107,122,0.12); background: #f7f5f2; }
-        .tabs-left { display: flex; }
         .tab-btn { padding: 18px 24px; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: rgba(26,107,122,0.35); background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; font-family: 'DM Sans', sans-serif; margin-bottom: -1px; }
         .tab-btn.active { color: #1a6b7a; border-bottom-color: #1a6b7a; }
-        .filter-select { font-size: 12px; font-family: 'DM Sans', sans-serif; color: #1a6b7a; background: white; border: 1px solid rgba(26,107,122,0.2); padding: 7px 14px; border-radius: 100px; outline: none; cursor: pointer; font-weight: 600; }
-
+        .filter-btn { font-size: 12px; font-family: 'DM Sans', sans-serif; color: #1a6b7a; background: white; border: 1px solid rgba(26,107,122,0.2); padding: 7px 14px; border-radius: 100px; cursor: pointer; font-weight: 600; }
+        .filter-btn.active { background: #1a6b7a; color: white; border-color: #1a6b7a; }
+        .dropdown { position: absolute; top: calc(100% + 6px); right: 0; background: white; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); border: 1px solid rgba(26,107,122,0.1); z-index: 100; min-width: 180px; padding: 8px 0; max-height: 220px; overflow-y: auto; }
+        .dropdown-item { display: flex; align-items: center; gap: 8px; padding: 7px 14px; cursor: pointer; font-size: 13px; color: #1a6b7a; }
+        .dropdown-item:hover { background: rgba(26,107,122,0.04); }
+        .dropdown-clear { display: block; width: 100%; text-align: left; padding: 7px 14px; font-size: 11px; color: #b5654a; font-weight: 700; background: none; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; }
         .content { padding: 32px 56px; }
         .feed-map-container { border-radius: 16px; overflow: hidden; border: 1px solid rgba(26,107,122,0.15); aspect-ratio: 2/1.4; box-shadow: 0 4px 20px rgba(26,107,122,0.1); }
         .hover-popup { z-index: 999 !important; }
@@ -235,13 +236,11 @@ export default function Feed() {
         .section-eyebrow { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #b5654a; font-weight: 700; margin-bottom: 6px; }
         .section-title { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: #1a6b7a; margin-bottom: 14px; }
         .feed-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-
         .empty-state { text-align: center; padding: 80px 0; }
         .empty-icon { font-size: 48px; margin-bottom: 16px; }
         .empty-title { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: #1a6b7a; margin-bottom: 8px; }
         .empty-sub { font-size: 14px; color: rgba(26,107,122,0.5); margin-bottom: 24px; line-height: 1.6; }
         .explore-btn { background: #1a6b7a; color: white; padding: 12px 28px; border-radius: 100px; font-size: 14px; font-weight: 700; text-decoration: none; display: inline-block; }
-
         .modal-overlay { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); }
         .modal { background: #f7f5f2; width: 100%; max-width: 440px; position: relative; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); overflow: hidden; }
         .modal-close { position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; background: rgba(26,107,122,0.08); border: none; cursor: pointer; color: #1a6b7a; font-size: 14px; display: flex; align-items: center; justify-content: center; border-radius: 50%; z-index: 10; }
@@ -249,26 +248,24 @@ export default function Feed() {
         .modal-name { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: #1a6b7a; margin-bottom: 14px; }
         .modal-link { display: flex; align-items: center; justify-content: space-between; padding: 13px 16px; border: 1px solid rgba(26,107,122,0.15); text-decoration: none; color: #1a6b7a; border-radius: 10px; background: white; margin-bottom: 8px; }
         .modal-link:hover { background: rgba(26,107,122,0.04); }
-
         @media (max-width: 768px) {
           .profile-hero { padding: 80px 20px 16px; flex-direction: column; align-items: flex-start; gap: 14px; }
-          .tabs { padding: 0 20px; }
-          .tab-btn { padding: 14px 16px; font-size: 10px; }
+          .tabs { padding: 0 20px; flex-wrap: wrap; gap: 8px; }
           .content { padding: 20px; }
           .profile-stats { gap: 16px; }
           .feed-side-by-side { flex-direction: column !important; }
           .feed-map-side { width: 100% !important; }
           .feed-map-container { aspect-ratio: 4/3; }
+          .feed-grid { grid-template-columns: repeat(2, 1fr); }
         }
         @media (max-width: 480px) {
           .profile-name { font-size: 22px; }
-          .feed-grid { grid-template-columns: 1fr; }
         }
       `}</style>
 
       <Nav />
 
-      {/* HEADER — exact same as creator page */}
+      {/* HEADER */}
       <div className="profile-hero">
         <div style={{width:64, height:64, borderRadius:'50%', background:'rgba(26,107,122,0.08)', border:'2px solid #1a6b7a', display:'flex', alignItems:'center', justifyContent:'center', fontSize:24, flexShrink:0}}>✈️</div>
         <div className="profile-info">
@@ -282,68 +279,62 @@ export default function Feed() {
         </div>
       </div>
 
-      {/* TABS + FILTER */}
-      <div className="tabs">
-        <div className="tabs-left">
+      {/* TABS + FILTERS */}
+      <div className="tabs" onClick={e => e.stopPropagation()}>
+        <div style={{display:'flex'}}>
           <button className="tab-btn active">Stays</button>
         </div>
-        <div style={{display:'flex', gap:'10px', alignItems:'center', padding:'8px 0', position:'relative'}}>
+        <div style={{display:'flex', gap:'8px', alignItems:'center', padding:'8px 0'}}>
           {/* Search */}
           <div style={{position:'relative'}}>
-            <input type="text" placeholder="Search hotels, cities..." value={searchQuery}
+            <input type="text" placeholder="Search..." value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              style={{fontSize:'12px', fontFamily:'DM Sans, sans-serif', color:'#1a6b7a', background:'white', border:'1px solid rgba(26,107,122,0.2)', padding:'7px 14px 7px 30px', borderRadius:'100px', outline:'none', width:'180px'}} />
-            <span style={{position:'absolute', left:'10px', top:'50%', transform:'translateY(-50%)', fontSize:'12px', color:'rgba(26,107,122,0.4)'}}>🔍</span>
+              style={{fontSize:'12px', fontFamily:'DM Sans, sans-serif', color:'#1a6b7a', background:'white', border:'1px solid rgba(26,107,122,0.2)', padding:'7px 14px 7px 28px', borderRadius:'100px', outline:'none', width:'160px'}} />
+            <span style={{position:'absolute', left:'10px', top:'50%', transform:'translateY(-50%)', fontSize:'11px', color:'rgba(26,107,122,0.4)'}}>🔍</span>
           </div>
 
-          {/* Country multi-select */}
+          {/* Countries */}
           {countries.length > 0 && (
-            <div style={{position:'relative'}}>
-              <button onClick={() => { setShowCountryDropdown(p => !p); setShowCreatorDropdown(false) }}
-                className="filter-select" style={{cursor:'pointer', display:'flex', alignItems:'center', gap:'6px'}}>
-                🌍 {selectedCountries.length === 0 ? 'Countries' : `${selectedCountries.length} selected`}
-                <span style={{fontSize:'9px'}}>▾</span>
+            <div style={{position:'relative'}} onClick={e => e.stopPropagation()}>
+              <button className={`filter-btn${selectedCountries.length > 0 ? ' active' : ''}`}
+                onClick={() => { setShowCountryDD(p => !p); setShowCreatorDD(false) }}>
+                {selectedCountries.length > 0 ? `${selectedCountries.length} countr${selectedCountries.length > 1 ? 'ies' : 'y'}` : 'Countries'} ▾
               </button>
-              {showCountryDropdown && (
-                <div style={{position:'absolute', top:'calc(100% + 6px)', right:0, background:'white', border:'1px solid rgba(26,107,122,0.15)', borderRadius:'12px', boxShadow:'0 8px 24px rgba(0,0,0,0.1)', zIndex:100, minWidth:'180px', padding:'8px 0'}}>
+              {showCountryDD && (
+                <div className="dropdown">
                   {selectedCountries.length > 0 && (
-                    <button onClick={() => setSelectedCountries([])} style={{width:'100%', padding:'8px 14px', fontSize:'11px', color:'#b5654a', background:'none', border:'none', cursor:'pointer', textAlign:'left', fontWeight:600}}>Clear all</button>
+                    <button className="dropdown-clear" onClick={() => setSelectedCountries([])}>Clear all</button>
                   )}
                   {countries.map(country => (
-                    <div key={country} onClick={() => toggleCountry(country)}
-                      style={{padding:'8px 14px', fontSize:'13px', color:'#1a6b7a', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', background: selectedCountries.includes(country) ? 'rgba(26,107,122,0.06)' : 'transparent'}}>
-                      <span style={{width:'14px', height:'14px', border:'1px solid rgba(26,107,122,0.3)', borderRadius:'3px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'10px', background: selectedCountries.includes(country) ? '#1a6b7a' : 'white', color:'white', flexShrink:0}}>
-                        {selectedCountries.includes(country) ? '✓' : ''}
-                      </span>
+                    <label key={country} className="dropdown-item">
+                      <input type="checkbox" checked={selectedCountries.includes(country)}
+                        onChange={() => toggleCountry(country)} style={{accentColor:'#1a6b7a'}} />
                       {country}
-                    </div>
+                    </label>
                   ))}
                 </div>
               )}
             </div>
           )}
 
-          {/* Creator multi-select */}
+          {/* Creators */}
           {creators.length > 0 && (
-            <div style={{position:'relative'}}>
-              <button onClick={() => { setShowCreatorDropdown(p => !p); setShowCountryDropdown(false) }}
-                className="filter-select" style={{cursor:'pointer', display:'flex', alignItems:'center', gap:'6px'}}>
-                ✈️ {selectedCreators.length === 0 ? 'Creators' : `${selectedCreators.length} selected`}
-                <span style={{fontSize:'9px'}}>▾</span>
+            <div style={{position:'relative'}} onClick={e => e.stopPropagation()}>
+              <button className={`filter-btn${selectedCreators.length > 0 ? ' active' : ''}`}
+                onClick={() => { setShowCreatorDD(p => !p); setShowCountryDD(false) }}>
+                {selectedCreators.length > 0 ? `${selectedCreators.length} creator${selectedCreators.length > 1 ? 's' : ''}` : 'Creators'} ▾
               </button>
-              {showCreatorDropdown && (
-                <div style={{position:'absolute', top:'calc(100% + 6px)', right:0, background:'white', border:'1px solid rgba(26,107,122,0.15)', borderRadius:'12px', boxShadow:'0 8px 24px rgba(0,0,0,0.1)', zIndex:100, minWidth:'200px', padding:'8px 0'}}>
+              {showCreatorDD && (
+                <div className="dropdown">
                   {selectedCreators.length > 0 && (
-                    <button onClick={() => setSelectedCreators([])} style={{width:'100%', padding:'8px 14px', fontSize:'11px', color:'#b5654a', background:'none', border:'none', cursor:'pointer', textAlign:'left', fontWeight:600}}>Clear all</button>
+                    <button className="dropdown-clear" onClick={() => setSelectedCreators([])}>Clear all</button>
                   )}
-                  {creators.map(cr => (
-                    <div key={cr.id} onClick={() => toggleCreator(cr.id)}
-                      style={{padding:'8px 14px', fontSize:'13px', color:'#1a6b7a', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', background: selectedCreators.includes(cr.id) ? 'rgba(26,107,122,0.06)' : 'transparent'}}>
-                      <span style={{width:'14px', height:'14px', border:'1px solid rgba(26,107,122,0.3)', borderRadius:'3px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'10px', background: selectedCreators.includes(cr.id) ? '#1a6b7a' : 'white', color:'white', flexShrink:0}}>
-                        {selectedCreators.includes(cr.id) ? '✓' : ''}
-                      </span>
-                      {cr.name}
-                    </div>
+                  {creators.map(creator => (
+                    <label key={creator.id} className="dropdown-item">
+                      <input type="checkbox" checked={selectedCreators.includes(creator.id)}
+                        onChange={() => toggleCreator(creator.id)} style={{accentColor:'#1a6b7a'}} />
+                      {creator.name}
+                    </label>
                   ))}
                 </div>
               )}
@@ -354,54 +345,78 @@ export default function Feed() {
 
       {/* CONTENT */}
       <div className="content">
-        {loading ? (
+        {loading && (
           <div style={{textAlign:'center', padding:'60px 0', color:'rgba(26,107,122,0.4)'}}>Loading your feed...</div>
-        ) : !hasFollows ? (
+        )}
+        {!loading && !hasFollows && (
           <div className="empty-state">
             <div className="empty-icon">✈️</div>
             <div className="empty-title">Your feed is empty</div>
             <div className="empty-sub">Follow creators to see their hotel recommendations here.</div>
             <Link href="/explore" className="explore-btn">Explore creators →</Link>
           </div>
-        ) : filtered.length === 0 ? (
+        )}
+        {!loading && hasFollows && stays.length === 0 && (
           <div className="empty-state">
             <div className="empty-icon">🏨</div>
             <div className="empty-title">Nothing yet</div>
-            <div className="empty-sub">The creators you follow haven't added any stays yet.</div>
+            <div className="empty-sub">The creators you follow have not added any stays yet.</div>
             <Link href="/explore" className="explore-btn">Discover more creators →</Link>
           </div>
-        ) : (
+        )}
+        {!loading && hasFollows && stays.length > 0 && (
           <div className="feed-side-by-side" style={{display:'flex', gap:'24px', alignItems:'flex-start'}}>
             <div className="feed-map-side" style={{width:'50%', flexShrink:0}}>
               <div className="feed-map-container" ref={mapContainer} />
             </div>
             <div style={{flex:1, minWidth:0, maxHeight:'500px', overflowY:'auto'}}>
               <div className="section-eyebrow">from people you follow</div>
-              <h2 className="section-title">Recent stays {filtered.length < stays.length && <span style={{fontSize:'12px', fontWeight:400, color:'rgba(26,107,122,0.4)'}}>({filtered.length} results)</span>}</h2>
+              <h2 className="section-title">
+                Recent stays
+                {filtered.length < stays.length && (
+                  <span style={{fontSize:'12px', fontWeight:400, color:'rgba(26,107,122,0.4)', marginLeft:'8px'}}>({filtered.length} results)</span>
+                )}
+              </h2>
               {filtered.length === 0 ? (
-                <div style={{textAlign:'center', padding:'40px 0', color:'rgba(26,107,122,0.4)', fontSize:'14px'}}>No stays match your search.</div>
+                <div style={{textAlign:'center', padding:'40px 0', color:'rgba(26,107,122,0.4)', fontSize:'14px'}}>No stays match your filters.</div>
               ) : (
-              <div className="feed-grid">
-                {filtered.map(stay => (
-                  <div key={stay.id} onClick={() => { setSelectedHotel(stay); setShowModal(true) }}
-                    style={{background:'white', borderRadius:'12px', padding:'12px 14px', cursor:'pointer', border:'1px solid rgba(26,107,122,0.1)', boxShadow:'0 2px 8px rgba(26,107,122,0.06)', transition:'all 0.2s'}}
-                    onMouseEnter={e => e.currentTarget.style.borderColor='rgba(26,107,122,0.3)'}
-                    onMouseLeave={e => e.currentTarget.style.borderColor='rgba(26,107,122,0.1)'}
-                  >
-                    {stay.photo_url && <img src={stay.photo_url} alt={stay.hotel_name} style={{width:'100%', height:'80px', objectFit:'cover', borderRadius:'8px', marginBottom:'8px'}} />}
-                    <div style={{fontSize:'9px', letterSpacing:'2px', textTransform:'uppercase', color:'#b5654a', marginBottom:'3px'}}>📍 {[stay.city, stay.country].filter(Boolean).join(', ')}</div>
-                    <div style={{fontFamily:'Playfair Display, serif', fontSize:'14px', fontWeight:600, color:'#1a6b7a', marginBottom:'4px'}}>{stay.hotel_name}</div>
-                    {stay.star_rating > 0 && <div style={{fontSize:'11px', color:'#b5654a', marginBottom:'4px'}}>{'★'.repeat(stay.star_rating)}</div>}
-                    <div style={{fontSize:'11px', color:'rgba(26,107,122,0.5)', marginBottom:'6px'}}>by {stay.influencers?.profiles?.full_name || stay.influencers?.handle}</div>
-                    <div style={{display:'flex', alignItems:'center', gap:'12px'}}>
-                      <button onClick={e => { e.stopPropagation(); toggleLike(stay.id) }} style={{background:'none', border:'none', cursor:'pointer', fontSize:'12px', color: userLikes[stay.id] ? '#e05c7a' : 'rgba(26,107,122,0.5)', fontWeight:600, padding:0}}>
-                        {userLikes[stay.id] ? '❤️' : '🤍'} {likes[stay.id] || ''}
-                      </button>
-                      <span style={{fontSize:'11px', fontWeight:700, color:'#b5654a', cursor:'pointer'}} onClick={e => { e.stopPropagation(); setSelectedHotel(stay); setShowModal(true) }}>Book Now →</span>
+                <div className="feed-grid">
+                  {filtered.map(stay => (
+                    <div key={stay.id}
+                      onClick={() => { setSelectedHotel(stay); setShowModal(true) }}
+                      style={{background:'white', borderRadius:'12px', padding:'12px 14px', cursor:'pointer', border:'1px solid rgba(26,107,122,0.1)', boxShadow:'0 2px 8px rgba(26,107,122,0.06)', transition:'all 0.2s'}}
+                      onMouseEnter={e => e.currentTarget.style.borderColor='rgba(26,107,122,0.3)'}
+                      onMouseLeave={e => e.currentTarget.style.borderColor='rgba(26,107,122,0.1)'}
+                    >
+                      {stay.photo_url && (
+                        <img src={stay.photo_url} alt={stay.hotel_name} style={{width:'100%', height:'80px', objectFit:'cover', borderRadius:'8px', marginBottom:'8px'}} />
+                      )}
+                      <div style={{fontSize:'9px', letterSpacing:'2px', textTransform:'uppercase', color:'#b5654a', marginBottom:'3px'}}>
+                        📍 {[stay.city, stay.country].filter(Boolean).join(', ')}
+                      </div>
+                      <div style={{fontFamily:'Playfair Display, serif', fontSize:'14px', fontWeight:600, color:'#1a6b7a', marginBottom:'4px'}}>{stay.hotel_name}</div>
+                      {stay.star_rating > 0 && (
+                        <div style={{fontSize:'11px', color:'#b5654a', marginBottom:'4px'}}>{'★'.repeat(stay.star_rating)}</div>
+                      )}
+                      <div style={{fontSize:'11px', color:'rgba(26,107,122,0.5)', marginBottom:'6px'}}>
+                        by {stay.influencers?.profiles?.full_name || stay.influencers?.handle}
+                      </div>
+                      <div style={{display:'flex', alignItems:'center', gap:'12px'}}>
+                        <button
+                          onClick={e => { e.stopPropagation(); toggleLike(stay.id) }}
+                          style={{background:'none', border:'none', cursor:'pointer', fontSize:'12px', color: userLikes[stay.id] ? '#e05c7a' : 'rgba(26,107,122,0.5)', fontWeight:600, padding:0}}>
+                          {userLikes[stay.id] ? '❤️' : '🤍'} {likes[stay.id] || ''}
+                        </button>
+                        <span
+                          style={{fontSize:'11px', fontWeight:700, color:'#b5654a', cursor:'pointer'}}
+                          onClick={e => { e.stopPropagation(); setSelectedHotel(stay); setShowModal(true) }}>
+                          Book Now →
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -412,16 +427,18 @@ export default function Feed() {
         <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setShowModal(false) }}>
           <div className="modal">
             <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
-            {selectedHotel.photo_url ? (
+            {selectedHotel.photo_url && (
               <div style={{position:'relative', height:'200px', overflow:'hidden', borderRadius:'20px 20px 0 0'}}>
                 <img src={selectedHotel.photo_url} alt={selectedHotel.hotel_name} style={{width:'100%', height:'100%', objectFit:'cover'}} />
                 <div style={{position:'absolute', inset:0, background:'linear-gradient(to top, rgba(10,40,50,0.85) 0%, transparent 60%)'}} />
                 <div style={{position:'absolute', bottom:0, left:0, right:0, padding:'16px 20px'}}>
-                  <div style={{fontSize:'9px', letterSpacing:'2px', textTransform:'uppercase', color:'rgba(255,255,255,0.6)', marginBottom:'3px'}}>📍 {[selectedHotel.city, selectedHotel.country].filter(Boolean).join(', ')}</div>
+                  <div style={{fontSize:'9px', letterSpacing:'2px', textTransform:'uppercase', color:'rgba(255,255,255,0.6)', marginBottom:'3px'}}>
+                    📍 {[selectedHotel.city, selectedHotel.country].filter(Boolean).join(', ')}
+                  </div>
                   <h3 style={{fontFamily:"'Playfair Display',serif", fontSize:'20px', fontWeight:700, color:'white', margin:0}}>{selectedHotel.hotel_name}</h3>
                 </div>
               </div>
-            ) : null}
+            )}
             <div style={{padding:'20px 24px 24px'}}>
               {!selectedHotel.photo_url && (
                 <>
@@ -434,12 +451,14 @@ export default function Feed() {
                   {'★'.repeat(selectedHotel.star_rating)}{'☆'.repeat(5 - selectedHotel.star_rating)}
                 </div>
               )}
-              {selectedHotel.booking_links?.length > 0 ? selectedHotel.booking_links.map(link => (
-                <a key={link.id} href={link.affiliate_url} target="_blank" rel="noopener noreferrer" className="modal-link">
-                  <div style={{fontSize:'14px', fontWeight:600}}>{link.platform}</div>
-                  <span>→</span>
-                </a>
-              )) : (
+              {selectedHotel.booking_links?.length > 0 ? (
+                selectedHotel.booking_links.map(link => (
+                  <a key={link.id} href={link.affiliate_url} target="_blank" rel="noopener noreferrer" className="modal-link">
+                    <div style={{fontSize:'14px', fontWeight:600}}>{link.platform}</div>
+                    <span>→</span>
+                  </a>
+                ))
+              ) : (
                 <a href={buildExpediaUrl(selectedHotel.hotel_name, selectedHotel.city, selectedHotel.country)} target="_blank" rel="noopener noreferrer" className="modal-link">
                   <div>
                     <div style={{fontSize:'14px', fontWeight:600}}>Search on Expedia</div>

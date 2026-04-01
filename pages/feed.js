@@ -345,10 +345,10 @@ export default function Feed() {
 
       {/* TABS + FILTERS */}
       <div className="tabs" onClick={e => e.stopPropagation()}>
-        <div style={{display:'flex'}}>
+        {/* LEFT — tab + search + countries + creators */}
+        <div style={{display:'flex', gap:'8px', alignItems:'center'}}>
           <button className="tab-btn active">Stays</button>
-        </div>
-        <div style={{display:'flex', gap:'8px', alignItems:'center', padding:'8px 0'}}>
+
           {/* Search */}
           <div style={{position:'relative'}}>
             <input type="text" placeholder="Search..." value={searchQuery}
@@ -361,7 +361,7 @@ export default function Feed() {
           {countries.length > 0 && (
             <div style={{position:'relative'}} onClick={e => e.stopPropagation()}>
               <button className={`filter-btn${selectedCountries.length > 0 ? ' active' : ''}`}
-                onClick={() => { setShowCountryDD(p => !p); setShowCreatorDD(false) }}>
+                onClick={() => { setShowCountryDD(p => !p); setShowCreatorDD(false); setShowMyStaysDD(false) }}>
                 {selectedCountries.length > 0 ? `${selectedCountries.length} countr${selectedCountries.length > 1 ? 'ies' : 'y'}` : 'Countries'} ▾
               </button>
               {showCountryDD && (
@@ -379,10 +379,34 @@ export default function Feed() {
             </div>
           )}
 
-          {/* My Stays */}
+          {/* Creators */}
+          {creators.length > 0 && (
+            <div style={{position:'relative'}} onClick={e => e.stopPropagation()}>
+              <button className={`filter-btn${selectedCreators.length > 0 ? ' active' : ''}`}
+                onClick={() => { setShowCreatorDD(p => !p); setShowCountryDD(false); setShowMyStaysDD(false) }}>
+                {selectedCreators.length > 0 ? `${selectedCreators.length} creator${selectedCreators.length > 1 ? 's' : ''}` : 'Creators'} ▾
+              </button>
+              {showCreatorDD && (
+                <div className="dropdown">
+                  <button className="dropdown-clear" onClick={() => setSelectedCreators([])}>Clear all</button>
+                  {creators.map(creator => (
+                    <label key={creator.id} className="dropdown-item">
+                      <input type="checkbox" checked={selectedCreators.includes(creator.id)}
+                        onChange={() => toggleCreator(creator.id)} style={{accentColor:'#1a6b7a'}} />
+                      {creator.name}
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT — My Stays */}
+        <div style={{display:'flex', gap:'8px', alignItems:'center', padding:'8px 0'}}>
           {myStays.length > 0 && (
             <div style={{position:'relative'}} onClick={e => e.stopPropagation()}>
-              <button className={`filter-btn`}
+              <button className="filter-btn"
                 style={{background:'#b5654a', color:'white', borderColor:'#b5654a'}}
                 onClick={() => { setShowMyStaysDD(p => !p); setShowCountryDD(false); setShowCreatorDD(false) }}>
                 ⭐ My stays {selectedMyStays.length > 0 ? `(${selectedMyStays.length}/${myStays.length})` : `(${myStays.length})`} ▾
@@ -406,28 +430,6 @@ export default function Feed() {
                         <div style={{fontWeight:600, fontSize:'13px', color:'#1a6b7a'}}>{stay.hotel_name}</div>
                         <div style={{fontSize:'10px', color:'rgba(26,107,122,0.5)', marginTop:'1px'}}>📍 {[stay.city, stay.country].filter(Boolean).join(', ')}</div>
                       </div>
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Creators */}
-          {creators.length > 0 && (
-            <div style={{position:'relative'}} onClick={e => e.stopPropagation()}>
-              <button className={`filter-btn${selectedCreators.length > 0 ? ' active' : ''}`}
-                onClick={() => { setShowCreatorDD(p => !p); setShowCountryDD(false) }}>
-                {selectedCreators.length > 0 ? `${selectedCreators.length} creator${selectedCreators.length > 1 ? 's' : ''}` : 'Creators'} ▾
-              </button>
-              {showCreatorDD && (
-                <div className="dropdown">
-                  <button className="dropdown-clear" onClick={() => setSelectedCreators([])}>Clear all</button>
-                  {creators.map(creator => (
-                    <label key={creator.id} className="dropdown-item">
-                      <input type="checkbox" checked={selectedCreators.includes(creator.id)}
-                        onChange={() => toggleCreator(creator.id)} style={{accentColor:'#1a6b7a'}} />
-                      {creator.name}
                     </label>
                   ))}
                 </div>

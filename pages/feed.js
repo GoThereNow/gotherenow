@@ -463,11 +463,11 @@ export default function Feed() {
         {!loading && hasFollows && stays.length > 0 && (
           <div className="feed-side-by-side" style={{display:'flex', gap:'24px', alignItems:'flex-start'}}>
             <div className="feed-map-side" style={{width:'50%', flexShrink:0}}>
-              <div className="feed-map-container" ref={mapContainer} />
-              <div style={{display:'flex', gap:'16px', marginTop:'10px', fontSize:'11px', color:'rgba(26,107,122,0.6)'}}>
+              <div style={{display:'flex', gap:'16px', marginBottom:'8px', fontSize:'11px', color:'rgba(26,107,122,0.6)'}}>
                 <span style={{display:'flex', alignItems:'center', gap:'5px'}}><span style={{width:'10px', height:'10px', borderRadius:'50%', background:'#1a6b7a', display:'inline-block'}}></span>Following</span>
                 <span style={{display:'flex', alignItems:'center', gap:'5px'}}><span style={{width:'10px', height:'10px', borderRadius:'50%', background:'#b5654a', display:'inline-block'}}></span>My stays</span>
               </div>
+              <div className="feed-map-container" ref={mapContainer} />
             </div>
             <div style={{flex:1, minWidth:0, maxHeight:'500px', overflowY:'auto'}}>
               <div className="section-eyebrow">from people you follow</div>

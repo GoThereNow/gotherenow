@@ -157,11 +157,18 @@ export default function ProfilePage() {
         map.current.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right')
         map.current.on('load', () => {
           map.current.resize()
+          map.current._mapboxgl = mapboxgl
           addMarkers(mapboxgl)
         })
       })
     }, 200)
   }, [loading])
+
+  // Refresh markers when likes change so colors update
+  useEffect(() => {
+    if (!map.current?._mapboxgl || !map.current.loaded()) return
+    addMarkers(map.current._mapboxgl)
+  }, [userLikes, isOwner])
 
   function addMarkers(mapboxgl) {
     markersRef.current.forEach(m => m.remove())
@@ -169,7 +176,9 @@ export default function ProfilePage() {
     recommendations.forEach(rec => {
       if (!rec.latitude || !rec.longitude) return
       const el = document.createElement('div')
-      el.style.cssText = 'width:28px;height:28px;background:#1a6b7a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;'
+      const isLiked = userLikes[rec.id]
+      const pinColor = isOwner ? (isLiked ? '#1a6b7a' : '#b5654a') : '#1a6b7a'
+      el.style.cssText = 'width:28px;height:28px;background:' + pinColor + ';border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;'
       const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 15, className: 'hover-popup' })
         .setHTML(
           '<div style="font-family:DM Sans,sans-serif;width:220px;border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.15);display:flex;">' +
@@ -615,6 +624,15 @@ export default function ProfilePage() {
         {/* MAP TAB */}
         <div style={{ display: activeTab === 'map' ? 'flex' : 'none', gap: '24px', alignItems: 'flex-start' }}>
           <div style={{ width: '50%', flexShrink: 0 }}>
+            <div style={{display:'flex', gap:'12px', marginBottom:'8px', fontSize:'11px', color:'rgba(26,107,122,0.6)'}}>
+              {isOwner
+                ? <>
+                    <span style={{display:'flex', alignItems:'center', gap:'5px'}}><span style={{width:'10px', height:'10px', borderRadius:'50%', background:'#b5654a', display:'inline-block'}}></span>My stays</span>
+                    <span style={{display:'flex', alignItems:'center', gap:'5px'}}><span style={{width:'10px', height:'10px', borderRadius:'50%', background:'#1a6b7a', display:'inline-block'}}></span>Liked</span>
+                  </>
+                : <span style={{display:'flex', alignItems:'center', gap:'5px'}}><span style={{width:'10px', height:'10px', borderRadius:'50%', background:'#1a6b7a', display:'inline-block'}}></span>Stays</span>
+              }
+            </div>
             <div className="map-container" ref={mapContainer} />
           </div>
           <div style={{ flex: 1, minWidth: 0, maxHeight: '500px', overflowY: 'auto' }}>

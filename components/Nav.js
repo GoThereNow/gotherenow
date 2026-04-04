@@ -77,6 +77,7 @@ export default function Nav() {
         <Link href="/" className="gtn-logo">Go<em>There</em>Now</Link>
         <div className="gtn-nav-right">
           <Link href="/explore" className="gtn-nav-link">Explore</Link>
+          <Link href="/walking-tours" className="gtn-nav-link">Walking Tours</Link>
           {user && <Link href="/feed" className="gtn-nav-link">Following</Link>}
           {user ? (
             <>

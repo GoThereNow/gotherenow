@@ -150,56 +150,71 @@ export default function Feed() {
   }
 
   // Add markers helper
-  const addMarkersToMap = (mapboxgl, staysToShow) => {
-    markersRef.current.forEach(m => m.remove())
-    markersRef.current = []
-    staysToShow.forEach(stay => {
-      if (!stay.latitude || !stay.longitude) return
-      const el = document.createElement('div')
-      el.style.cssText = 'width:24px;height:24px;background:#1a6b7a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;'
-      const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 15, className: 'hover-popup' })
-        .setLngLat([stay.longitude, stay.latitude])
-        .setHTML(
-          '<div style="font-family:DM Sans,sans-serif;width:200px;display:flex;border-radius:10px;overflow:hidden;">' +
-          (stay.photo_url ? '<div style="width:70px;flex-shrink:0;background:url(' + stay.photo_url + ') center/cover;"></div>' : '') +
-          '<div style="padding:8px 10px;background:white;flex:1;">' +
-          '<div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#b5654a;margin-bottom:2px">' + ([stay.city, stay.country].filter(Boolean).join(', ')) + '</div>' +
-          '<div style="font-size:12px;font-weight:700;color:#1a6b7a;line-height:1.3">' + stay.hotel_name + '</div>' +
-          (stay.star_rating ? '<div style="font-size:11px;color:#b5654a;margin-top:2px">' + '★'.repeat(stay.star_rating) + '</div>' : '') +
-          '</div></div>'
-        )
-      el.addEventListener('mouseenter', () => popup.addTo(map.current))
-      el.addEventListener('mouseleave', () => popup.remove())
-      el.addEventListener('click', () => { popup.remove(); setSelectedHotel(stay); setShowModal(true) })
-      const marker = new mapboxgl.Marker(el).setLngLat([stay.longitude, stay.latitude]).addTo(map.current)
-      markersRef.current.push(marker)
+  // Shared cluster helper
+  const clusterAndRender = (mapboxgl, staysToShow, pinColor, pinSize, markersList, labelPrefix) => {
+    markersList.forEach(m => m.remove())
+    markersList.length = 0
+
+    const validStays = staysToShow.filter(s => s.latitude && s.longitude)
+    const clustered = []
+    const used = new Set()
+    validStays.forEach((stay, i) => {
+      if (used.has(i)) return
+      const group = [stay]
+      validStays.forEach((other, j) => {
+        if (i === j || used.has(j)) return
+        const dist = Math.abs(stay.latitude - other.latitude) + Math.abs(stay.longitude - other.longitude)
+        if (dist < 0.5) { group.push(other); used.add(j) }
+      })
+      used.add(i)
+      clustered.push(group)
+    })
+
+    clustered.forEach(group => {
+      const rep = group[0]
+      if (group.length === 1) {
+        // Single pin
+        const el = document.createElement('div')
+        el.style.cssText = 'width:' + pinSize + 'px;height:' + pinSize + 'px;background:' + pinColor + ';border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;'
+        const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 15, className: 'hover-popup' })
+          .setLngLat([rep.longitude, rep.latitude])
+          .setHTML(
+            '<div style="font-family:DM Sans,sans-serif;width:200px;display:flex;border-radius:10px;overflow:hidden;">' +
+            (rep.photo_url ? '<div style="width:70px;flex-shrink:0;background:url(' + rep.photo_url + ') center/cover;"></div>' : '') +
+            '<div style="padding:8px 10px;background:white;flex:1;">' +
+            '<div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#b5654a;margin-bottom:2px">' + (labelPrefix || '') + ([rep.city, rep.country].filter(Boolean).join(', ')) + '</div>' +
+            '<div style="font-size:12px;font-weight:700;color:#1a6b7a;line-height:1.3">' + rep.hotel_name + '</div>' +
+            (rep.star_rating ? '<div style="font-size:11px;color:#b5654a;margin-top:2px">' + '★'.repeat(rep.star_rating) + '</div>' : '') +
+            '</div></div>'
+          )
+        el.addEventListener('mouseenter', () => popup.addTo(map.current))
+        el.addEventListener('mouseleave', () => popup.remove())
+        el.addEventListener('click', () => { popup.remove(); setSelectedHotel(rep); setShowModal(true) })
+        const marker = new mapboxgl.Marker(el).setLngLat([rep.longitude, rep.latitude]).addTo(map.current)
+        markersList.push({ remove: () => { el.remove(); marker.remove() } })
+      } else {
+        // Cluster pin with count
+        const el = document.createElement('div')
+        const clusterSize = pinSize + 12
+        el.style.cssText = 'width:' + clusterSize + 'px;height:' + clusterSize + 'px;background:' + pinColor + ';border:3px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,0.3);z-index:3;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:white;font-family:DM Sans,sans-serif;transition:transform 0.15s;'
+        el.textContent = group.length
+        el.addEventListener('mouseenter', () => { el.style.transform = 'scale(1.1)' })
+        el.addEventListener('mouseleave', () => { el.style.transform = 'scale(1)' })
+        el.addEventListener('click', () => {
+          map.current.flyTo({ center: [rep.longitude, rep.latitude], zoom: Math.min(map.current.getZoom() + 3, 14), duration: 600 })
+        })
+        const marker = new mapboxgl.Marker(el).setLngLat([rep.longitude, rep.latitude]).addTo(map.current)
+        markersList.push({ remove: () => { el.remove(); marker.remove() } })
+      }
     })
   }
 
+  const addMarkersToMap = (mapboxgl, staysToShow) => {
+    clusterAndRender(mapboxgl, staysToShow, '#1a6b7a', 24, markersRef.current, null)
+  }
+
   const addMyStaysMarkers = (mapboxgl, staysToShow) => {
-    myMarkersRef.current.forEach(m => m.remove())
-    myMarkersRef.current = []
-    staysToShow.forEach(stay => {
-      if (!stay.latitude || !stay.longitude) return
-      const el = document.createElement('div')
-      el.style.cssText = 'width:16px;height:16px;background:#b5654a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:3;'
-      const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 15, className: 'hover-popup' })
-        .setLngLat([stay.longitude, stay.latitude])
-        .setHTML(
-          '<div style="font-family:DM Sans,sans-serif;width:200px;display:flex;border-radius:10px;overflow:hidden;">' +
-          (stay.photo_url ? '<div style="width:70px;flex-shrink:0;background:url(' + stay.photo_url + ') center/cover;"></div>' : '') +
-          '<div style="padding:8px 10px;background:white;flex:1;">' +
-          '<div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#b5654a;margin-bottom:2px">⭐ My stay · ' + ([stay.city, stay.country].filter(Boolean).join(', ')) + '</div>' +
-          '<div style="font-size:12px;font-weight:700;color:#1a6b7a;line-height:1.3">' + stay.hotel_name + '</div>' +
-          (stay.star_rating ? '<div style="font-size:11px;color:#b5654a;margin-top:2px">' + '★'.repeat(stay.star_rating) + '</div>' : '') +
-          '</div></div>'
-        )
-      el.addEventListener('mouseenter', () => popup.addTo(map.current))
-      el.addEventListener('mouseleave', () => popup.remove())
-      el.addEventListener('click', () => { popup.remove(); setSelectedHotel(stay); setShowModal(true) })
-      const marker = new mapboxgl.Marker(el).setLngLat([stay.longitude, stay.latitude]).addTo(map.current)
-      myMarkersRef.current.push(marker)
-    })
+    clusterAndRender(mapboxgl, staysToShow, '#b5654a', 16, myMarkersRef.current, '⭐ My stay · ')
   }
 
   // Init map

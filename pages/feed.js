@@ -190,7 +190,7 @@ export default function Feed() {
         el.addEventListener('mouseenter', () => popup.addTo(map.current))
         el.addEventListener('mouseleave', () => popup.remove())
         el.addEventListener('click', () => { popup.remove(); setSelectedHotel(rep); setShowModal(true) })
-        const marker = new mapboxgl.Marker(el).setLngLat([rep.longitude, rep.latitude]).addTo(map.current)
+        const marker = new mapboxgl.Marker({ element: el, anchor: 'center' }).setLngLat([rep.longitude, rep.latitude]).addTo(map.current)
         markersList.push({ remove: () => { el.remove(); marker.remove() } })
       } else {
         // Cluster pin with count

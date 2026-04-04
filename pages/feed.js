@@ -163,13 +163,9 @@ export default function Feed() {
     staysToShow.filter(s => s.latitude && s.longitude).forEach(stay => {
       const nearby = countNearby(stay, staysToShow)
       const el = document.createElement('div')
-      el.style.cssText = 'position:relative;width:24px;height:24px;background:#1a6b7a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;'
-      if (nearby > 0) {
-        const badge = document.createElement('div')
-        badge.style.cssText = 'position:absolute;top:-6px;right:-6px;background:#b5654a;color:white;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;font-family:DM Sans,sans-serif;border:1px solid white;z-index:5;'
-        badge.textContent = nearby + 1
-        el.appendChild(badge)
-      }
+      const pinLabel = nearby > 0 ? String(nearby + 1) : ''
+      el.style.cssText = 'width:' + (nearby > 0 ? '30px' : '24px') + ';height:' + (nearby > 0 ? '30px' : '24px') + ';background:#1a6b7a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;font-family:DM Sans,sans-serif;'
+      if (nearby > 0) el.textContent = pinLabel
       const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 15, className: 'hover-popup' })
         .setLngLat([stay.longitude, stay.latitude])
         .setHTML(
@@ -195,13 +191,8 @@ export default function Feed() {
     staysToShow.filter(s => s.latitude && s.longitude).forEach(stay => {
       const nearby = countNearby(stay, staysToShow)
       const el = document.createElement('div')
-      el.style.cssText = 'position:relative;width:16px;height:16px;background:#b5654a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:3;'
-      if (nearby > 0) {
-        const badge = document.createElement('div')
-        badge.style.cssText = 'position:absolute;top:-5px;right:-5px;background:#1a6b7a;color:white;border-radius:50%;width:13px;height:13px;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;font-family:DM Sans,sans-serif;border:1px solid white;z-index:5;'
-        badge.textContent = nearby + 1
-        el.appendChild(badge)
-      }
+      el.style.cssText = 'width:' + (nearby > 0 ? '22px' : '16px') + ';height:' + (nearby > 0 ? '22px' : '16px') + ';background:#b5654a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:3;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:white;font-family:DM Sans,sans-serif;'
+      if (nearby > 0) el.textContent = String(nearby + 1)
       const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 15, className: 'hover-popup' })
         .setLngLat([stay.longitude, stay.latitude])
         .setHTML(

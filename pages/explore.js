@@ -128,9 +128,7 @@ export default function Explore() {
           map.current._mapboxgl = mapboxgl
           renderMarkers(mapboxgl, stays)
         })
-        map.current.on('zoomend', () => {
-          if (map.current._mapboxgl) renderMarkers(map.current._mapboxgl, filteredStaysRef.current)
-        })
+
       })
     }, 200)
   }, [loading, stays, activeTab])
@@ -147,15 +145,8 @@ export default function Explore() {
     markersRef.current.forEach(m => { try { m.remove() } catch(e) {} })
     markersRef.current = []
     staysToShow.filter(s => s.latitude && s.longitude).forEach(stay => {
-      const stayPx = map.current.project([stay.longitude, stay.latitude])
-      const nearby = staysToShow.filter(s => s !== stay && s.latitude && s.longitude && (() => {
-        const sPx = map.current.project([s.longitude, s.latitude])
-        const dx = stayPx.x - sPx.x, dy = stayPx.y - sPx.y
-        return Math.sqrt(dx*dx + dy*dy) < 28
-      })()).length
       const el = document.createElement('div')
-      el.style.cssText = 'width:' + (nearby > 0 ? '30px' : '24px') + ';height:' + (nearby > 0 ? '30px' : '24px') + ';background:#1a6b7a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;font-family:DM Sans,sans-serif;'
-      if (nearby > 0) el.textContent = String(nearby + 1)
+      el.style.cssText = 'width:24px;height:24px;background:#1a6b7a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;'
       const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 15, className: 'hover-popup' })
         .setLngLat([stay.longitude, stay.latitude])
         .setHTML(

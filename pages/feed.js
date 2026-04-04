@@ -233,6 +233,14 @@ export default function Feed() {
         map.current.setMinZoom(0.65)
         map.current.setMaxBounds([[-200, -85], [200, 85]])
         map.current.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right')
+        map.current.on('zoomend', () => {
+          if (!map.current._mapboxgl) return
+          addMarkersToMap(map.current._mapboxgl, filteredStaysRef.current.length ? filteredStaysRef.current : stays)
+          if (showMyStaysPins) {
+            const toShow = selectedMyStays.length > 0 ? myStays.filter(s => selectedMyStays.includes(s.id)) : myStays
+            addMyStaysMarkers(map.current._mapboxgl, toShow)
+          }
+        })
         map.current.on('load', () => {
           map.current.resize()
           map.current._mapboxgl = mapboxgl

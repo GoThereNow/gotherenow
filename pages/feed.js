@@ -198,9 +198,10 @@ export default function Feed() {
     myMarkersRef.current.forEach(m => m.remove())
     myMarkersRef.current = []
     staysToShow.filter(s => s.latitude && s.longitude).forEach(stay => {
-      const nearby = countNearby(stay, staysToShow)
+      const myPx = map.current ? map.current.project([stay.longitude, stay.latitude]) : null
+      const nearby = myPx ? staysToShow.filter(s => s !== stay && s.latitude && s.longitude && (() => { const p = map.current.project([s.longitude, s.latitude]); return Math.hypot(myPx.x-p.x, myPx.y-p.y) < 14 })()).length : 0
       const el = document.createElement('div')
-      el.style.cssText = 'width:' + (nearby > 0 ? '22px' : '16px') + ';height:' + (nearby > 0 ? '22px' : '16px') + ';background:#b5654a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:3;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:white;font-family:DM Sans,sans-serif;'
+      el.style.cssText = 'width:16px;height:16px;background:#b5654a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:3;' + (nearby > 0 ? 'display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:white;font-family:DM Sans,sans-serif;' : '')
       if (nearby > 0) el.textContent = String(nearby + 1)
       const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 15, className: 'hover-popup' })
         .setLngLat([stay.longitude, stay.latitude])

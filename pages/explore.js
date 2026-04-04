@@ -5,7 +5,7 @@ function buildExpediaUrl(hotelName, city, country) {
   return `https://www.expedia.com/Hotel-Search?destination=${encodeURIComponent(destination)}&affcid=${EXPEDIA_AFFILIATE}`
 }
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import { supabase } from '../lib/supabase'
@@ -20,6 +20,9 @@ export default function Explore() {
   const [currentUser, setCurrentUser] = useState(null)
   const [userLikes, setUserLikes] = useState({})
   const [likes, setLikes] = useState({})
+  const mapContainer = useRef(null)
+  const map = useRef(null)
+  const markersRef = useRef([])
 
   useEffect(() => {
     async function fetchData() {
@@ -88,6 +91,76 @@ export default function Explore() {
     }
   }
 
+  // Init map
+  useEffect(() => {
+    if (loading || !stays.length || map.current || activeTab !== 'stays') return
+    setTimeout(() => {
+      if (!mapContainer.current) return
+      import('mapbox-gl').then(mod => {
+        const mapboxgl = mod.default || mod
+        mapboxgl.accessToken = 'pk.eyJ1IjoiZ290aGVyZW5vdyIsImEiOiJjbWxmYXJpYm0wMzByM2lwcGpzNjl4Ymx5In0.lipvyNXWoQmIDCah_0Ss_w'
+        map.current = new mapboxgl.Map({
+          container: mapContainer.current,
+          style: 'mapbox://styles/mapbox/light-v11',
+          center: [15, 20], zoom: 0.65,
+          projection: 'mercator',
+          renderWorldCopies: false,
+          attributionControl: false,
+          cooperativeGestures: true,
+        })
+        map.current.setMinZoom(0.65)
+        map.current.setMaxBounds([[-200, -85], [200, 85]])
+        map.current.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right')
+        map.current.on('load', () => {
+          map.current.resize()
+          map.current._mapboxgl = mapboxgl
+          renderMarkers(mapboxgl, stays)
+        })
+        map.current.on('zoomend', () => {
+          if (map.current._mapboxgl) renderMarkers(map.current._mapboxgl, filteredStaysRef.current)
+        })
+      })
+    }, 200)
+  }, [loading, stays, activeTab])
+
+  const filteredStaysRef = useRef([])
+
+  useEffect(() => {
+    filteredStaysRef.current = filteredStays
+    if (!map.current?._mapboxgl || !map.current.loaded()) return
+    renderMarkers(map.current._mapboxgl, filteredStays)
+  }, [filteredStays])
+
+  const renderMarkers = (mapboxgl, staysToShow) => {
+    markersRef.current.forEach(m => { try { m.remove() } catch(e) {} })
+    markersRef.current = []
+    const zoom = map.current ? map.current.getZoom() : 0.65
+    const threshold = 20 / Math.pow(2, zoom)
+    staysToShow.filter(s => s.latitude && s.longitude).forEach(stay => {
+      const nearby = staysToShow.filter(s => s !== stay && s.latitude && s.longitude &&
+        Math.abs(stay.latitude - s.latitude) + Math.abs(stay.longitude - s.longitude) < threshold
+      ).length
+      const el = document.createElement('div')
+      el.style.cssText = 'width:' + (nearby > 0 ? '30px' : '24px') + ';height:' + (nearby > 0 ? '30px' : '24px') + ';background:#1a6b7a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;font-family:DM Sans,sans-serif;'
+      if (nearby > 0) el.textContent = String(nearby + 1)
+      const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 15, className: 'hover-popup' })
+        .setLngLat([stay.longitude, stay.latitude])
+        .setHTML(
+          '<div style="font-family:DM Sans,sans-serif;width:200px;display:flex;border-radius:10px;overflow:hidden;">' +
+          (stay.photo_url ? '<div style="width:70px;flex-shrink:0;background:url(' + stay.photo_url + ') center/cover;"></div>' : '') +
+          '<div style="padding:8px 10px;background:white;flex:1;">' +
+          '<div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#b5654a;margin-bottom:2px">' + ([stay.city, stay.country].filter(Boolean).join(', ')) + '</div>' +
+          '<div style="font-size:12px;font-weight:700;color:#1a6b7a;line-height:1.3">' + stay.hotel_name + '</div>' +
+          (stay.star_rating ? '<div style="font-size:11px;color:#b5654a;margin-top:2px">' + '★'.repeat(stay.star_rating) + '</div>' : '') +
+          '</div></div>'
+        )
+      el.addEventListener('mouseenter', () => popup.addTo(map.current))
+      el.addEventListener('mouseleave', () => popup.remove())
+      const marker = new mapboxgl.Marker(el).setLngLat([stay.longitude, stay.latitude]).addTo(map.current)
+      markersRef.current.push({ remove: () => { el.remove(); marker.remove() } })
+    })
+  }
+
   const filteredStays = stays.filter(s =>
     !search || s.hotel_name?.toLowerCase().includes(search.toLowerCase()) ||
     s.city?.toLowerCase().includes(search.toLowerCase()) ||
@@ -104,6 +177,7 @@ export default function Explore() {
     <div style={{ background: '#f7f5f2', minHeight: '100vh', fontFamily: 'DM Sans, sans-serif' }}>
       <Head>
         <title>Explore — GoThereNow</title>
+        <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
       </Head>
 
@@ -158,8 +232,12 @@ export default function Explore() {
         .creator-stat strong { font-weight: 700; color: #1a6b7a; display: block; font-size: 14px; }
 
         .empty { text-align: center; padding: 80px 0; color: rgba(26,107,122,0.3); font-size: 14px; }
+        .explore-map-container { border-radius: 16px; overflow: hidden; border: 1px solid rgba(26,107,122,0.15); aspect-ratio: 2/1.4; box-shadow: 0 4px 20px rgba(26,107,122,0.1); position: sticky; top: 80px; }
+        .hover-popup { z-index: 999 !important; }
+        .hover-popup .mapboxgl-popup-content { z-index: 999 !important; padding: 0; border-radius: 10px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
 
-        @media (max-width: 1024px) { .stays-grid { grid-template-columns: repeat(2, 1fr); } .creators-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 1024px) { .creators-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 768px) { .explore-side-by-side { flex-direction: column !important; } .explore-map-side { width: 100% !important; } .explore-map-container { aspect-ratio: 4/3; position: static; } }
         @media (max-width: 768px) {
           .page-hero { padding: 80px 20px 24px; }
           .page-title { font-size: 28px; }
@@ -205,7 +283,12 @@ export default function Explore() {
           filteredStays.length === 0 ? (
             <div className="empty">No stays found{search ? ` for "${search}"` : ''}.</div>
           ) : (
-            <div className="stays-grid">
+            <div style={{display:'flex', gap:'24px', alignItems:'flex-start'}}>
+              <div style={{width:'50%', flexShrink:0}}>
+                <div className="explore-map-container" ref={mapContainer} />
+              </div>
+              <div style={{flex:1, minWidth:0, maxHeight:'600px', overflowY:'auto'}}>
+            <div className="stays-grid" style={{gridTemplateColumns:'repeat(2,1fr)'}}>
               {filteredStays.map(stay => (
                 <div key={stay.id} className="stay-card">
                   <Link href={`/${stay.influencers?.handle}`} style={{textDecoration:'none'}}>
@@ -252,6 +335,8 @@ export default function Explore() {
                   </div>
                 </div>
               ))}
+            </div>
+              </div>
             </div>
           )
         ) : (

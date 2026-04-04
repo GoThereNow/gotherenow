@@ -177,9 +177,7 @@ export default function ProfilePage() {
           map.current._mapboxgl = mapboxgl
           addMarkers(mapboxgl)
         })
-        map.current.on('zoomend', () => {
-          if (map.current._mapboxgl) addMarkers(map.current._mapboxgl)
-        })
+
       })
     }, 200)
   }, [loading])
@@ -195,15 +193,7 @@ export default function ProfilePage() {
     markersRef.current = []
 
     // Count nearby helper
-    const countNearby = (rec, allRecs) => {
-      if (!map.current) return 0
-      const recPx = map.current.project([rec.longitude, rec.latitude])
-      return allRecs.filter(r => r !== rec && r.latitude && r.longitude && (() => {
-        const rPx = map.current.project([r.longitude, r.latitude])
-        const dx = recPx.x - rPx.x, dy = recPx.y - rPx.y
-        return Math.sqrt(dx*dx + dy*dy) < 28
-      })()).length
-    }
+
 
     const allRecs = [
       ...recommendations.map(r => ({ ...r, _type: 'own' })),
@@ -213,13 +203,8 @@ export default function ProfilePage() {
     allRecs.forEach(rec => {
       const pinColor = rec._type === 'liked' ? '#1a6b7a' : (isOwner ? '#b5654a' : '#1a6b7a')
       const label = rec._type === 'liked' ? '❤️ Liked · ' : ''
-      const nearby = countNearby(rec, allRecs)
-
-      // Wrap makeMarker — add badge if needed
       const el = document.createElement('div')
-      const pinSize = nearby > 0 ? '34px' : '28px'
-      el.style.cssText = 'width:' + pinSize + ';height:' + pinSize + ';background:' + pinColor + ';border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;font-family:DM Sans,sans-serif;'
-      if (nearby > 0) el.textContent = String(nearby + 1)
+      el.style.cssText = 'width:28px;height:28px;background:' + pinColor + ';border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;'
       const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 15, className: 'hover-popup' })
         .setLngLat([rec.longitude, rec.latitude])
         .setHTML(

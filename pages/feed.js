@@ -150,10 +150,11 @@ export default function Feed() {
   }
 
   // Add markers helper
-  // Helper to count nearby pins for a given stay
-  const countNearby = (stay, allStays) => {
+  // Helper to count nearby pins based on current zoom
+  const countNearby = (stay, allStays, zoom) => {
+    const threshold = 20 / Math.pow(2, zoom || 0.65)
     return allStays.filter(s => s !== stay && s.latitude && s.longitude &&
-      Math.abs(stay.latitude - s.latitude) + Math.abs(stay.longitude - s.longitude) < 0.5
+      Math.abs(stay.latitude - s.latitude) + Math.abs(stay.longitude - s.longitude) < threshold
     ).length
   }
 
@@ -161,7 +162,8 @@ export default function Feed() {
     markersRef.current.forEach(m => m.remove())
     markersRef.current = []
     staysToShow.filter(s => s.latitude && s.longitude).forEach(stay => {
-      const nearby = countNearby(stay, staysToShow)
+      const zoom = map.current ? map.current.getZoom() : 0.65
+      const nearby = countNearby(stay, staysToShow, zoom)
       const el = document.createElement('div')
       const pinLabel = nearby > 0 ? String(nearby + 1) : ''
       el.style.cssText = 'width:' + (nearby > 0 ? '30px' : '24px') + ';height:' + (nearby > 0 ? '30px' : '24px') + ';background:#1a6b7a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;font-family:DM Sans,sans-serif;'
@@ -237,6 +239,14 @@ export default function Feed() {
           map.current._mapboxgl = mapboxgl
           addMarkersToMap(mapboxgl, stays)
           addMyStaysMarkers(mapboxgl, myStays)
+        })
+        map.current.on('zoomend', () => {
+          if (!map.current._mapboxgl) return
+          addMarkersToMap(map.current._mapboxgl, filtered.length ? filtered : stays)
+          if (showMyStaysPins) {
+            const toShow = selectedMyStays.length > 0 ? myStays.filter(s => selectedMyStays.includes(s.id)) : myStays
+            addMyStaysMarkers(map.current._mapboxgl, toShow)
+          }
         })
       })
     }, 200)

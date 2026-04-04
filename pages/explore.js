@@ -23,6 +23,7 @@ export default function Explore() {
   const mapContainer = useRef(null)
   const map = useRef(null)
   const markersRef = useRef([])
+  const [visibleStays, setVisibleStays] = useState([])
 
   useEffect(() => {
     async function fetchData() {
@@ -142,6 +143,12 @@ export default function Explore() {
     filteredStaysRef.current = filteredStays
     if (!map.current?._mapboxgl || !map.current.loaded()) return
     renderMarkers(map.current._mapboxgl, filteredStays)
+    if (map.current.loaded()) {
+      const bounds = map.current.getBounds()
+      setVisibleStays(filteredStays.filter(s => s.latitude && s.longitude && bounds.contains([s.longitude, s.latitude])))
+    } else {
+      setVisibleStays(filteredStays)
+    }
   }, [filteredStays])
 
   const renderMarkers = (mapboxgl, staysToShow) => {
@@ -288,8 +295,11 @@ export default function Explore() {
                 <div className="explore-map-container" ref={mapContainer} />
               </div>
               <div style={{flex:1, minWidth:0, maxHeight:'600px', overflowY:'auto'}}>
+              <div style={{fontSize:'11px', color:'rgba(26,107,122,0.45)', marginBottom:'10px', letterSpacing:'1px'}}>
+                {visibleStays.length} {visibleStays.length === 1 ? 'stay' : 'stays'} in view
+              </div>
             <div className="stays-grid" style={{gridTemplateColumns:'repeat(2,1fr)'}}>
-              {filteredStays.map(stay => (
+              {(visibleStays.length > 0 ? visibleStays : filteredStays).map(stay => (
                 <div key={stay.id} className="stay-card">
                   <Link href={`/${stay.influencers?.handle}`} style={{textDecoration:'none'}}>
                     <div className="stay-card-photo">

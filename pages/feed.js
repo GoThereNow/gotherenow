@@ -18,6 +18,10 @@ export default function Feed() {
   const mapContainer = useRef(null)
   const map = useRef(null)
   const markersRef = useRef([])
+  const filteredStaysRef = useRef([])
+  const showMyStaysPinsRef = useRef(true)
+  const selectedMyStaysRef = useRef([])
+  const myStaysRef = useRef([])
 
   const [currentUser, setCurrentUser] = useState(null)
   const [stays, setStays] = useState([])

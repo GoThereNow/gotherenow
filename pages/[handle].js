@@ -203,8 +203,11 @@ export default function ProfilePage() {
     allRecs.forEach(rec => {
       const pinColor = rec._type === 'liked' ? '#1a6b7a' : (isOwner ? '#b5654a' : '#1a6b7a')
       const label = rec._type === 'liked' ? '❤️ Liked · ' : ''
+      const recPx = map.current ? map.current.project([rec.longitude, rec.latitude]) : null
+      const nearby = recPx ? allRecs.filter(r => r !== rec && r.latitude && r.longitude && (() => { const p = map.current.project([r.longitude, r.latitude]); return Math.hypot(recPx.x-p.x, recPx.y-p.y) < 2 })()).length : 0
       const el = document.createElement('div')
-      el.style.cssText = 'width:28px;height:28px;background:' + pinColor + ';border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;'
+      el.style.cssText = 'width:28px;height:28px;background:' + pinColor + ';border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;' + (nearby > 0 ? 'display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;font-family:DM Sans,sans-serif;' : '')
+      if (nearby > 0) el.textContent = String(nearby + 1)
       const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 15, className: 'hover-popup' })
         .setLngLat([rec.longitude, rec.latitude])
         .setHTML(

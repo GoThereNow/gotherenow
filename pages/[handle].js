@@ -259,7 +259,7 @@ export default function ProfilePage() {
         })
         el.addEventListener('mouseenter', () => { el.style.transform = 'scale(1.1)' })
         el.addEventListener('mouseleave', () => { el.style.transform = 'scale(1)' })
-        new mapboxgl.Marker(el).setLngLat([rep.longitude, rep.latitude]).addTo(map.current)
+        new mapboxgl.Marker({ element: el, anchor: 'center' }).setLngLat([rep.longitude, rep.latitude]).addTo(map.current)
         markersRef.current.push({ remove: () => el.remove() })
       }
     })

@@ -209,13 +209,9 @@ export default function ProfilePage() {
 
       // Wrap makeMarker — add badge if needed
       const el = document.createElement('div')
-      el.style.cssText = 'position:relative;width:28px;height:28px;background:' + pinColor + ';border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;'
-      if (nearby > 0) {
-        const badge = document.createElement('div')
-        badge.style.cssText = 'position:absolute;top:-6px;right:-6px;background:' + (pinColor === '#b5654a' ? '#1a6b7a' : '#b5654a') + ';color:white;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;font-family:DM Sans,sans-serif;border:1px solid white;z-index:5;'
-        badge.textContent = nearby + 1
-        el.appendChild(badge)
-      }
+      const pinSize = nearby > 0 ? '34px' : '28px'
+      el.style.cssText = 'width:' + pinSize + ';height:' + pinSize + ';background:' + pinColor + ';border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;font-family:DM Sans,sans-serif;'
+      if (nearby > 0) el.textContent = String(nearby + 1)
       const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 15, className: 'hover-popup' })
         .setLngLat([rec.longitude, rec.latitude])
         .setHTML(

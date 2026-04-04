@@ -151,7 +151,7 @@ export default function Explore() {
       const nearby = staysToShow.filter(s => s !== stay && s.latitude && s.longitude && (() => {
         const sPx = map.current.project([s.longitude, s.latitude])
         const dx = stayPx.x - sPx.x, dy = stayPx.y - sPx.y
-        return Math.sqrt(dx*dx + dy*dy) < 30
+        return Math.sqrt(dx*dx + dy*dy) < 28
       })()).length
       const el = document.createElement('div')
       el.style.cssText = 'width:' + (nearby > 0 ? '30px' : '24px') + ';height:' + (nearby > 0 ? '30px' : '24px') + ';background:#1a6b7a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;font-family:DM Sans,sans-serif;'

@@ -201,7 +201,7 @@ export default function ProfilePage() {
       return allRecs.filter(r => r !== rec && r.latitude && r.longitude && (() => {
         const rPx = map.current.project([r.longitude, r.latitude])
         const dx = recPx.x - rPx.x, dy = recPx.y - rPx.y
-        return Math.sqrt(dx*dx + dy*dy) < 30
+        return Math.sqrt(dx*dx + dy*dy) < 28
       })()).length
     }
 

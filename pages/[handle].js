@@ -195,12 +195,15 @@ export default function ProfilePage() {
     markersRef.current = []
 
     // Count nearby helper
-    const zoom = map.current ? map.current.getZoom() : 0.65
-    const threshold = 20 / Math.pow(2, zoom)
-    const countNearby = (rec, allRecs) => allRecs.filter(r =>
-      r !== rec && r.latitude && r.longitude &&
-      Math.abs(rec.latitude - r.latitude) + Math.abs(rec.longitude - r.longitude) < threshold
-    ).length
+    const countNearby = (rec, allRecs) => {
+      if (!map.current) return 0
+      const recPx = map.current.project([rec.longitude, rec.latitude])
+      return allRecs.filter(r => r !== rec && r.latitude && r.longitude && (() => {
+        const rPx = map.current.project([r.longitude, r.latitude])
+        const dx = recPx.x - rPx.x, dy = recPx.y - rPx.y
+        return Math.sqrt(dx*dx + dy*dy) < 30
+      })()).length
+    }
 
     const allRecs = [
       ...recommendations.map(r => ({ ...r, _type: 'own' })),

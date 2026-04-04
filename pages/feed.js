@@ -139,6 +139,10 @@ export default function Feed() {
     setFiltered(result)
   }, [selectedCountries, selectedCreators, searchQuery, stays])
 
+  useEffect(() => { showMyStaysPinsRef.current = showMyStaysPins }, [showMyStaysPins])
+  useEffect(() => { selectedMyStaysRef.current = selectedMyStays }, [selectedMyStays])
+  useEffect(() => { myStaysRef.current = myStays }, [myStays])
+
   const toggleMyStay = (id) => {
     setSelectedMyStays(prev => prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id])
   }
@@ -240,8 +244,12 @@ export default function Feed() {
           addMyStaysMarkers(mapboxgl, myStays)
           map.current.on('zoomend', () => {
             addMarkersToMap(mapboxgl, filteredStaysRef.current.length ? filteredStaysRef.current : stays)
-            const toShow = selectedMyStays.length > 0 ? myStays.filter(s => selectedMyStays.includes(s.id)) : myStays
-            addMyStaysMarkers(mapboxgl, toShow)
+            if (showMyStaysPinsRef.current) {
+              const toShow = selectedMyStaysRef.current.length > 0
+                ? myStaysRef.current.filter(s => selectedMyStaysRef.current.includes(s.id))
+                : myStaysRef.current
+              addMyStaysMarkers(mapboxgl, toShow)
+            }
           })
         })
 

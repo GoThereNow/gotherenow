@@ -177,6 +177,9 @@ export default function ProfilePage() {
           map.current._mapboxgl = mapboxgl
           addMarkers(mapboxgl)
         })
+        map.current.on('zoomend', () => {
+          if (map.current._mapboxgl) addMarkers(map.current._mapboxgl)
+        })
       })
     }, 200)
   }, [loading])
@@ -192,9 +195,11 @@ export default function ProfilePage() {
     markersRef.current = []
 
     // Count nearby helper
+    const zoom = map.current ? map.current.getZoom() : 0.65
+    const threshold = 20 / Math.pow(2, zoom)
     const countNearby = (rec, allRecs) => allRecs.filter(r =>
       r !== rec && r.latitude && r.longitude &&
-      Math.abs(rec.latitude - r.latitude) + Math.abs(rec.longitude - r.longitude) < 0.5
+      Math.abs(rec.latitude - r.latitude) + Math.abs(rec.longitude - r.longitude) < threshold
     ).length
 
     const allRecs = [

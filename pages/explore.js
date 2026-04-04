@@ -149,7 +149,7 @@ export default function Explore() {
     markersRef.current = []
     staysToShow.filter(s => s.latitude && s.longitude).forEach(stay => {
       const stayPx = map.current ? map.current.project([stay.longitude, stay.latitude]) : null
-      const nearby = stayPx ? staysToShow.filter(s => s !== stay && s.latitude && s.longitude && (() => { const p = map.current.project([s.longitude, s.latitude]); return Math.hypot(stayPx.x-p.x, stayPx.y-p.y) < 2 })()).length : 0
+      const nearby = stayPx ? staysToShow.filter(s => s !== stay && s.latitude && s.longitude && (() => { const p = map.current.project([s.longitude, s.latitude]); return Math.hypot(stayPx.x-p.x, stayPx.y-p.y) < 14 })()).length : 0
       const el = document.createElement('div')
       el.style.cssText = 'width:24px;height:24px;background:#1a6b7a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;' + (nearby > 0 ? 'display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;font-family:DM Sans,sans-serif;' : '')
       if (nearby > 0) el.textContent = String(nearby + 1)

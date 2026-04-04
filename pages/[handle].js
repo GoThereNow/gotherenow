@@ -902,6 +902,10 @@ export default function ProfilePage() {
   )
 }
 
-export async function getServerSideProps() {
+export async function getServerSideProps({ params }) {
+  const RESERVED = ['walking-tours', 'explore', 'feed', 'login', 'signup', 'settings', 'about', 'for-creators', 'terms', 'privacy', 'apply-creator', 'admin', 'forgot-password', 'reset-password']
+  if (RESERVED.includes(params?.handle)) {
+    return { redirect: { destination: '/' + params.handle, permanent: false } }
+  }
   return { props: {} }
 }

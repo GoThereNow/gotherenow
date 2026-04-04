@@ -90,12 +90,15 @@ const TOURS = [
 ]
 
 export default function WalkingTours() {
+  const [mounted, setMounted] = useState(false)
   const [selectedTour, setSelectedTour] = useState(null)
   const [activeStop, setActiveStop] = useState(0)
   const [playing, setPlaying] = useState(false)
   const mapContainer = useRef(null)
   const map = useRef(null)
   const markersRef = useRef([])
+
+  useEffect(() => { setMounted(true) }, [])
 
   // Init map when tour selected
   useEffect(() => {
@@ -162,7 +165,7 @@ export default function WalkingTours() {
   }, [activeStop])
 
   return (
-    <div style={{ background: '#f7f5f2', minHeight: '100vh', fontFamily: 'DM Sans, sans-serif' }}>
+    <div style={{ background: '#f7f5f2', minHeight: '100vh', fontFamily: 'DM Sans, sans-serif', opacity: mounted ? 1 : 0 }}>
       <Head>
         <title>Walking Tours — GoThereNow</title>
         <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -402,4 +405,3 @@ export default function WalkingTours() {
 export async function getServerSideProps() {
   return { props: {} }
 }
-

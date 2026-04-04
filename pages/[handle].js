@@ -172,6 +172,9 @@ export default function ProfilePage() {
         map.current.setMinZoom(0.65)
         map.current.setMaxBounds([[-200, -85], [200, 85]])
         map.current.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right')
+        map.current.on('zoomend', () => {
+          if (map.current._mapboxgl) addMarkers(map.current._mapboxgl)
+        })
         map.current.on('load', () => {
           map.current.resize()
           map.current._mapboxgl = mapboxgl

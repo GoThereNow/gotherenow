@@ -33,6 +33,7 @@ export default function ProfilePage() {
   const [isOwner, setIsOwner] = useState(false)
   const [followerCount, setFollowerCount] = useState(0)
   const [isApprovedCreator, setIsApprovedCreator] = useState(false)
+  const [likedRecs, setLikedRecs] = useState([])
   const [activeTab, setActiveTab] = useState('map')
 
   // Social
@@ -85,7 +86,23 @@ export default function ProfilePage() {
       const { data: { session } } = await supabase.auth.getSession()
       const user = session?.user || null
       setCurrentUser(user)
-      if (user && user.id === inf.user_id) setIsOwner(true)
+      if (user && user.id === inf.user_id) {
+        setIsOwner(true)
+        // Fetch recs this owner has liked from OTHER creators
+        const { data: likedData } = await supabase
+          .from('likes')
+          .select('recommendation_id')
+          .eq('user_id', user.id)
+        if (likedData?.length > 0) {
+          const likedIds = likedData.map(l => l.recommendation_id)
+          const { data: likedRecsData } = await supabase
+            .from('recommendations')
+            .select('*')
+            .in('id', likedIds)
+            .neq('influencer_id', inf.id) // only from OTHER creators
+          setLikedRecs(likedRecsData || [])
+        }
+      }
       setIsApprovedCreator(inf.approved === true)
 
       if (recs && recs.length > 0) {
@@ -164,20 +181,45 @@ export default function ProfilePage() {
     }, 200)
   }, [loading])
 
-  // Refresh markers when likes change so colors update
+  // Refresh markers when likes or likedRecs change
   useEffect(() => {
     if (!map.current?._mapboxgl || !map.current.loaded()) return
     addMarkers(map.current._mapboxgl)
-  }, [userLikes, isOwner])
+  }, [userLikes, isOwner, likedRecs])
 
   function addMarkers(mapboxgl) {
     markersRef.current.forEach(m => m.remove())
     markersRef.current = []
+
+    // Add liked recs from other creators as teal pins (owner only)
+    if (isOwner) {
+      likedRecs.forEach(rec => {
+        if (!rec.latitude || !rec.longitude) return
+        const el = document.createElement('div')
+        el.style.cssText = 'width:28px;height:28px;background:#1a6b7a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;'
+        const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 15, className: 'hover-popup' })
+          .setLngLat([rec.longitude, rec.latitude])
+          .setHTML(
+            '<div style="font-family:DM Sans,sans-serif;width:220px;display:flex;border-radius:12px;overflow:hidden;">' +
+            (rec.photo_url ? '<div style="width:80px;flex-shrink:0;background:url(' + rec.photo_url + ') center/cover;"></div>' : '') +
+            '<div style="padding:10px 12px;background:white;flex:1;">' +
+            '<div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#b5654a;margin-bottom:3px">❤️ Liked · ' + ([rec.city, rec.country].filter(Boolean).join(', ')) + '</div>' +
+            '<div style="font-size:13px;font-weight:700;color:#1a6b7a;margin-bottom:4px;line-height:1.3">' + rec.hotel_name + '</div>' +
+            (rec.star_rating ? '<div style="font-size:12px;color:#b5654a">' + '★'.repeat(rec.star_rating) + '</div>' : '') +
+            '</div></div>'
+          )
+        el.addEventListener('mouseenter', () => popup.addTo(map.current))
+        el.addEventListener('mouseleave', () => popup.remove())
+        el.addEventListener('click', () => { popup.remove(); setSelectedHotel(rec); setShowModal(true) })
+        const marker = new mapboxgl.Marker(el).setLngLat([rec.longitude, rec.latitude]).addTo(map.current)
+        markersRef.current.push({ remove: () => { el.remove(); marker.remove() } })
+      })
+    }
+
     recommendations.forEach(rec => {
       if (!rec.latitude || !rec.longitude) return
       const el = document.createElement('div')
-      const isLiked = userLikes[rec.id]
-      const pinColor = isOwner ? (isLiked ? '#1a6b7a' : '#b5654a') : '#1a6b7a'
+      const pinColor = isOwner ? '#b5654a' : '#1a6b7a'
       el.style.cssText = 'width:28px;height:28px;background:' + pinColor + ';border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;'
       const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 15, className: 'hover-popup' })
         .setHTML(
@@ -625,13 +667,14 @@ export default function ProfilePage() {
         <div style={{ display: activeTab === 'map' ? 'flex' : 'none', gap: '24px', alignItems: 'flex-start' }}>
           <div style={{ width: '50%', flexShrink: 0 }}>
             <div style={{display:'flex', gap:'12px', marginBottom:'8px', fontSize:'11px', color:'rgba(26,107,122,0.6)'}}>
-              {isOwner
-                ? <>
-                    <span style={{display:'flex', alignItems:'center', gap:'5px'}}><span style={{width:'10px', height:'10px', borderRadius:'50%', background:'#b5654a', display:'inline-block'}}></span>My stays</span>
-                    <span style={{display:'flex', alignItems:'center', gap:'5px'}}><span style={{width:'10px', height:'10px', borderRadius:'50%', background:'#1a6b7a', display:'inline-block'}}></span>Liked</span>
-                  </>
-                : <span style={{display:'flex', alignItems:'center', gap:'5px'}}><span style={{width:'10px', height:'10px', borderRadius:'50%', background:'#1a6b7a', display:'inline-block'}}></span>Stays</span>
-              }
+              {isOwner ? (
+                <>
+                  <span style={{display:'flex', alignItems:'center', gap:'5px'}}><span style={{width:'10px', height:'10px', borderRadius:'50%', background:'#b5654a', display:'inline-block'}}></span>My stays</span>
+                  <span style={{display:'flex', alignItems:'center', gap:'5px'}}><span style={{width:'10px', height:'10px', borderRadius:'50%', background:'#1a6b7a', display:'inline-block'}}></span>Liked</span>
+                </>
+              ) : (
+                <span style={{display:'flex', alignItems:'center', gap:'5px'}}><span style={{width:'10px', height:'10px', borderRadius:'50%', background:'#1a6b7a', display:'inline-block'}}></span>Stays</span>
+              )}
             </div>
             <div className="map-container" ref={mapContainer} />
           </div>

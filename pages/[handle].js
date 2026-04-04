@@ -17,7 +17,6 @@ function buildExpediaUrl(hotelName, city, country) {
 
 export default function ProfilePage() {
   const router = useRouter()
-  const RESERVED = ['walking-tours', 'explore', 'feed', 'login', 'signup', 'settings', 'about', 'for-creators', 'terms', 'privacy', 'apply-creator', 'admin', 'forgot-password', 'reset-password']
   const { handle } = router.query
   const slug = handle ? handle.replace('@', '') : null
 
@@ -902,10 +901,6 @@ export default function ProfilePage() {
   )
 }
 
-export async function getServerSideProps({ params }) {
-  const RESERVED = ['walking-tours', 'explore', 'feed', 'login', 'signup', 'settings', 'about', 'for-creators', 'terms', 'privacy', 'apply-creator', 'admin', 'forgot-password', 'reset-password']
-  if (RESERVED.includes(params?.handle)) {
-    return { redirect: { destination: '/' + params.handle, permanent: false } }
-  }
+export async function getServerSideProps() {
   return { props: {} }
 }

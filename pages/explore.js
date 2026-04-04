@@ -91,6 +91,18 @@ export default function Explore() {
     }
   }
 
+  const filteredStays = stays.filter(s =>
+    !search || s.hotel_name?.toLowerCase().includes(search.toLowerCase()) ||
+    s.city?.toLowerCase().includes(search.toLowerCase()) ||
+    s.country?.toLowerCase().includes(search.toLowerCase()) ||
+    s.influencers?.profiles?.full_name?.toLowerCase().includes(search.toLowerCase())
+  )
+
+  const filteredCreators = creators.filter(c =>
+    !search || c.profiles?.full_name?.toLowerCase().includes(search.toLowerCase()) ||
+    c.handle?.toLowerCase().includes(search.toLowerCase())
+  )
+
   // Init map
   useEffect(() => {
     if (loading || !stays.length || map.current || activeTab !== 'stays') return
@@ -161,17 +173,7 @@ export default function Explore() {
     })
   }
 
-  const filteredStays = stays.filter(s =>
-    !search || s.hotel_name?.toLowerCase().includes(search.toLowerCase()) ||
-    s.city?.toLowerCase().includes(search.toLowerCase()) ||
-    s.country?.toLowerCase().includes(search.toLowerCase()) ||
-    s.influencers?.profiles?.full_name?.toLowerCase().includes(search.toLowerCase())
-  )
 
-  const filteredCreators = creators.filter(c =>
-    !search || c.profiles?.full_name?.toLowerCase().includes(search.toLowerCase()) ||
-    c.handle?.toLowerCase().includes(search.toLowerCase())
-  )
 
   return (
     <div style={{ background: '#f7f5f2', minHeight: '100vh', fontFamily: 'DM Sans, sans-serif' }}>

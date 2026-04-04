@@ -191,18 +191,38 @@ export default function ProfilePage() {
     markersRef.current.forEach(m => m.remove())
     markersRef.current = []
 
-    // Helper to create a single marker
-    const makeMarker = (rec, pinColor, labelPrefix) => {
-      if (!rec.latitude || !rec.longitude) return
+    // Count nearby helper
+    const countNearby = (rec, allRecs) => allRecs.filter(r =>
+      r !== rec && r.latitude && r.longitude &&
+      Math.abs(rec.latitude - r.latitude) + Math.abs(rec.longitude - r.longitude) < 0.5
+    ).length
+
+    const allRecs = [
+      ...recommendations.map(r => ({ ...r, _type: 'own' })),
+      ...(isOwner ? likedRecs.map(r => ({ ...r, _type: 'liked' })) : [])
+    ].filter(r => r.latitude && r.longitude)
+
+    allRecs.forEach(rec => {
+      const pinColor = rec._type === 'liked' ? '#1a6b7a' : (isOwner ? '#b5654a' : '#1a6b7a')
+      const label = rec._type === 'liked' ? '❤️ Liked · ' : ''
+      const nearby = countNearby(rec, allRecs)
+
+      // Wrap makeMarker — add badge if needed
       const el = document.createElement('div')
-      el.style.cssText = 'width:28px;height:28px;background:' + pinColor + ';border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;display:flex;align-items:center;justify-content:center;'
+      el.style.cssText = 'position:relative;width:28px;height:28px;background:' + pinColor + ';border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;'
+      if (nearby > 0) {
+        const badge = document.createElement('div')
+        badge.style.cssText = 'position:absolute;top:-6px;right:-6px;background:' + (pinColor === '#b5654a' ? '#1a6b7a' : '#b5654a') + ';color:white;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;font-family:DM Sans,sans-serif;border:1px solid white;z-index:5;'
+        badge.textContent = nearby + 1
+        el.appendChild(badge)
+      }
       const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 15, className: 'hover-popup' })
         .setLngLat([rec.longitude, rec.latitude])
         .setHTML(
           '<div style="font-family:DM Sans,sans-serif;width:220px;display:flex;border-radius:12px;overflow:hidden;">' +
           (rec.photo_url ? '<div style="width:80px;flex-shrink:0;background:url(' + rec.photo_url + ') center/cover;"></div>' : '') +
           '<div style="padding:10px 12px;background:white;flex:1;">' +
-          '<div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#b5654a;margin-bottom:3px">' + (labelPrefix || '') + [rec.city, rec.country].filter(Boolean).join(', ') + '</div>' +
+          '<div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#b5654a;margin-bottom:3px">' + label + [rec.city, rec.country].filter(Boolean).join(', ') + '</div>' +
           '<div style="font-size:13px;font-weight:700;color:#1a6b7a;margin-bottom:4px;line-height:1.3">' + rec.hotel_name + '</div>' +
           (rec.star_rating ? '<div style="font-size:12px;color:#b5654a">' + '★'.repeat(rec.star_rating) + '</div>' : '') +
           '</div></div>'
@@ -213,55 +233,13 @@ export default function ProfilePage() {
         popup.remove()
         setSelectedHotel(rec)
         setShowModal(true)
-        map.current.flyTo({ center: [rec.longitude, rec.latitude], zoom: 13, duration: 800 })
-        if (pinColor !== '#1a6b7a' || !isOwner) fetchNearbyHotels(mapboxgl, rec.latitude, rec.longitude)
+        if (rec._type === 'own') {
+          map.current.flyTo({ center: [rec.longitude, rec.latitude], zoom: 13, duration: 800 })
+          fetchNearbyHotels(mapboxgl, rec.latitude, rec.longitude)
+        }
       })
-      const marker = new mapboxgl.Marker({ element: el, anchor: 'center' }).setLngLat([rec.longitude, rec.latitude]).addTo(map.current)
-      markersRef.current.push({ remove: () => { el.remove(); marker.remove() } })
-    }
-
-    // Cluster nearby pins — group recs within ~0.5 degree of each other
-    const allRecs = [
-      ...recommendations.map(r => ({ ...r, _type: 'own' })),
-      ...(isOwner ? likedRecs.map(r => ({ ...r, _type: 'liked' })) : [])
-    ].filter(r => r.latitude && r.longitude)
-
-    const clustered = []
-    const used = new Set()
-    allRecs.forEach((rec, i) => {
-      if (used.has(i)) return
-      const nearby = [rec]
-      allRecs.forEach((other, j) => {
-        if (i === j || used.has(j)) return
-        const dist = Math.abs(rec.latitude - other.latitude) + Math.abs(rec.longitude - other.longitude)
-        if (dist < 0.5) { nearby.push(other); used.add(j) }
-      })
-      used.add(i)
-      clustered.push(nearby)
-    })
-
-    clustered.forEach(group => {
-      if (group.length === 1) {
-        const rec = group[0]
-        const pinColor = rec._type === 'liked' ? '#1a6b7a' : (isOwner ? '#b5654a' : '#1a6b7a')
-        const label = rec._type === 'liked' ? '❤️ Liked · ' : ''
-        makeMarker(rec, pinColor, label)
-      } else {
-        // Cluster pin — show count, click to zoom in
-        const rep = group[0]
-        const hasOwn = group.some(r => r._type === 'own')
-        const pinColor = isOwner && hasOwn ? '#b5654a' : '#1a6b7a'
-        const el = document.createElement('div')
-        el.style.cssText = 'width:36px;height:36px;background:' + pinColor + ';border:3px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,0.3);z-index:3;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:white;font-family:DM Sans,sans-serif;'
-        el.textContent = group.length
-        el.addEventListener('click', () => {
-          map.current.flyTo({ center: [rep.longitude, rep.latitude], zoom: Math.min(map.current.getZoom() + 3, 14), duration: 600 })
-        })
-        el.addEventListener('mouseenter', () => { el.style.transform = 'scale(1.1)' })
-        el.addEventListener('mouseleave', () => { el.style.transform = 'scale(1)' })
-        new mapboxgl.Marker({ element: el, anchor: 'center' }).setLngLat([rep.longitude, rep.latitude]).addTo(map.current)
-        markersRef.current.push({ remove: () => el.remove() })
-      }
+      new mapboxgl.Marker(el).setLngLat([rec.longitude, rec.latitude]).addTo(map.current)
+      markersRef.current.push({ remove: () => el.remove() })
     })
   }
 

@@ -216,7 +216,7 @@ export default function ProfilePage() {
         map.current.flyTo({ center: [rec.longitude, rec.latitude], zoom: 13, duration: 800 })
         if (pinColor !== '#1a6b7a' || !isOwner) fetchNearbyHotels(mapboxgl, rec.latitude, rec.longitude)
       })
-      const marker = new mapboxgl.Marker(el).setLngLat([rec.longitude, rec.latitude]).addTo(map.current)
+      const marker = new mapboxgl.Marker({ element: el, anchor: 'center' }).setLngLat([rec.longitude, rec.latitude]).addTo(map.current)
       markersRef.current.push({ remove: () => { el.remove(); marker.remove() } })
     }
 
@@ -298,7 +298,7 @@ export default function ProfilePage() {
             </a>
           </div>`)
 
-        const marker = new mapboxgl.Marker(el)
+        const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
           .setLngLat([hotel.lng, hotel.lat])
           .setPopup(popup)
           .addTo(map.current)

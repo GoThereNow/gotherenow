@@ -203,7 +203,7 @@ export default function Feed() {
         el.addEventListener('click', () => {
           map.current.flyTo({ center: [rep.longitude, rep.latitude], zoom: Math.min(map.current.getZoom() + 3, 14), duration: 600 })
         })
-        const marker = new mapboxgl.Marker(el).setLngLat([rep.longitude, rep.latitude]).addTo(map.current)
+        const marker = new mapboxgl.Marker({ element: el, anchor: 'center' }).setLngLat([rep.longitude, rep.latitude]).addTo(map.current)
         markersList.push({ remove: () => { el.remove(); marker.remove() } })
       }
     })

@@ -23,6 +23,7 @@ export default function Explore() {
   const mapContainer = useRef(null)
   const map = useRef(null)
   const markersRef = useRef([])
+  const nearbyMarkersRef = useRef([])
   const [visibleStays, setVisibleStays] = useState([])
 
   useEffect(() => {
@@ -170,6 +171,39 @@ export default function Explore() {
     }
   }, [filteredStays])
 
+  const fetchNearbyHotels = async (mapboxgl, lat, lng) => {
+    nearbyMarkersRef.current.forEach(m => { try { m.remove() } catch(e) {} })
+    nearbyMarkersRef.current = []
+    try {
+      const res = await fetch('/api/hotel-search?type=nearby&lat=' + lat + '&lng=' + lng)
+      const data = await res.json()
+      if (!data.hotels) return
+      data.hotels.slice(0, 8).forEach(hotel => {
+        const el = document.createElement('div')
+        el.style.cssText = 'width:20px;height:20px;background:white;border:2px solid #1a6b7a;border-radius:50%;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;font-size:8px;color:#1a6b7a;font-weight:700;'
+        el.textContent = '+'
+        const tooltip = document.getElementById('explore-map-tooltip')
+        el.addEventListener('mouseenter', (e) => {
+          if (tooltip) {
+            tooltip.innerHTML = '<div style="padding:10px 12px;"><div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#b5654a;margin-bottom:2px">Nearby</div><div style="font-size:12px;font-weight:700;color:#1a6b7a">' + hotel.name + '</div></div>'
+            tooltip.style.display = 'block'
+            tooltip.style.left = (e.clientX + 12) + 'px'
+            tooltip.style.top = (e.clientY - 40) + 'px'
+          }
+        })
+        el.addEventListener('mousemove', (e) => {
+          if (tooltip) { tooltip.style.left = (e.clientX + 12) + 'px'; tooltip.style.top = (e.clientY - 40) + 'px' }
+        })
+        el.addEventListener('mouseleave', () => { if (tooltip) tooltip.style.display = 'none' })
+        el.addEventListener('click', () => {
+          window.open('https://www.expedia.com/Hotel-Search?destination=' + encodeURIComponent(hotel.name) + '&affcid=xkGKaCc', '_blank')
+        })
+        const marker = new mapboxgl.Marker(el).setLngLat([hotel.lng, hotel.lat]).addTo(map.current)
+        nearbyMarkersRef.current.push({ remove: () => { el.remove(); marker.remove() } })
+      })
+    } catch(e) {}
+  }
+
   const renderMarkers = (mapboxgl, staysToShow) => {
     markersRef.current.forEach(m => { try { m.remove() } catch(e) {} })
     markersRef.current = []
@@ -205,6 +239,11 @@ export default function Explore() {
         tooltip.style.top = (e.clientY - 40) + 'px'
       })
       el.addEventListener('mouseleave', () => { tooltip.style.display = 'none' })
+      el.addEventListener('click', () => {
+        tooltip.style.display = 'none'
+        map.current.flyTo({ center: [stay.longitude, stay.latitude], zoom: 14, duration: 800 })
+        fetchNearbyHotels(mapboxgl, stay.latitude, stay.longitude)
+      })
       const marker = new mapboxgl.Marker(el).setLngLat([stay.longitude, stay.latitude]).addTo(map.current)
       markersRef.current.push({ remove: () => { el.remove(); marker.remove() } })
     })

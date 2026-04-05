@@ -131,6 +131,17 @@ export default function Explore() {
           map.current.resize()
           map.current._mapboxgl = mapboxgl
           renderMarkers(mapboxgl, stays)
+          setVisibleStays(stays)
+          const updateVisible = () => {
+            const bounds = map.current.getBounds()
+            const src = filteredStaysRef.current.length ? filteredStaysRef.current : stays
+            setVisibleStays(src.filter(s => s.latitude && s.longitude && bounds.contains([s.longitude, s.latitude])))
+          }
+          map.current.on('moveend', updateVisible)
+          map.current.on('zoomend', () => {
+            renderMarkers(mapboxgl, filteredStaysRef.current.length ? filteredStaysRef.current : stays)
+            updateVisible()
+          })
         })
 
       })

@@ -124,9 +124,6 @@ export default function Explore() {
         map.current.setMinZoom(0.65)
         map.current.setMaxBounds([[-200, -85], [200, 85]])
         map.current.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right')
-        map.current.on('zoomend', () => {
-          if (map.current._mapboxgl) renderMarkers(map.current._mapboxgl, filteredStaysRef.current.length ? filteredStaysRef.current : stays)
-        })
         map.current.on('load', () => {
           map.current.resize()
           map.current._mapboxgl = mapboxgl
@@ -165,24 +162,29 @@ export default function Explore() {
   const renderMarkers = (mapboxgl, staysToShow) => {
     markersRef.current.forEach(m => { try { m.remove() } catch(e) {} })
     markersRef.current = []
+    // Single shared popup
+    const sharedPopup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 15, className: 'hover-popup' })
     staysToShow.filter(s => s.latitude && s.longitude).forEach(stay => {
       const stayPx = map.current ? map.current.project([stay.longitude, stay.latitude]) : null
       const nearby = stayPx ? staysToShow.filter(s => s !== stay && s.latitude && s.longitude && (() => { const p = map.current.project([s.longitude, s.latitude]); return Math.hypot(stayPx.x-p.x, stayPx.y-p.y) < 14 })()).length : 0
       const el = document.createElement('div')
       el.style.cssText = 'width:24px;height:24px;background:#1a6b7a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;' + (nearby > 0 ? 'display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;font-family:DM Sans,sans-serif;' : '')
       if (nearby > 0) el.textContent = String(nearby + 1)
-      const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 15, className: 'hover-popup' })
-        .setHTML(
-          '<div style="font-family:DM Sans,sans-serif;width:200px;display:flex;border-radius:10px;overflow:hidden;">' +
-          (stay.photo_url ? '<div style="width:70px;flex-shrink:0;background:url(' + stay.photo_url + ') center/cover;"></div>' : '') +
-          '<div style="padding:8px 10px;background:white;flex:1;">' +
-          '<div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#b5654a;margin-bottom:2px">' + ([stay.city, stay.country].filter(Boolean).join(', ')) + '</div>' +
-          '<div style="font-size:12px;font-weight:700;color:#1a6b7a;line-height:1.3">' + stay.hotel_name + '</div>' +
-          (stay.star_rating ? '<div style="font-size:11px;color:#b5654a;margin-top:2px">' + '★'.repeat(stay.star_rating) + '</div>' : '') +
-          '</div></div>'
-        )
-      el.addEventListener('mouseenter', () => popup.setLngLat([stay.longitude, stay.latitude]).addTo(map.current))
-      el.addEventListener('mouseleave', () => popup.remove())
+      el.addEventListener('mouseenter', () => {
+        sharedPopup
+          .setLngLat([stay.longitude, stay.latitude])
+          .setHTML(
+            '<div style="font-family:DM Sans,sans-serif;width:200px;display:flex;border-radius:10px;overflow:hidden;">' +
+            (stay.photo_url ? '<div style="width:70px;flex-shrink:0;background:url(' + stay.photo_url + ') center/cover;"></div>' : '') +
+            '<div style="padding:8px 10px;background:white;flex:1;">' +
+            '<div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#b5654a;margin-bottom:2px">' + ([stay.city, stay.country].filter(Boolean).join(', ')) + '</div>' +
+            '<div style="font-size:12px;font-weight:700;color:#1a6b7a;line-height:1.3">' + stay.hotel_name + '</div>' +
+            (stay.star_rating ? '<div style="font-size:11px;color:#b5654a;margin-top:2px">' + '★'.repeat(stay.star_rating) + '</div>' : '') +
+            '</div></div>'
+          )
+          .addTo(map.current)
+      })
+      el.addEventListener('mouseleave', () => sharedPopup.remove())
       const marker = new mapboxgl.Marker(el).setLngLat([stay.longitude, stay.latitude]).addTo(map.current)
       markersRef.current.push({ remove: () => { el.remove(); marker.remove() } })
     })
@@ -251,10 +253,8 @@ export default function Explore() {
         .empty { text-align: center; padding: 80px 0; color: rgba(26,107,122,0.3); font-size: 14px; }
         .explore-map-container { border-radius: 16px; overflow: hidden; border: 1px solid rgba(26,107,122,0.15); aspect-ratio: 2/1.4; box-shadow: 0 4px 20px rgba(26,107,122,0.1); position: sticky; top: 80px; }
         .hover-popup { z-index: 999 !important; }
-        .hover-popup .mapboxgl-popup-content { z-index: 999 !important; padding: 0 !important; border-radius: 10px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+        .hover-popup .mapboxgl-popup-content { padding: 0 !important; border-radius: 10px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
         .hover-popup .mapboxgl-popup-tip { display: none; }
-        .mapboxgl-popup-content { padding: 0 !important; box-shadow: none !important; background: transparent !important; }
-        .mapboxgl-popup:not(.hover-popup) { display: none !important; }
 
         @media (max-width: 1024px) { .creators-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 768px) { .explore-side-by-side { flex-direction: column !important; } .explore-map-side { width: 100% !important; } .explore-map-container { aspect-ratio: 4/3; position: static; } }

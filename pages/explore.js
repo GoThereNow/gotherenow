@@ -251,9 +251,10 @@ export default function Explore() {
         .empty { text-align: center; padding: 80px 0; color: rgba(26,107,122,0.3); font-size: 14px; }
         .explore-map-container { border-radius: 16px; overflow: hidden; border: 1px solid rgba(26,107,122,0.15); aspect-ratio: 2/1.4; box-shadow: 0 4px 20px rgba(26,107,122,0.1); position: sticky; top: 80px; }
         .hover-popup { z-index: 999 !important; }
-        .hover-popup .mapboxgl-popup-content { z-index: 999 !important; padding: 0; border-radius: 10px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.2); background: transparent; }
+        .hover-popup .mapboxgl-popup-content { z-index: 999 !important; padding: 0 !important; border-radius: 10px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
         .hover-popup .mapboxgl-popup-tip { display: none; }
-        .mapboxgl-popup { pointer-events: none; }
+        .mapboxgl-popup-content { padding: 0 !important; box-shadow: none !important; background: transparent !important; }
+        .mapboxgl-popup:not(.hover-popup) { display: none !important; }
 
         @media (max-width: 1024px) { .creators-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 768px) { .explore-side-by-side { flex-direction: column !important; } .explore-map-side { width: 100% !important; } .explore-map-container { aspect-ratio: 4/3; position: static; } }

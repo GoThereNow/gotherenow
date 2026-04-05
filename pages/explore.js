@@ -135,10 +135,16 @@ export default function Explore() {
             setVisibleStays(src.filter(s => s.latitude && s.longitude && bounds.contains([s.longitude, s.latitude])))
           }
           map.current.on('moveend', updateVisible)
-          // Hide tooltip when mouse leaves map container
+          // Hide tooltip when not over a pin
           mapContainer.current.addEventListener('mouseleave', () => {
             const t = document.getElementById('explore-map-tooltip')
             if (t) t.style.display = 'none'
+          })
+          mapContainer.current.addEventListener('mousemove', (e) => {
+            if (e.target === mapContainer.current || e.target.closest('.mapboxgl-canvas-container')) {
+              const t = document.getElementById('explore-map-tooltip')
+              if (t) t.style.display = 'none'
+            }
           })
           map.current.on('zoomend', () => {
             renderMarkers(mapboxgl, filteredStaysRef.current.length ? filteredStaysRef.current : stays)

@@ -240,9 +240,9 @@ export default function Explore() {
       })
       el.addEventListener('mouseleave', () => { tooltip.style.display = 'none' })
       el.addEventListener('click', () => {
-        tooltip.style.display = 'none'
+        if (tooltip) tooltip.style.display = 'none'
         map.current.flyTo({ center: [stay.longitude, stay.latitude], zoom: 14, duration: 800 })
-        fetchNearbyHotels(mapboxgl, stay.latitude, stay.longitude)
+        fetchNearbyHotels(map.current._mapboxgl, stay.latitude, stay.longitude)
       })
       const marker = new mapboxgl.Marker(el).setLngLat([stay.longitude, stay.latitude]).addTo(map.current)
       markersRef.current.push({ remove: () => { el.remove(); marker.remove() } })

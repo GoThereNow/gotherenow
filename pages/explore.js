@@ -162,29 +162,38 @@ export default function Explore() {
   const renderMarkers = (mapboxgl, staysToShow) => {
     markersRef.current.forEach(m => { try { m.remove() } catch(e) {} })
     markersRef.current = []
-    // Single shared popup
-    const sharedPopup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 15, className: 'hover-popup' })
+    // Shared tooltip div - no Mapbox popup used
+    let tooltip = document.getElementById('explore-map-tooltip')
+    if (!tooltip) {
+      tooltip = document.createElement('div')
+      tooltip.id = 'explore-map-tooltip'
+      tooltip.style.cssText = 'position:fixed;background:white;border-radius:10px;overflow:hidden;width:200px;display:none;pointer-events:none;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,0.15);'
+      document.body.appendChild(tooltip)
+    }
     staysToShow.filter(s => s.latitude && s.longitude).forEach(stay => {
       const stayPx = map.current ? map.current.project([stay.longitude, stay.latitude]) : null
       const nearby = stayPx ? staysToShow.filter(s => s !== stay && s.latitude && s.longitude && (() => { const p = map.current.project([s.longitude, s.latitude]); return Math.hypot(stayPx.x-p.x, stayPx.y-p.y) < 14 })()).length : 0
       const el = document.createElement('div')
       el.style.cssText = 'width:24px;height:24px;background:#1a6b7a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;' + (nearby > 0 ? 'display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;font-family:DM Sans,sans-serif;' : '')
       if (nearby > 0) el.textContent = String(nearby + 1)
-      el.addEventListener('mouseenter', () => {
-        sharedPopup
-          .setLngLat([stay.longitude, stay.latitude])
-          .setHTML(
-            '<div style="font-family:DM Sans,sans-serif;width:200px;display:flex;border-radius:10px;overflow:hidden;">' +
-            (stay.photo_url ? '<div style="width:70px;flex-shrink:0;background:url(' + stay.photo_url + ') center/cover;"></div>' : '') +
-            '<div style="padding:8px 10px;background:white;flex:1;">' +
-            '<div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#b5654a;margin-bottom:2px">' + ([stay.city, stay.country].filter(Boolean).join(', ')) + '</div>' +
-            '<div style="font-size:12px;font-weight:700;color:#1a6b7a;line-height:1.3">' + stay.hotel_name + '</div>' +
-            (stay.star_rating ? '<div style="font-size:11px;color:#b5654a;margin-top:2px">' + '★'.repeat(stay.star_rating) + '</div>' : '') +
-            '</div></div>'
-          )
-          .addTo(map.current)
+      el.addEventListener('mouseenter', (e) => {
+        tooltip.innerHTML =
+          '<div style="display:flex;">' +
+          (stay.photo_url ? '<div style="width:70px;flex-shrink:0;background:url(' + stay.photo_url + ') center/cover;"></div>' : '') +
+          '<div style="padding:8px 10px;flex:1;">' +
+          '<div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#b5654a;margin-bottom:2px">' + ([stay.city, stay.country].filter(Boolean).join(', ')) + '</div>' +
+          '<div style="font-size:12px;font-weight:700;color:#1a6b7a;line-height:1.3">' + stay.hotel_name + '</div>' +
+          (stay.star_rating ? '<div style="font-size:11px;color:#b5654a;margin-top:2px">' + '★'.repeat(stay.star_rating) + '</div>' : '') +
+          '</div></div>'
+        tooltip.style.display = 'block'
+        tooltip.style.left = (e.clientX + 12) + 'px'
+        tooltip.style.top = (e.clientY - 40) + 'px'
       })
-      el.addEventListener('mouseleave', () => sharedPopup.remove())
+      el.addEventListener('mousemove', (e) => {
+        tooltip.style.left = (e.clientX + 12) + 'px'
+        tooltip.style.top = (e.clientY - 40) + 'px'
+      })
+      el.addEventListener('mouseleave', () => { tooltip.style.display = 'none' })
       const marker = new mapboxgl.Marker(el).setLngLat([stay.longitude, stay.latitude]).addTo(map.current)
       markersRef.current.push({ remove: () => { el.remove(); marker.remove() } })
     })

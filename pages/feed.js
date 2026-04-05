@@ -326,7 +326,9 @@ export default function Feed() {
         .content { padding: 32px 56px; }
         .feed-map-container { border-radius: 16px; overflow: hidden; border: 1px solid rgba(26,107,122,0.15); aspect-ratio: 2/1.4; box-shadow: 0 4px 20px rgba(26,107,122,0.1); }
         .hover-popup { z-index: 999 !important; }
-        .hover-popup .mapboxgl-popup-content { z-index: 999 !important; padding: 0; border-radius: 10px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+        .hover-popup .mapboxgl-popup-content { z-index: 999 !important; padding: 0; border-radius: 10px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.2); background: transparent; }
+        .hover-popup .mapboxgl-popup-tip { display: none; }
+        .mapboxgl-popup { pointer-events: none; }
         .section-eyebrow { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #b5654a; font-weight: 700; margin-bottom: 6px; }
         .section-title { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: #1a6b7a; margin-bottom: 14px; }
         .feed-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }

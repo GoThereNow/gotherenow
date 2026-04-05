@@ -172,7 +172,6 @@ export default function Explore() {
       el.style.cssText = 'width:24px;height:24px;background:#1a6b7a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;' + (nearby > 0 ? 'display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;font-family:DM Sans,sans-serif;' : '')
       if (nearby > 0) el.textContent = String(nearby + 1)
       const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 15, className: 'hover-popup' })
-        .setLngLat([stay.longitude, stay.latitude])
         .setHTML(
           '<div style="font-family:DM Sans,sans-serif;width:200px;display:flex;border-radius:10px;overflow:hidden;">' +
           (stay.photo_url ? '<div style="width:70px;flex-shrink:0;background:url(' + stay.photo_url + ') center/cover;"></div>' : '') +
@@ -182,7 +181,7 @@ export default function Explore() {
           (stay.star_rating ? '<div style="font-size:11px;color:#b5654a;margin-top:2px">' + '★'.repeat(stay.star_rating) + '</div>' : '') +
           '</div></div>'
         )
-      el.addEventListener('mouseenter', () => popup.addTo(map.current))
+      el.addEventListener('mouseenter', () => popup.setLngLat([stay.longitude, stay.latitude]).addTo(map.current))
       el.addEventListener('mouseleave', () => popup.remove())
       const marker = new mapboxgl.Marker(el).setLngLat([stay.longitude, stay.latitude]).addTo(map.current)
       markersRef.current.push({ remove: () => { el.remove(); marker.remove() } })
@@ -252,7 +251,9 @@ export default function Explore() {
         .empty { text-align: center; padding: 80px 0; color: rgba(26,107,122,0.3); font-size: 14px; }
         .explore-map-container { border-radius: 16px; overflow: hidden; border: 1px solid rgba(26,107,122,0.15); aspect-ratio: 2/1.4; box-shadow: 0 4px 20px rgba(26,107,122,0.1); position: sticky; top: 80px; }
         .hover-popup { z-index: 999 !important; }
-        .hover-popup .mapboxgl-popup-content { z-index: 999 !important; padding: 0; border-radius: 10px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+        .hover-popup .mapboxgl-popup-content { z-index: 999 !important; padding: 0; border-radius: 10px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.2); background: transparent; }
+        .hover-popup .mapboxgl-popup-tip { display: none; }
+        .mapboxgl-popup { pointer-events: none; }
 
         @media (max-width: 1024px) { .creators-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 768px) { .explore-side-by-side { flex-direction: column !important; } .explore-map-side { width: 100% !important; } .explore-map-container { aspect-ratio: 4/3; position: static; } }

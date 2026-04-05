@@ -219,7 +219,7 @@ export default function Explore() {
       const stayPx = map.current ? map.current.project([stay.longitude, stay.latitude]) : null
       const nearby = stayPx ? staysToShow.filter(s => s !== stay && s.latitude && s.longitude && (() => { const p = map.current.project([s.longitude, s.latitude]); return Math.hypot(stayPx.x-p.x, stayPx.y-p.y) < 14 })()).length : 0
       const el = document.createElement('div')
-      el.style.cssText = 'width:24px;height:24px;background:#1a6b7a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;' + (nearby > 0 ? 'display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;font-family:DM Sans,sans-serif;' : '')
+      el.style.cssText = 'width:24px;height:24px;background:#1a6b7a;border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:2;pointer-events:auto;' + (nearby > 0 ? 'display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;font-family:DM Sans,sans-serif;' : '')
       if (nearby > 0) el.textContent = String(nearby + 1)
       el.addEventListener('mouseenter', (e) => {
         tooltip.innerHTML =
@@ -310,6 +310,7 @@ export default function Explore() {
         .creator-stat strong { font-weight: 700; color: #1a6b7a; display: block; font-size: 14px; }
 
         .empty { text-align: center; padding: 80px 0; color: rgba(26,107,122,0.3); font-size: 14px; }
+        .mapboxgl-marker { pointer-events: auto !important; cursor: pointer !important; }
         .explore-map-container { border-radius: 16px; overflow: hidden; border: 1px solid rgba(26,107,122,0.15); aspect-ratio: 2/1.4; box-shadow: 0 4px 20px rgba(26,107,122,0.1); position: sticky; top: 80px; }
         .hover-popup { z-index: 999 !important; }
         .hover-popup .mapboxgl-popup-content { padding: 0 !important; border-radius: 10px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.2); }

@@ -1,8 +1,8 @@
 export const dynamic = 'force-dynamic'
 const EXPEDIA_AFFILIATE = 'xkGKaCc'
 function buildExpediaUrl(hotelName, city, country) {
-  const destination = [hotelName, city, country].filter(Boolean).join(', ')
-  return `https://www.expedia.com/Hotel-Search?destination=${encodeURIComponent(destination)}&affcid=${EXPEDIA_AFFILIATE}`
+  const query = [hotelName, city, country].filter(Boolean).join(' ')
+  return `https://www.expedia.com/search?query=${encodeURIComponent(query)}&affcid=${EXPEDIA_AFFILIATE}`
 }
 
 import { useEffect, useState, useRef } from 'react'
@@ -28,11 +28,9 @@ export default function Explore() {
 
   useEffect(() => {
     async function fetchData() {
-      // Get current user
       const { data: { session } } = await supabase.auth.getSession()
       setCurrentUser(session?.user || null)
 
-      // Fetch all stays with creator info
       const { data: recs } = await supabase
         .from('recommendations')
         .select('*, influencers(handle, profiles(full_name, avatar_url))')
@@ -40,7 +38,6 @@ export default function Explore() {
         .limit(60)
       setStays(recs || [])
 
-      // Fetch all creators
       const { data: infs } = await supabase
         .from('influencers')
         .select('*, profiles(full_name, avatar_url, bio)')
@@ -48,7 +45,6 @@ export default function Explore() {
         .order('created_at', { ascending: false })
 
       if (infs && infs.length > 0) {
-        // Fetch real follower counts
         const { data: followCounts } = await supabase
           .from('follows')
           .select('influencer_id')
@@ -60,7 +56,6 @@ export default function Explore() {
         setCreators([])
       }
 
-      // Fetch likes
       if (recs?.length > 0) {
         const recIds = recs.map(r => r.id)
         const { data: likesData } = await supabase
@@ -105,7 +100,6 @@ export default function Explore() {
     c.handle?.toLowerCase().includes(search.toLowerCase())
   )
 
-  // Init map
   useEffect(() => {
     if (loading || !stays.length || map.current || activeTab !== 'stays') return
     setTimeout(() => {
@@ -136,7 +130,6 @@ export default function Explore() {
             setVisibleStays(src.filter(s => s.latitude && s.longitude && bounds.contains([s.longitude, s.latitude])))
           }
           map.current.on('moveend', updateVisible)
-          // Hide tooltip when not over a pin
           mapContainer.current.addEventListener('mouseleave', () => {
             const t = document.getElementById('explore-map-tooltip')
             if (t) t.style.display = 'none'
@@ -152,7 +145,6 @@ export default function Explore() {
             updateVisible()
           })
         })
-
       })
     }, 200)
   }, [loading, stays, activeTab])
@@ -196,7 +188,7 @@ export default function Explore() {
         })
         el.addEventListener('mouseleave', () => { if (tooltip) tooltip.style.display = 'none' })
         el.addEventListener('click', () => {
-          window.open('https://www.expedia.com/Hotel-Search?destination=' + encodeURIComponent(hotel.name) + '&affcid=xkGKaCc', '_blank')
+          window.open('https://www.expedia.com/search?query=' + encodeURIComponent(hotel.name) + '&affcid=xkGKaCc', '_blank')
         })
         const marker = new mapboxgl.Marker(el).setLngLat([hotel.lng, hotel.lat]).addTo(map.current)
         nearbyMarkersRef.current.push({ remove: () => { el.remove(); marker.remove() } })
@@ -207,7 +199,6 @@ export default function Explore() {
   const renderMarkers = (mapboxgl, staysToShow) => {
     markersRef.current.forEach(m => { try { m.remove() } catch(e) {} })
     markersRef.current = []
-    // Shared tooltip div - no Mapbox popup used
     let tooltip = document.getElementById('explore-map-tooltip')
     if (!tooltip) {
       tooltip = document.createElement('div')
@@ -249,8 +240,6 @@ export default function Explore() {
     })
   }
 
-
-
   return (
     <div style={{ background: '#f7f5f2', minHeight: '100vh', fontFamily: 'DM Sans, sans-serif' }}>
       <Head>
@@ -272,7 +261,6 @@ export default function Explore() {
         .tab-btn { padding: 16px 24px; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: rgba(26,107,122,0.35); background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; font-family: 'DM Sans', sans-serif; margin-bottom: -1px; }
         .tab-btn.active { color: #1a6b7a; border-bottom-color: #1a6b7a; }
         .content { padding: 40px 56px; }
-
         .stays-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
         .stay-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(26,107,122,0.08); border: 1px solid rgba(26,107,122,0.06); transition: transform 0.2s; cursor: pointer; }
         .stay-card:hover { transform: translateY(-3px); box-shadow: 0 8px 32px rgba(26,107,122,0.15); }
@@ -296,7 +284,6 @@ export default function Explore() {
         .like-btn { background: none; border: none; cursor: pointer; font-size: 12px; color: rgba(26,107,122,0.5); font-weight: 600; padding: 0; display: flex; align-items: center; gap: 4px; }
         .like-btn.liked { color: #e05c7a; }
         .book-btn { margin-left: auto; font-size: 11px; font-weight: 700; color: #b5654a; background: none; border: none; cursor: pointer; padding: 0; }
-
         .creators-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
         .creator-card { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(26,107,122,0.08); border: 1px solid rgba(26,107,122,0.06); text-decoration: none; display: block; transition: transform 0.2s; }
         .creator-card:hover { transform: translateY(-3px); }
@@ -308,14 +295,12 @@ export default function Explore() {
         .creator-stats { display: flex; gap: 16px; }
         .creator-stat { font-size: 11px; color: rgba(26,107,122,0.5); }
         .creator-stat strong { font-weight: 700; color: #1a6b7a; display: block; font-size: 14px; }
-
         .empty { text-align: center; padding: 80px 0; color: rgba(26,107,122,0.3); font-size: 14px; }
         .mapboxgl-marker { pointer-events: auto !important; cursor: pointer !important; }
         .explore-map-container { border-radius: 16px; overflow: hidden; border: 1px solid rgba(26,107,122,0.15); aspect-ratio: 2/1.4; box-shadow: 0 4px 20px rgba(26,107,122,0.1); position: sticky; top: 80px; }
         .hover-popup { z-index: 999 !important; }
         .hover-popup .mapboxgl-popup-content { padding: 0 !important; border-radius: 10px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
         .hover-popup .mapboxgl-popup-tip { display: none; }
-
         @media (max-width: 1024px) { .creators-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 768px) { .explore-side-by-side { flex-direction: column !important; } .explore-map-side { width: 100% !important; } .explore-map-container { aspect-ratio: 4/3; position: static; } }
         @media (max-width: 768px) {
@@ -368,57 +353,57 @@ export default function Explore() {
                 <div className="explore-map-container" ref={mapContainer} />
               </div>
               <div style={{flex:1, minWidth:0, maxHeight:'600px', overflowY:'auto'}}>
-              <div style={{fontSize:'11px', color:'rgba(26,107,122,0.45)', marginBottom:'10px', letterSpacing:'1px'}}>
-                {visibleStays.length} {visibleStays.length === 1 ? 'stay' : 'stays'} in view
-              </div>
-            <div className="stays-grid" style={{gridTemplateColumns:'repeat(2,1fr)'}}>
-              {(visibleStays.length > 0 ? visibleStays : filteredStays).map(stay => (
-                <div key={stay.id} className="stay-card">
-                  <Link href={`/${stay.influencers?.handle}`} style={{textDecoration:'none'}}>
-                    <div className="stay-card-photo">
-                      {stay.photo_url ? (
-                        <>
-                          <img src={stay.photo_url} alt={stay.hotel_name} className="stay-card-img" />
-                          <div className="stay-card-gradient" />
-                          <div className="stay-card-overlay">
-                            <div className="stay-card-loc">📍 {[stay.city, stay.country].filter(Boolean).join(', ')}</div>
-                            <div className="stay-card-name">{stay.hotel_name}</div>
-                          </div>
-                        </>
-                      ) : (
-                        <div className="stay-card-nophoto">🏨</div>
-                      )}
-                    </div>
-                  </Link>
-                  <div className="stay-card-body">
-                    {!stay.photo_url && (
-                      <>
-                        <div className="stay-card-name-dark">{stay.hotel_name}</div>
-                        {stay.star_rating > 0 && <div style={{fontSize:'12px', color:'#b5654a', marginBottom:'4px', letterSpacing:'1px'}}>{'★'.repeat(stay.star_rating)}</div>}
-                        <div className="stay-card-loc-body">📍 {[stay.city, stay.country].filter(Boolean).join(', ')}</div>
-                      </>
-                    )}
-                    {stay.photo_url && stay.star_rating > 0 && <div style={{fontSize:'12px', color:'#b5654a', marginBottom:'6px', letterSpacing:'1px'}}>{'★'.repeat(stay.star_rating)}</div>}
-                    <div className="stay-card-creator">
-                      <div className="creator-avatar-sm">
-                        {stay.influencers?.profiles?.avatar_url
-                          ? <img src={stay.influencers.profiles.avatar_url} alt="" />
-                          : '✈️'}
-                      </div>
-                      <Link href={`/${stay.influencers?.handle}`} style={{textDecoration:'none'}}>
-                        <span className="creator-name-sm">{stay.influencers?.profiles?.full_name || stay.influencers?.handle}</span>
-                      </Link>
-                    </div>
-                    <div className="stay-card-actions">
-                      <button className={`like-btn${userLikes[stay.id] ? ' liked' : ''}`} onClick={() => toggleLike(stay.id)}>
-                        {userLikes[stay.id] ? '❤️' : '🤍'} {likes[stay.id] > 0 ? likes[stay.id] : ''}
-                      </button>
-                      <a href={buildExpediaUrl(stay.hotel_name, stay.city, stay.country)} target="_blank" rel="noopener noreferrer" className="book-btn">Book Now →</a>
-                    </div>
-                  </div>
+                <div style={{fontSize:'11px', color:'rgba(26,107,122,0.45)', marginBottom:'10px', letterSpacing:'1px'}}>
+                  {visibleStays.length} {visibleStays.length === 1 ? 'stay' : 'stays'} in view
                 </div>
-              ))}
-            </div>
+                <div className="stays-grid" style={{gridTemplateColumns:'repeat(2,1fr)'}}>
+                  {(visibleStays.length > 0 ? visibleStays : filteredStays).map(stay => (
+                    <div key={stay.id} className="stay-card">
+                      <Link href={`/${stay.influencers?.handle}`} style={{textDecoration:'none'}}>
+                        <div className="stay-card-photo">
+                          {stay.photo_url ? (
+                            <>
+                              <img src={stay.photo_url} alt={stay.hotel_name} className="stay-card-img" />
+                              <div className="stay-card-gradient" />
+                              <div className="stay-card-overlay">
+                                <div className="stay-card-loc">📍 {[stay.city, stay.country].filter(Boolean).join(', ')}</div>
+                                <div className="stay-card-name">{stay.hotel_name}</div>
+                              </div>
+                            </>
+                          ) : (
+                            <div className="stay-card-nophoto">🏨</div>
+                          )}
+                        </div>
+                      </Link>
+                      <div className="stay-card-body">
+                        {!stay.photo_url && (
+                          <>
+                            <div className="stay-card-name-dark">{stay.hotel_name}</div>
+                            {stay.star_rating > 0 && <div style={{fontSize:'12px', color:'#b5654a', marginBottom:'4px', letterSpacing:'1px'}}>{'★'.repeat(stay.star_rating)}</div>}
+                            <div className="stay-card-loc-body">📍 {[stay.city, stay.country].filter(Boolean).join(', ')}</div>
+                          </>
+                        )}
+                        {stay.photo_url && stay.star_rating > 0 && <div style={{fontSize:'12px', color:'#b5654a', marginBottom:'6px', letterSpacing:'1px'}}>{'★'.repeat(stay.star_rating)}</div>}
+                        <div className="stay-card-creator">
+                          <div className="creator-avatar-sm">
+                            {stay.influencers?.profiles?.avatar_url
+                              ? <img src={stay.influencers.profiles.avatar_url} alt="" />
+                              : '✈️'}
+                          </div>
+                          <Link href={`/${stay.influencers?.handle}`} style={{textDecoration:'none'}}>
+                            <span className="creator-name-sm">{stay.influencers?.profiles?.full_name || stay.influencers?.handle}</span>
+                          </Link>
+                        </div>
+                        <div className="stay-card-actions">
+                          <button className={`like-btn${userLikes[stay.id] ? ' liked' : ''}`} onClick={() => toggleLike(stay.id)}>
+                            {userLikes[stay.id] ? '❤️' : '🤍'} {likes[stay.id] > 0 ? likes[stay.id] : ''}
+                          </button>
+                          <a href={buildExpediaUrl(stay.hotel_name, stay.city, stay.country)} target="_blank" rel="noopener noreferrer" className="book-btn">Book Now →</a>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )
